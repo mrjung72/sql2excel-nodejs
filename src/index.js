@@ -261,12 +261,22 @@ async function main() {
   const workbook = new ExcelJS.Workbook();
   const createdSheetNames = [];
 
+  // 목차 시트를 맨 처음에 생성 (내용은 나중에 채움)
+  let tocSheet = null;
+  
   for (const sheetDef of sheets) {
     // robust use 속성 체크
     if (!isSheetEnabled(sheetDef)) {
       console.log(`[SKIP] Sheet '${sheetDef.name}' is disabled (use=false)`);
       continue;
     }
+    
+    // 첫 번째 활성 시트일 때 목차 시트 생성
+    if (!tocSheet) {
+      tocSheet = workbook.addWorksheet('목차');
+      console.log(`[목차] 맨 첫 번째 시트로 생성됨`);
+    }
+    
     const sql = substituteVars(sheetDef.query, mergedVars);
     const sheetName = substituteVars(sheetDef.name, mergedVars);
     console.log(`[INFO] Executing for sheet '${sheetName}'`);
@@ -285,12 +295,11 @@ async function main() {
       console.log('\n-------------------------------------------------------------------------------');
     }
   }
-  // 목차 시트 추가
-  if (createdSheetNames.length > 0) {
-    const tocSheet = excelStyleHelper.createTableOfContents(workbook, createdSheetNames);
-    
-    // 목차 시트를 첫 번째로 이동
-    workbook.worksheets = [tocSheet, ...workbook.worksheets.filter(ws => ws.name !== '목차')];
+  
+  // 목차 시트 내용 채우기 (시트는 이미 맨 처음에 생성됨)
+  if (createdSheetNames.length > 0 && tocSheet) {
+    excelStyleHelper.populateTableOfContents(tocSheet, createdSheetNames);
+    console.log(`[목차] 시트 내용 생성 완료 (맨 왼쪽 위치)`);
 
     // 별도 목차 엑셀 파일 생성
     const tocWb = new ExcelJS.Workbook();

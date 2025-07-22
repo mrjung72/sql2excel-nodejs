@@ -291,7 +291,76 @@ function createTableOfContents(workbook, sheetNames) {
   // 헤더 스타일
   tocSheet.getRow(1).font = { bold: true };
 
+  // 시트 탭을 맨 왼쪽에 위치하도록 설정
+  tocSheet.state = 'visible';
+  tocSheet.properties.tabColor = { argb: 'FF4472C4' }; // 파란색 탭으로 구분
+
   return tocSheet;
+}
+
+/**
+ * 기존 목차 시트에 내용을 채우는 함수 (시트는 이미 생성된 상태)
+ * @param {Object} tocSheet - 이미 생성된 목차 시트 객체
+ * @param {Array} sheetNames - 시트명 배열
+ */
+function populateTableOfContents(tocSheet, sheetNames) {
+  // 기존 내용 모두 삭제
+  tocSheet.spliceRows(1, tocSheet.rowCount);
+  
+  // 헤더 추가
+  tocSheet.addRow(['No', 'Sheet Name']);
+  
+  // 시트 목록 추가
+  sheetNames.forEach((obj, idx) => {
+    const row = tocSheet.addRow([idx + 1, obj.displayName]);
+    
+    // 하이퍼링크 설정 - HYPERLINK 함수 사용 (호환성 최적)
+    const sheetNameForLink = obj.tabName.replace(/'/g, "''"); // 작은따옴표 이스케이프
+    const displayNameForFormula = obj.displayName.replace(/"/g, '""'); // 큰따옴표 이스케이프
+    
+    // HYPERLINK 함수를 사용한 내부 링크 (Excel에서 가장 안정적)
+    const hyperlinkFormula = `HYPERLINK("#'${sheetNameForLink}'!A1","${displayNameForFormula}")`;
+    
+    try {
+      row.getCell(2).value = { formula: hyperlinkFormula };
+      row.getCell(2).font = { 
+        color: { argb: '0563C1' }, 
+        underline: true 
+      };
+    } catch (error) {
+      // HYPERLINK 함수 실패 시 직접 하이퍼링크 방식 시도
+      try {
+        row.getCell(2).value = {
+          text: obj.displayName,
+          hyperlink: `#'${sheetNameForLink}'!A1`
+        };
+        row.getCell(2).font = { 
+          color: { argb: '0563C1' }, 
+          underline: true 
+        };
+      } catch (error2) {
+        // 모든 방법 실패 시 일반 텍스트로 표시
+        row.getCell(2).value = obj.displayName;
+        row.getCell(2).font = { 
+          color: { argb: '0563C1' } 
+        };
+        console.warn(`[WARN] Hyperlink creation failed for sheet: ${obj.displayName}`);
+      }
+    }
+  });
+
+  // 컬럼 설정
+  tocSheet.columns = [
+    { header: 'No', key: 'no', width: 6 },
+    { header: 'Sheet Name', key: 'name', width: 30 }
+  ];
+
+  // 헤더 스타일
+  tocSheet.getRow(1).font = { bold: true };
+
+  // 시트 탭을 맨 왼쪽에 위치하도록 설정
+  tocSheet.state = 'visible';
+  tocSheet.properties.tabColor = { argb: 'FF4472C4' }; // 파란색 탭으로 구분
 }
 
 /**
@@ -403,5 +472,6 @@ module.exports = {
   calculateColumnWidths,
   applySheetStyle,
   createTableOfContents,
+  populateTableOfContents,
   createExternalTableOfContents
 }; 
