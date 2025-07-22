@@ -252,6 +252,42 @@ node test/test-excel-style-helper.js
 node test/test-exceljs-style.js
 ```
 
+### 샘플 데이터베이스 설정
+
+프로젝트에는 테스트용 샘플 데이터베이스 스크립트가 포함되어 있습니다.
+
+#### 1단계: 테이블 생성
+```sql
+-- SQL Server Management Studio에서 실행
+-- 파일: resources/create_sample_tables.sql
+-- 생성되는 테이블: Customers, Orders, OrderDetails + vw_OrderSummary 뷰
+```
+
+#### 2단계: 샘플 데이터 입력
+```sql
+-- 파일: resources/insert_sample_data.sql
+-- 입력되는 데이터:
+-- - 고객 13개 (국내 + 해외)
+-- - 주문 13개 (완료/처리중/취소)
+-- - 주문상세 18개
+```
+
+#### 3단계: 샘플 쿼리 실행
+```bash
+# 주문관리 보고서 생성 (10개 시트)
+node src/index.js -q resources/queries-sample-orders.json
+
+# 생성되는 시트:
+# - 전체_고객_목록, 활성_고객_목록, 주요지역_고객
+# - 전체_주문_목록, 기간별_주문, 처리중_주문, 주문_상세_내역
+# - 고객별_주문_집계, 월별_매출_집계, 지역별_매출_분석
+```
+
+#### 포함된 샘플 데이터
+- **고객**: 삼성전자, LG전자, 현대자동차, 신세계백화점, 부산항만공사, 롯데백화점, 대구은행, 인천공항, 기아자동차, KAIST, Sony, Apple 등
+- **주문**: 2024년 1월~4월 주문 데이터 (배송완료/처리중/취소 상태 포함)
+- **상품**: 갤럭시 S24, LG OLED TV, 현대차 부품, 명품 핸드백, 항만시스템, 보안솔루션 등
+
 ---
 
 ## 7. 배포

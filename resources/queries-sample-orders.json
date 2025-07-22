@@ -1,0 +1,87 @@
+{
+  "excel": {
+    "db": "main",
+    "output": "output/주문관리_보고서_${reportDate}.xlsx",
+    "header": {
+      "font": { "name": "맑은 고딕", "size": 12, "color": "FFFFFF", "bold": true },
+      "fill": { "color": "4F81BD" },
+      "alignment": { "horizontal": "center", "vertical": "middle" },
+      "border": {
+        "all": { "style": "thin", "color": "000000" }
+      },
+      "colwidths": { "min": 10, "max": 30 }
+    },
+    "body": {
+      "font": { "name": "맑은 고딕", "size": 11, "color": "000000", "bold": false },
+      "fill": { "color": "FFFFCC" },
+      "alignment": { "horizontal": "left", "vertical": "middle" },
+      "border": {
+        "all": { "style": "thin", "color": "CCCCCC" }
+      }
+    }
+  },
+  "vars": {
+    "reportDate": "2024-12-30",
+    "startDate": "2024-01-01",
+    "endDate": "2024-12-31",
+    "regionList": "'서울','부산','대구'",
+    "statusList": "'Shipped','Processing','Pending'"
+  },
+  "sheets": [
+    {
+      "name": "전체_고객_목록",
+      "use": true,
+      "query": "SELECT CustomerCode as 고객코드, CustomerName as 고객명, ContactName as 담당자명, Email as 이메일, Phone as 전화번호, City as 도시, Region as 지역, CustomerType as 고객유형, CreditLimit as 신용한도, CASE WHEN IsActive = 1 THEN '활성' ELSE '비활성' END as 상태, FORMAT(CreatedDate, 'yyyy-MM-dd') as 등록일 FROM SampleDB.dbo.Customers ORDER BY CustomerID"
+    },
+    {
+      "name": "활성_고객_목록",
+      "use": true,
+      "query": "SELECT CustomerCode as 고객코드, CustomerName as 고객명, ContactName as 담당자명, Email as 이메일, Phone as 전화번호, City as 도시, Region as 지역, CustomerType as 고객유형, FORMAT(CreditLimit, 'N0') as 신용한도, FORMAT(CreatedDate, 'yyyy-MM-dd') as 등록일 FROM SampleDB.dbo.Customers WHERE IsActive = 1 ORDER BY CreditLimit DESC"
+    },
+    {
+      "name": "주요지역_고객",
+      "use": true,
+      "query": "SELECT CustomerCode as 고객코드, CustomerName as 고객명, ContactName as 담당자명, City as 도시, Region as 지역, CustomerType as 고객유형, FORMAT(CreditLimit, 'N0') as 신용한도 FROM SampleDB.dbo.Customers WHERE Region IN (${regionList}) AND IsActive = 1 ORDER BY Region, CreditLimit DESC"
+    },
+    {
+      "name": "전체_주문_목록",
+      "use": true,
+      "query": "SELECT OrderNumber as 주문번호, OrderDate as 주문일, RequiredDate as 요청일, ShippedDate as 배송일, OrderStatus as 주문상태, PaymentStatus as 결제상태, FORMAT(TotalAmount, 'N0') as 총금액, PaymentMethod as 결제방법, ShipVia as 배송업체, Notes as 비고 FROM SampleDB.dbo.Orders ORDER BY OrderDate DESC"
+    },
+    {
+      "name": "기간별_주문",
+      "use": true,
+      "query": "SELECT o.OrderNumber as 주문번호, FORMAT(o.OrderDate, 'yyyy-MM-dd') as 주문일, c.CustomerName as 고객명, c.Region as 지역, o.OrderStatus as 주문상태, o.PaymentStatus as 결제상태, FORMAT(o.TotalAmount, 'N0') as 총금액, o.PaymentMethod as 결제방법 FROM SampleDB.dbo.Orders o INNER JOIN SampleDB.dbo.Customers c ON o.CustomerID = c.CustomerID WHERE o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}' ORDER BY o.OrderDate DESC"
+    },
+    {
+      "name": "처리중_주문",
+      "use": true,
+      "query": "SELECT o.OrderNumber as 주문번호, FORMAT(o.OrderDate, 'yyyy-MM-dd') as 주문일, c.CustomerName as 고객명, c.ContactName as 담당자, c.Phone as 연락처, o.OrderStatus as 주문상태, o.PaymentStatus as 결제상태, FORMAT(o.TotalAmount, 'N0') as 총금액, o.Notes as 비고 FROM SampleDB.dbo.Orders o INNER JOIN SampleDB.dbo.Customers c ON o.CustomerID = c.CustomerID WHERE o.OrderStatus IN (${statusList}) ORDER BY o.OrderDate"
+    },
+    {
+      "name": "주문_상세_내역",
+      "use": true,
+      "query": "SELECT o.OrderNumber as 주문번호, FORMAT(o.OrderDate, 'yyyy-MM-dd') as 주문일, c.CustomerName as 고객명, od.ProductCode as 제품코드, od.ProductName as 제품명, FORMAT(od.UnitPrice, 'N0') as 단가, od.Quantity as 수량, CONCAT(od.Discount, '%') as 할인율, FORMAT(od.LineTotal, 'N0') as 금액 FROM SampleDB.dbo.Orders o INNER JOIN SampleDB.dbo.Customers c ON o.CustomerID = c.CustomerID INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID WHERE o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}' ORDER BY o.OrderDate DESC, od.OrderDetailID"
+    },
+    {
+      "name": "고객별_주문_집계",
+      "use": true,
+      "query": "SELECT c.CustomerCode as 고객코드, c.CustomerName as 고객명, c.Region as 지역, c.CustomerType as 고객유형, COUNT(o.OrderID) as 주문횟수, FORMAT(SUM(o.TotalAmount), 'N0') as 총주문금액, FORMAT(AVG(o.TotalAmount), 'N0') as 평균주문금액, MIN(FORMAT(o.OrderDate, 'yyyy-MM-dd')) as 첫주문일, MAX(FORMAT(o.OrderDate, 'yyyy-MM-dd')) as 최근주문일 FROM SampleDB.dbo.Customers c INNER JOIN SampleDB.dbo.Orders o ON c.CustomerID = o.CustomerID WHERE o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}' GROUP BY c.CustomerCode, c.CustomerName, c.Region, c.CustomerType ORDER BY SUM(o.TotalAmount) DESC"
+    },
+    {
+      "name": "월별_매출_집계",
+      "use": true,
+      "query": "SELECT YEAR(o.OrderDate) as 년도, MONTH(o.OrderDate) as 월, COUNT(o.OrderID) as 주문건수, COUNT(DISTINCT o.CustomerID) as 고객수, FORMAT(SUM(o.TotalAmount), 'N0') as 총매출, FORMAT(AVG(o.TotalAmount), 'N0') as 평균주문금액, COUNT(CASE WHEN o.OrderStatus = 'Shipped' THEN 1 END) as 배송완료, COUNT(CASE WHEN o.OrderStatus = 'Processing' THEN 1 END) as 처리중 FROM SampleDB.dbo.Orders o WHERE o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}' GROUP BY YEAR(o.OrderDate), MONTH(o.OrderDate) ORDER BY YEAR(o.OrderDate), MONTH(o.OrderDate)"
+    },
+    {
+      "name": "지역별_매출_분석",
+      "use": true,
+      "query": "SELECT c.Region as 지역, COUNT(DISTINCT c.CustomerID) as 고객수, COUNT(o.OrderID) as 주문건수, FORMAT(SUM(o.TotalAmount), 'N0') as 총매출, FORMAT(AVG(o.TotalAmount), 'N0') as 평균주문금액, COUNT(CASE WHEN c.CustomerType = 'VIP' THEN 1 END) as VIP고객수, COUNT(CASE WHEN c.CustomerType = 'Premium' THEN 1 END) as Premium고객수, COUNT(CASE WHEN c.CustomerType = 'Regular' THEN 1 END) as 일반고객수 FROM SampleDB.dbo.Customers c INNER JOIN SampleDB.dbo.Orders o ON c.CustomerID = o.CustomerID WHERE o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}' AND c.IsActive = 1 GROUP BY c.Region ORDER BY SUM(o.TotalAmount) DESC"
+    },
+    {
+      "name": "주문요약뷰_테스트",
+      "use": false,
+      "query": "SELECT OrderID as 주문ID, OrderNumber as 주문번호, FORMAT(OrderDate, 'yyyy-MM-dd') as 주문일, CustomerCode as 고객코드, CustomerName as 고객명, CustomerCity as 고객도시, CustomerRegion as 고객지역, OrderStatus as 주문상태, PaymentStatus as 결제상태, FORMAT(TotalAmount, 'N0') as 총금액, ItemCount as 상품종류수, TotalQuantity as 총수량 FROM SampleDB.dbo.vw_OrderSummary ORDER BY OrderDate DESC"
+    }
+  ]
+} 

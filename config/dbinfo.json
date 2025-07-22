@@ -1,18 +1,18 @@
 {
   "dbs": {
-    "main": {
-      "user": "user1",
-      "password": "pw1",
-      "server": "ip1",
-      "database": "db1",
+    "sampleDB": {
+      "user": "sample",
+      "password": "sample1234!",
+      "server": "localhost",
+      "database": "SAMPLE_DB",
       "port": 1433,
       "options": { "encrypt": true, "trustServerCertificate": true }
     },
-    "erp": {
-      "user": "user2",
-      "password": "pw2",
-      "server": "ip2",
-      "database": "db2",
+    "erpDB": {
+      "user": "erp",
+      "password": "erp1234!",
+      "server": "localhost",
+      "database": "ERP_DB",
       "port": 1433,
       "options": { "encrypt": true, "trustServerCertificate": true }
     }
