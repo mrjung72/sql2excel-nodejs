@@ -331,6 +331,26 @@ async function main() {
       { header: 'No', key: 'no', width: 6 },
       { header: 'Sheet Name', key: 'name', width: 30 }
     ];
+
+    // 별도 목차 엑셀 파일 생성
+    const tocWb = new ExcelJS.Workbook();
+    const tocOnly = tocWb.addWorksheet('목차');
+    tocOnly.addRow(['No', 'Sheet Name']);
+    createdSheetNames.forEach((obj, idx) => {
+      const row = tocOnly.addRow([idx + 1, obj.displayName]);
+      row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
+    });
+    tocOnly.getRow(1).font = { bold: true };
+    tocOnly.columns = [
+      { header: 'No', key: 'no', width: 6 },
+      { header: 'Sheet Name', key: 'name', width: 30 }
+    ];
+    // 파일명: 기존 outFile 기준 _목차_yyyymmddhhmmss.xlsx
+    const tocExt = path.extname(outFile);
+    const tocBase = outFile.slice(0, -tocExt.length);
+    const tocFile = `${tocBase}_목차_${getNowTimestampStr()}${tocExt}`;
+    await tocWb.xlsx.writeFile(tocFile);
+    console.log(`[목차] 별도 엑셀 파일 생성: ${tocFile}`);
   }
 
   await workbook.xlsx.writeFile(outFile);
