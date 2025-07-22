@@ -1,0 +1,17 @@
+{
+  "vars": {
+    "startDate": "2024-01-01",
+    "endDate": "2024-06-30",
+    "regionList": "'서울','부산'"
+  },
+  "sheets": [
+    {
+      "name": "Orders",
+      "query": "SELECT * FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'"
+    },
+    {
+      "name": "Customers",
+      "query": "SELECT * FROM Customers WHERE region IN (${regionList})"
+    }
+  ]
+} 

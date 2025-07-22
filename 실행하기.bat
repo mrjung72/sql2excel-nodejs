@@ -1,0 +1,15 @@
+@echo off
+REM sql2excel-exporter 실행 배치파일 예시
+REM 필요에 따라 아래 XML 파일명, 출력 파일명, 변수 등을 수정하세요.
+
+set XML_FILE=resources\queries.xml
+set CONFIG_FILE=config\dbinfo.json
+set OUT_FILE=output.xlsx
+
+REM 예시: 날짜 변수 추가
+set VARS=-v startDate=2024-01-01 -v endDate=2024-06-30
+
+REM 실행
+node src\index.js -x %XML_FILE% -c %CONFIG_FILE% -o %OUT_FILE% %VARS%
+
+pause 

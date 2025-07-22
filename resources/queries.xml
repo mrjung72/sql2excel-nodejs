@@ -1,0 +1,16 @@
+<queries>
+  <sheet name="Orders">
+    <![CDATA[
+      SELECT o.id, o.date, c.name
+      FROM Orders o
+      JOIN Customers c ON o.customer_id = c.id
+      WHERE o.date >= '${startDate}' AND o.date <= '${endDate}'
+      -- 복잡한 조건, 서브쿼리 등도 자유롭게 작성 가능
+    ]]>
+  </sheet>
+  <sheet name="Customers">
+    <![CDATA[
+      SELECT * FROM Customers WHERE Region = '${region}'
+    ]]>
+  </sheet>
+</queries> 

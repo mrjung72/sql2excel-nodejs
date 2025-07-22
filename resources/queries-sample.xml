@@ -1,0 +1,19 @@
+<queries>
+  <vars>
+    <var name="startDate">2024-01-01</var>
+    <var name="endDate">2024-06-30</var>
+    <var name="regionList">'서울','부산'</var>
+  </vars>
+  <sheet name="Orders">
+    <![CDATA[
+      SELECT * FROM Orders
+      WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
+    ]]>
+  </sheet>
+  <sheet name="Customers">
+    <![CDATA[
+      SELECT * FROM Customers
+      WHERE region IN (${regionList})
+    ]]>
+  </sheet>
+</queries> 

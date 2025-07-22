@@ -1,0 +1,11 @@
+{
+  "user": "db_user",
+  "password": "db_password",
+  "server": "db_server_ip_or_dns",
+  "port": 1433,
+  "database": "db_name",
+  "options": {
+    "encrypt": true,
+    "trustServerCertificate": true
+  }
+} 
