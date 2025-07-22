@@ -2,7 +2,7 @@
 REM sql2excel-nodejs 실행 배치파일 예시
 REM 필요에 따라 아래 XML 파일명, 변수 등을 수정하세요.
 
-set XML_FILE=resources\queries-sample.xml
+set XML_FILE=queries\queries-sample.xml
 set CONFIG_FILE=config\dbinfo.json
 REM 쿼리파일(excel)에서 db/output 모두 지정 가능
 
