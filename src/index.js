@@ -186,6 +186,7 @@ async function main() {
   console.log(`[${outFile}] START WORK`);
   console.log('-------------------------------------------------------------------------------');
   const workbook = new ExcelJS.Workbook();
+  const createdSheetNames = [];
 
   for (const sheetDef of sheets) {
     // use 속성 체크
@@ -201,10 +202,12 @@ async function main() {
       continue;
     }
     const sql = substituteVars(sheetDef.query, mergedVars);
-    console.log(`[INFO] Executing for sheet '${sheetDef.name}'`);
+    const sheetName = substituteVars(sheetDef.name, mergedVars);
+    console.log(`[INFO] Executing for sheet '${sheetName}'`);
     try {
       const result = await pool.request().query(sql);
-      const sheet = workbook.addWorksheet(sheetDef.name);
+      const sheet = workbook.addWorksheet(sheetName);
+      createdSheetNames.push(sheetName);
       if (result.recordset.length > 0) {
         // 컬럼 정보
         const columns = Object.keys(result.recordset[0]);
@@ -268,6 +271,28 @@ async function main() {
       console.log(`${sql}`);
       console.log('\n-------------------------------------------------------------------------------');
     }
+  }
+  // 목차 시트 추가
+  if (createdSheetNames.length > 0) {
+    const tocSheet = workbook.addWorksheet('목차');
+    tocSheet.addRow(['No', 'Sheet Name']);
+    createdSheetNames.forEach((name, idx) => {
+      const row = tocSheet.addRow([idx + 1, name]);
+      // 시트명에 하이퍼링크 추가
+      row.getCell(2).value = {
+        text: name,
+        hyperlink: `#'${name}'!A1`
+      };
+      row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
+    });
+    // 목차 시트를 첫 번째로 이동
+    workbook.worksheets = [tocSheet, ...workbook.worksheets.filter(ws => ws.name !== '목차')];
+    // 간단한 스타일
+    tocSheet.getRow(1).font = { bold: true };
+    tocSheet.columns = [
+      { header: 'No', key: 'no', width: 6 },
+      { header: 'Sheet Name', key: 'name', width: 30 }
+    ];
   }
 
   await workbook.xlsx.writeFile(outFile);
