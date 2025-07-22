@@ -223,7 +223,7 @@ async function main() {
     try {
       const result = await pool.request().query(sql);
       const sheet = workbook.addWorksheet(sheetName);
-      createdSheetNames.push(sheetName);
+      createdSheetNames.push({ displayName: sheetDef.name, tabName: sheetName });
       if (result.recordset.length > 0) {
         // 컬럼 정보
         const columns = Object.keys(result.recordset[0]);
@@ -314,12 +314,12 @@ async function main() {
   if (createdSheetNames.length > 0) {
     const tocSheet = workbook.addWorksheet('목차');
     tocSheet.addRow(['No', 'Sheet Name']);
-    createdSheetNames.forEach((name, idx) => {
-      const row = tocSheet.addRow([idx + 1, name]);
-      // 시트명에 하이퍼링크 추가
+    createdSheetNames.forEach((obj, idx) => {
+      const row = tocSheet.addRow([idx + 1, obj.displayName]);
+      // 시트명에 하이퍼링크 추가 (실제 탭 이름 기준)
       row.getCell(2).value = {
-        text: name,
-        hyperlink: `#'${name}'!A1`
+        text: obj.displayName,
+        hyperlink: `#'${obj.tabName}'!A1`
       };
       row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
     });
