@@ -4,10 +4,18 @@
       <font name="맑은 고딕" size="12" color="FFFFFF" bold="true"/>
       <fill color="4F81BD"/>
       <colwidths min="10" max="30"/>
+      <alignment horizontal="center" vertical="middle"/>
+      <border>
+        <all style="thin" color="000000"/>
+      </border>
     </header>
     <body>
       <font name="맑은 고딕" size="11" color="000000" bold="false"/>
       <fill color="FFFFCC"/>
+      <alignment horizontal="center" vertical="middle"/>
+      <border>
+        <all style="thin" color="000000"/>
+      </border>
     </body>
   </excel>
   <vars>

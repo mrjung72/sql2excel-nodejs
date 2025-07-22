@@ -86,6 +86,22 @@ function parseColWidths(colwidths, colCount) {
   };
 }
 
+function parseBorder(border) {
+  // border: {all, top, left, right, bottom}
+  if (!border) return undefined;
+  const makeSide = (side) => border[side] ? { style: border[side].style, color: border[side].color ? { argb: border[side].color } : undefined } : undefined;
+  if (border.all) {
+    const side = makeSide('all');
+    return { top: side, left: side, right: side, bottom: side };
+  }
+  return {
+    top: makeSide('top'),
+    left: makeSide('left'),
+    right: makeSide('right'),
+    bottom: makeSide('bottom')
+  };
+}
+
 async function main() {
   printAvailableXmlFiles();
 
@@ -244,6 +260,15 @@ async function main() {
               fgColor: { argb: excelStyle.header.fill.color }
             };
           }
+          if (excelStyle.header.alignment) {
+            sheet.getRow(1).alignment = { ...excelStyle.header.alignment };
+          }
+          if (excelStyle.header.border) {
+            const border = parseBorder(excelStyle.header.border);
+            for (let i = 1; i <= columns.length; i++) {
+              sheet.getRow(1).getCell(i).border = border;
+            }
+          }
         }
         // 데이터 스타일 적용
         if (excelStyle.body) {
@@ -261,6 +286,15 @@ async function main() {
                 pattern: 'solid',
                 fgColor: { argb: excelStyle.body.fill.color }
               };
+            }
+            if (excelStyle.body.alignment) {
+              row.alignment = { ...excelStyle.body.alignment };
+            }
+            if (excelStyle.body.border) {
+              const border = parseBorder(excelStyle.body.border);
+              for (let j = 1; j <= columns.length; j++) {
+                row.getCell(j).border = border;
+              }
             }
           }
         }

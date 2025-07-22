@@ -133,6 +133,64 @@ node src/index.js -q resources/queries-sample.json --db main --out output/result
 
 ---
 
+## 7. 엑셀 스타일/속성 설정 가이드
+
+### 엑셀 전체 스타일(excel)
+| 속성명      | 위치         | 설명                                      | 예시값           |
+|-------------|--------------|--------------------------------------------|------------------|
+| db          | excel        | 사용할 DB 접속 ID (config.json의 dbs 키)   | "main"          |
+| output      | excel        | 생성할 엑셀 파일 경로/이름                 | "output/result.xlsx" |
+| header      | excel        | 헤더(타이틀) 스타일                       | 객체             |
+| body        | excel        | 데이터(본문) 스타일                       | 객체             |
+
+### header/body 스타일 속성
+| 속성명      | 위치         | 설명                                      | 예시값           |
+|-------------|--------------|--------------------------------------------|------------------|
+| font        | header/body  | 폰트 스타일 (name, size, color, bold)      | {"name":"맑은 고딕", "size":12, "color":"FFFFFF", "bold":true} |
+| fill        | header/body  | 배경색 (color: 16진 ARGB)                  | {"color":"4F81BD"} |
+| colwidths   | header       | 컬럼너비 자동계산 범위 (min/max)           | {"min":10, "max":30} |
+| alignment   | header/body  | 셀 정렬 (horizontal, vertical)             | {"horizontal":"center", "vertical":"middle"} |
+| border      | header/body  | 테두리 스타일 (all/top/left/right/bottom)  | {"all":{"style":"thin","color":"000000"}} |
+
+#### font 속성 상세
+| 하위속성 | 설명           | 예시값         |
+|----------|----------------|---------------|
+| name     | 폰트명         | "맑은 고딕"   |
+| size     | 폰트 크기      | 12            |
+| color    | 폰트 색상(ARGB)| "FFFFFF"      |
+| bold     | 굵게           | true/false    |
+
+#### fill 속성 상세
+| 하위속성 | 설명           | 예시값         |
+|----------|----------------|---------------|
+| color    | 배경색(ARGB)   | "FFFFCC"      |
+
+#### colwidths 속성 상세
+| 하위속성 | 설명           | 예시값         |
+|----------|----------------|---------------|
+| min      | 최소 너비      | 10            |
+| max      | 최대 너비      | 30            |
+
+#### alignment 속성 상세
+| 하위속성   | 설명           | 예시값         |
+|------------|----------------|---------------|
+| horizontal | 가로 정렬      | "center", "left", "right" |
+| vertical   | 세로 정렬      | "top", "middle", "bottom" |
+
+#### border 속성 상세
+| 하위속성   | 설명           | 예시값         |
+|------------|----------------|---------------|
+| all        | 4방향 모두     | {"style":"thin","color":"000000"} |
+| top/left/right/bottom | 각 방향별 | {"style":"thin","color":"000000"} |
+
+### 시트 속성
+| 속성명 | 위치   | 설명                | 예시값 |
+|--------|--------|---------------------|--------|
+| name   | sheet  | 시트명(변수 사용 가능)| "매출_${startDate}_~_${endDate}" |
+| use    | sheet  | 사용여부            | true/false |
+
+---
+
 ## 5. 기타 참고
 - 쿼리문 내 `${변수명}` 형태로 변수 사용 가능
 - 시트별로 `use="false"` 또는 `"use": false`로 비활성화 가능
