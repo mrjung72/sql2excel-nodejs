@@ -283,12 +283,17 @@ async function main() {
     try {
       const result = await pool.request().query(sql);
       const sheet = workbook.addWorksheet(sheetName);
-      createdSheetNames.push({ displayName: sheetDef.name, tabName: sheetName });
-      if (result.recordset.length > 0) {
+      const recordCount = result.recordset.length;
+      createdSheetNames.push({ 
+        displayName: sheetDef.name, 
+        tabName: sheetName, 
+        recordCount: recordCount 
+      });
+      if (recordCount > 0) {
         // 헬퍼 함수를 사용하여 시트에 데이터와 스타일 적용
         excelStyleHelper.applySheetStyle(sheet, result.recordset, excelStyle);
       }
-      console.log(`\t---> ${result.recordset.length} rows were selected `);
+      console.log(`\t---> ${recordCount} rows were selected `);
     } catch (error) {
       console.log(`----------------------------------[ERROR]--------------------------------------\n`);
       console.log(`${sql}`);

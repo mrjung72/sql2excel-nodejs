@@ -241,11 +241,11 @@ function createTableOfContents(workbook, sheetNames) {
   const tocSheet = workbook.addWorksheet('목차');
   
   // 헤더 추가
-  tocSheet.addRow(['No', 'Sheet Name']);
+  tocSheet.addRow(['No', 'Sheet Name', 'Records']);
   
   // 시트 목록 추가
   sheetNames.forEach((obj, idx) => {
-    const row = tocSheet.addRow([idx + 1, obj.displayName]);
+    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0]);
     
     // 하이퍼링크 설정 - HYPERLINK 함수 사용 (호환성 최적)
     const sheetNameForLink = obj.tabName.replace(/'/g, "''"); // 작은따옴표 이스케이프
@@ -280,16 +280,33 @@ function createTableOfContents(workbook, sheetNames) {
         console.warn(`[WARN] Hyperlink creation failed for sheet: ${obj.displayName}`);
       }
     }
+    
+    // 데이터 건수 스타일링
+    const recordCountCell = row.getCell(3);
+    recordCountCell.numFmt = '#,##0'; // 천 단위 구분자
+    recordCountCell.alignment = { horizontal: 'right' };
+    recordCountCell.font = { 
+      color: obj.recordCount > 0 ? { argb: '2F5597' } : { argb: '999999' } 
+    };
   });
 
   // 컬럼 설정
   tocSheet.columns = [
     { header: 'No', key: 'no', width: 6 },
-    { header: 'Sheet Name', key: 'name', width: 30 }
+    { header: 'Sheet Name', key: 'name', width: 25 },
+    { header: 'Records', key: 'records', width: 12 }
   ];
 
   // 헤더 스타일
-  tocSheet.getRow(1).font = { bold: true };
+  const headerRow = tocSheet.getRow(1);
+  headerRow.font = { bold: true };
+  
+  // 헤더 배경색
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'E7E6E6' }
+  };
 
   // 시트 탭을 맨 왼쪽에 위치하도록 설정
   tocSheet.state = 'visible';
@@ -308,11 +325,11 @@ function populateTableOfContents(tocSheet, sheetNames) {
   tocSheet.spliceRows(1, tocSheet.rowCount);
   
   // 헤더 추가
-  tocSheet.addRow(['No', 'Sheet Name']);
+  tocSheet.addRow(['No', 'Sheet Name', 'Records']);
   
   // 시트 목록 추가
   sheetNames.forEach((obj, idx) => {
-    const row = tocSheet.addRow([idx + 1, obj.displayName]);
+    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0]);
     
     // 하이퍼링크 설정 - HYPERLINK 함수 사용 (호환성 최적)
     const sheetNameForLink = obj.tabName.replace(/'/g, "''"); // 작은따옴표 이스케이프
@@ -347,16 +364,33 @@ function populateTableOfContents(tocSheet, sheetNames) {
         console.warn(`[WARN] Hyperlink creation failed for sheet: ${obj.displayName}`);
       }
     }
+    
+    // 데이터 건수 스타일링
+    const recordCountCell = row.getCell(3);
+    recordCountCell.numFmt = '#,##0'; // 천 단위 구분자
+    recordCountCell.alignment = { horizontal: 'right' };
+    recordCountCell.font = { 
+      color: obj.recordCount > 0 ? { argb: '2F5597' } : { argb: '999999' } 
+    };
   });
 
   // 컬럼 설정
   tocSheet.columns = [
     { header: 'No', key: 'no', width: 6 },
-    { header: 'Sheet Name', key: 'name', width: 30 }
+    { header: 'Sheet Name', key: 'name', width: 25 },
+    { header: 'Records', key: 'records', width: 12 }
   ];
 
   // 헤더 스타일
-  tocSheet.getRow(1).font = { bold: true };
+  const headerRow = tocSheet.getRow(1);
+  headerRow.font = { bold: true };
+  
+  // 헤더 배경색
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'E7E6E6' }
+  };
 
   // 시트 탭을 맨 왼쪽에 위치하도록 설정
   tocSheet.state = 'visible';
@@ -387,7 +421,7 @@ function createExternalTableOfContents(workbook, sheetNames, targetFileName) {
   tocSheet.addRow([]);
   
   // 헤더 추가
-  const headerRow = tocSheet.addRow(['No', 'Sheet Name', 'Description', 'File Link']);
+  const headerRow = tocSheet.addRow(['No', 'Sheet Name', 'Records', 'Description', 'File Link']);
   headerRow.font = { bold: true };
   headerRow.fill = {
     type: 'pattern',
@@ -400,6 +434,7 @@ function createExternalTableOfContents(workbook, sheetNames, targetFileName) {
     const row = tocSheet.addRow([
       idx + 1, 
       obj.displayName, 
+      obj.recordCount || 0,
       `${obj.displayName} 시트의 데이터를 확인하세요`, 
       '📂 파일 열기'
     ]);
@@ -410,25 +445,33 @@ function createExternalTableOfContents(workbook, sheetNames, targetFileName) {
       color: { argb: '2F5597' }
     };
     
+    // 데이터 건수 스타일링
+    const recordCountCell = row.getCell(3);
+    recordCountCell.numFmt = '#,##0'; // 천 단위 구분자
+    recordCountCell.alignment = { horizontal: 'right' };
+    recordCountCell.font = { 
+      color: obj.recordCount > 0 ? { argb: '2F5597' } : { argb: '999999' } 
+    };
+    
     // 설명 스타일링
-    row.getCell(3).font = { 
+    row.getCell(4).font = { 
       italic: true,
       color: { argb: '666666' }
     };
     
     // 외부 파일 링크 설정
     try {
-      row.getCell(4).value = {
+      row.getCell(5).value = {
         text: '📂 파일 열기',
         hyperlink: targetFileName
       };
-      row.getCell(4).font = { 
+      row.getCell(5).font = { 
         color: { argb: '0563C1' }, 
         underline: true 
       };
     } catch (error) {
-      row.getCell(4).value = '파일 열기';
-      row.getCell(4).font = { 
+      row.getCell(5).value = '파일 열기';
+      row.getCell(5).font = { 
         color: { argb: '666666' } 
       };
     }
@@ -437,8 +480,9 @@ function createExternalTableOfContents(workbook, sheetNames, targetFileName) {
   // 컬럼 설정
   tocSheet.columns = [
     { header: 'No', key: 'no', width: 6 },
-    { header: 'Sheet Name', key: 'name', width: 25 },
-    { header: 'Description', key: 'desc', width: 35 },
+    { header: 'Sheet Name', key: 'name', width: 20 },
+    { header: 'Records', key: 'records', width: 10 },
+    { header: 'Description', key: 'desc', width: 30 },
     { header: 'File Link', key: 'link', width: 15 }
   ];
 
