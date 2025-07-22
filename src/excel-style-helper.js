@@ -241,17 +241,21 @@ function createTableOfContents(workbook, sheetNames) {
   const tocSheet = workbook.addWorksheet('목차');
   
   // 헤더 추가
-  tocSheet.addRow(['No', 'Sheet Name', 'Records']);
+  tocSheet.addRow(['No', 'Sheet Name', 'Records', 'Note']);
   
   // 시트 목록 추가
   sheetNames.forEach((obj, idx) => {
-    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0]);
+    // 시트명이 잘렸는지 확인
+    const isTruncated = obj.originalName && obj.originalName !== obj.tabName;
+    const noteText = isTruncated ? '(31자 초과로 잘림)' : '';
     
-    // 하이퍼링크 설정 - HYPERLINK 함수 사용 (호환성 최적)
+    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0, noteText]);
+    
+    // 하이퍼링크 설정 - 실제 시트명(tabName) 사용
     const sheetNameForLink = obj.tabName.replace(/'/g, "''"); // 작은따옴표 이스케이프
     const displayNameForFormula = obj.displayName.replace(/"/g, '""'); // 큰따옴표 이스케이프
     
-    // HYPERLINK 함수를 사용한 내부 링크 (Excel에서 가장 안정적)
+    // HYPERLINK 함수를 사용한 내부 링크 (실제 시트명으로 링크)
     const hyperlinkFormula = `HYPERLINK("#'${sheetNameForLink}'!A1","${displayNameForFormula}")`;
     
     try {
@@ -288,13 +292,33 @@ function createTableOfContents(workbook, sheetNames) {
     recordCountCell.font = { 
       color: obj.recordCount > 0 ? { argb: '2F5597' } : { argb: '999999' } 
     };
+    
+    // 비고 컬럼 스타일링
+    if (isTruncated) {
+      row.getCell(4).font = { 
+        italic: true,
+        color: { argb: 'D2691E' } // 주황색으로 경고 표시
+      };
+      
+      // 원본 시트명을 셀 주석으로 추가
+      row.getCell(2).note = {
+        texts: [
+          { text: '원본 시트명:\n', font: { bold: true } },
+          { text: obj.originalName, font: { italic: true } },
+          { text: '\n\n실제 탭명:\n', font: { bold: true } },
+          { text: obj.tabName, font: { color: { argb: 'FF0000' } } },
+          { text: '\n\n※ Excel 시트명은 최대 31자까지 허용됩니다.', font: { size: 9, color: { argb: '666666' } } }
+        ]
+      };
+    }
   });
 
   // 컬럼 설정
   tocSheet.columns = [
     { header: 'No', key: 'no', width: 6 },
     { header: 'Sheet Name', key: 'name', width: 25 },
-    { header: 'Records', key: 'records', width: 12 }
+    { header: 'Records', key: 'records', width: 12 },
+    { header: 'Note', key: 'note', width: 18 }
   ];
 
   // 헤더 스타일
@@ -325,17 +349,21 @@ function populateTableOfContents(tocSheet, sheetNames) {
   tocSheet.spliceRows(1, tocSheet.rowCount);
   
   // 헤더 추가
-  tocSheet.addRow(['No', 'Sheet Name', 'Records']);
+  tocSheet.addRow(['No', 'Sheet Name', 'Records', 'Note']);
   
   // 시트 목록 추가
   sheetNames.forEach((obj, idx) => {
-    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0]);
+    // 시트명이 잘렸는지 확인
+    const isTruncated = obj.originalName && obj.originalName !== obj.tabName;
+    const noteText = isTruncated ? '(31자 초과로 잘림)' : '';
     
-    // 하이퍼링크 설정 - HYPERLINK 함수 사용 (호환성 최적)
+    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0, noteText]);
+    
+    // 하이퍼링크 설정 - 실제 시트명(tabName) 사용
     const sheetNameForLink = obj.tabName.replace(/'/g, "''"); // 작은따옴표 이스케이프
     const displayNameForFormula = obj.displayName.replace(/"/g, '""'); // 큰따옴표 이스케이프
     
-    // HYPERLINK 함수를 사용한 내부 링크 (Excel에서 가장 안정적)
+    // HYPERLINK 함수를 사용한 내부 링크 (실제 시트명으로 링크)
     const hyperlinkFormula = `HYPERLINK("#'${sheetNameForLink}'!A1","${displayNameForFormula}")`;
     
     try {
@@ -372,13 +400,33 @@ function populateTableOfContents(tocSheet, sheetNames) {
     recordCountCell.font = { 
       color: obj.recordCount > 0 ? { argb: '2F5597' } : { argb: '999999' } 
     };
+    
+    // 비고 컬럼 스타일링
+    if (isTruncated) {
+      row.getCell(4).font = { 
+        italic: true,
+        color: { argb: 'D2691E' } // 주황색으로 경고 표시
+      };
+      
+      // 원본 시트명을 셀 주석으로 추가
+      row.getCell(2).note = {
+        texts: [
+          { text: '원본 시트명:\n', font: { bold: true } },
+          { text: obj.originalName, font: { italic: true } },
+          { text: '\n\n실제 탭명:\n', font: { bold: true } },
+          { text: obj.tabName, font: { color: { argb: 'FF0000' } } },
+          { text: '\n\n※ Excel 시트명은 최대 31자까지 허용됩니다.', font: { size: 9, color: { argb: '666666' } } }
+        ]
+      };
+    }
   });
 
   // 컬럼 설정
   tocSheet.columns = [
     { header: 'No', key: 'no', width: 6 },
     { header: 'Sheet Name', key: 'name', width: 25 },
-    { header: 'Records', key: 'records', width: 12 }
+    { header: 'Records', key: 'records', width: 12 },
+    { header: 'Note', key: 'note', width: 18 }
   ];
 
   // 헤더 스타일

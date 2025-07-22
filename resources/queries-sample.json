@@ -1,6 +1,6 @@
 {
   "excel": {
-    "db": "main",
+    "db": "sampleDB",
     "output": "output/매출집계_2024.xlsx",
     "header": {
       "font": { "name": "맑은 고딕", "size": 12, "color": "FFFFFF", "bold": true },

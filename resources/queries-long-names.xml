@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries db="sampleDB" output="output/긴시트명테스트.xlsx">
+  <variables>
+    <var name="year">2024</var>
+    <var name="start_date">2024-01-01</var>
+    <var name="end_date">2024-12-31</var>
+  </variables>
+  
+  <excel>
+    <header>
+      <fill type="solid" color="E7E6E6"/>
+      <font bold="true" size="11"/>
+      <border all="thin"/>
+      <colwidths min="10" max="25"/>
+    </header>
+    <body>
+      <font size="10"/>
+      <border all="thin"/>
+    </body>
+  </excel>
+
+  <!-- 31자 이하: 정상 표시 -->
+  <sheet name="주문목록_2024년도_월별집계현황">
+    <query>
+      SELECT TOP 5 
+        OrderID, CustomerID, OrderDate, 
+        EmployeeID, ShipCountry
+      FROM Orders
+      ORDER BY OrderDate DESC
+    </query>
+  </sheet>
+
+  <!-- 정확히 31자: 경계 테스트 -->
+  <sheet name="고객정보_상세조회_지역별_통계_분석결과_요약테이블">
+    <query>
+      SELECT TOP 5
+        CustomerID, CompanyName, ContactName, 
+        Country, City
+      FROM Customers
+      ORDER BY CompanyName
+    </query>
+  </sheet>
+
+  <!-- 32자 이상: 잘림 테스트 -->
+  <sheet name="매출데이터_년도별_분기별_월별_상세분석_통계보고서_최종본">
+    <query>
+      SELECT TOP 10
+        od.OrderID,
+        od.ProductID, 
+        od.Quantity,
+        od.UnitPrice,
+        (od.Quantity * od.UnitPrice) as LineTotal
+      FROM [Order Details] od
+      ORDER BY LineTotal DESC
+    </query>
+  </sheet>
+
+  <!-- 40자 이상: 많이 잘림 테스트 -->
+  <sheet name="직원정보_부서별_성과평가_연간실적_종합분석리포트_상세데이터_최종검토완료버전">
+    <query>
+      SELECT TOP 8
+        EmployeeID, LastName, FirstName, 
+        Title, BirthDate, HireDate, Country
+      FROM Employees
+      ORDER BY HireDate
+    </query>
+  </sheet>
+
+  <!-- 한글+영어+숫자 혼합 긴 이름 -->
+  <sheet name="Product_Analysis_Report_제품분석보고서_2024년도_상반기_하반기_통합데이터_Final_Version_v2.1">
+    <query>
+      SELECT TOP 6
+        ProductID, ProductName, CategoryID,
+        UnitPrice, UnitsInStock, Discontinued
+      FROM Products
+      WHERE Discontinued = 0
+      ORDER BY UnitPrice DESC
+    </query>
+  </sheet>
+</queries> 

@@ -152,7 +152,7 @@ async function main() {
 
   const argv = yargs
     .option('query', { alias: 'q', describe: '쿼리 정의 파일 경로 (JSON)', default: 'resources/queries.json' })
-    .option('xml', { alias: 'x', describe: '쿼리 정의 파일 경로 (XML)', default: 'resources/queries.xml' })
+    .option('xml', { alias: 'x', describe: '쿼리 정의 파일 경로 (XML)', default: 'resources/queries-sample.xml' })
     .option('config', { alias: 'c', describe: 'DB 접속 정보 파일', default: 'config/dbinfo.json' })
     .option('db', { describe: 'DB 접속 ID (config.json의 dbs 키)', default: '' })
     .option('out', { alias: 'o', describe: '엑셀 출력 파일명', default: '' })
@@ -238,7 +238,7 @@ async function main() {
     throw new Error(`DB 접속 정보 파일이 존재하지 않습니다: ${configPath}`);
   }
   const configObj = JSON5.parse(fs.readFileSync(configPath, 'utf8'));
-  const dbKey = argv.db || excelDb || dbId || 'main';
+  const dbKey = argv.db || dbId || excelDb;
   if (!configObj.dbs || !configObj.dbs[dbKey]) {
     throw new Error(`DB 접속 ID를 찾을 수 없습니다: ${dbKey}`);
   }
@@ -284,11 +284,22 @@ async function main() {
       const result = await pool.request().query(sql);
       const sheet = workbook.addWorksheet(sheetName);
       const recordCount = result.recordset.length;
+      
+      // 실제 생성된 시트명 가져오기 (31자 초과시 잘린 이름)
+      const actualSheetName = sheet.name;
+      
       createdSheetNames.push({ 
         displayName: sheetDef.name, 
-        tabName: sheetName, 
+        originalName: sheetName,
+        tabName: actualSheetName, 
         recordCount: recordCount 
       });
+      
+      // 시트명이 잘렸는지 확인하고 로그 출력
+      if (sheetName !== actualSheetName) {
+        console.log(`\t[WARN] Sheet name truncated: '${sheetName}' → '${actualSheetName}'`);
+      }
+      
       if (recordCount > 0) {
         // 헬퍼 함수를 사용하여 시트에 데이터와 스타일 적용
         excelStyleHelper.applySheetStyle(sheet, result.recordset, excelStyle);

@@ -52,7 +52,7 @@
       ORDER BY CreditLimit DESC
     ]]>
   </sheet>
-  <sheet name="주문_상세" use="false">
+  <sheet name="고객_목록_상세정보_지역별_통계_분석결과_요약테이블_최종버전" use="false">
     <![CDATA[
       SELECT 
         o.OrderNumber as 주문번호,

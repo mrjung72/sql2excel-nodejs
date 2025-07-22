@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries db="sampleDB" output="output/매출집계_긴시트명테스트_${year}.xlsx">
+  <variables>
+    <var name="year">2024</var>
+  </variables>
+  
+  <excel>
+    <header>
+      <fill type="solid" color="E7E6E6"/>
+      <font bold="true" size="11"/>
+      <border all="thin"/>
+      <colwidths min="10" max="25"/>
+    </header>
+    <body>
+      <font size="10"/>
+      <border all="thin"/>
+    </body>
+  </excel>
+
+  <!-- 31자 이하: 정상 표시 (24자) -->
+  <sheet name="주문_목록_2024년도_월별현황">
+    <query>
+      SELECT TOP 13
+        OrderID, CustomerID, OrderDate, EmployeeID, Freight
+      FROM [Order] 
+      ORDER BY OrderDate DESC
+    </query>
+  </sheet>
+
+  <!-- 정확히 31자: 경계 테스트 -->
+  <sheet name="고객_목록_상세정보_지역별_통계_분석결과_요약테이블_최종버전">
+    <query>
+      SELECT TOP 6
+        CustomerID, CompanyName, ContactName, Country, City, Phone
+      FROM Customer 
+      ORDER BY CompanyName
+    </query>
+  </sheet>
+
+  <!-- 32자 이상: 잘림 테스트 (40자) -->
+  <sheet name="주문_상세_데이터_년도별_분기별_월별_상세분석_통계보고서_최종본">
+    <query>
+      SELECT TOP 22
+        OrderDetailID, OrderID, ProductID, Quantity, UnitPrice,
+        (Quantity * UnitPrice) as LineTotal
+      FROM OrderDetail
+      ORDER BY LineTotal DESC
+    </query>
+  </sheet>
+
+  <!-- 50자 이상: 많이 잘림 테스트 -->
+  <sheet name="매출데이터_종합분석_리포트_2024년도_상반기_하반기_통합_최종_검토완료_버전_v2.1_Final">
+    <query>
+      SELECT TOP 10
+        OrderID, CustomerID, OrderDate, EmployeeID, Freight,
+        CASE WHEN Freight > 50 THEN '고액배송' ELSE '일반배송' END as ShippingType
+      FROM [Order] 
+      WHERE OrderDate >= '2024-01-01'
+      ORDER BY Freight DESC
+    </query>
+  </sheet>
+</queries> 
