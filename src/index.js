@@ -211,6 +211,24 @@ async function main() {
       if (result.recordset.length > 0) {
         // 컬럼 정보
         const columns = Object.keys(result.recordset[0]);
+        // 컬럼 너비 자동 계산 (min/max)
+        let colwidths = excelStyle.header?.colwidths;
+        let min = 10, max = 30;
+        if (colwidths && typeof colwidths === 'object') {
+          if (colwidths.min) min = Number(colwidths.min);
+          if (colwidths.max) max = Number(colwidths.max);
+        }
+        // 각 컬럼별 최대 길이 계산
+        const colMaxLens = columns.map((col, idx) => {
+          let maxLen = col.length;
+          for (const row of result.recordset) {
+            const val = row[col] !== null && row[col] !== undefined ? String(row[col]) : '';
+            if (val.length > maxLen) maxLen = val.length;
+          }
+          return Math.max(min, Math.min(max, maxLen));
+        });
+        sheet.columns = columns.map((key, i) => ({ header: key, key, width: colMaxLens[i] }));
+        sheet.addRows(result.recordset);
         // 헤더 스타일 적용
         if (excelStyle.header) {
           sheet.getRow(1).font = {
@@ -246,24 +264,6 @@ async function main() {
             }
           }
         }
-        // 컬럼 너비 자동 계산 (min/max)
-        let colwidths = excelStyle.header?.colwidths;
-        let min = 10, max = 30;
-        if (colwidths && typeof colwidths === 'object') {
-          if (colwidths.min) min = Number(colwidths.min);
-          if (colwidths.max) max = Number(colwidths.max);
-        }
-        // 각 컬럼별 최대 길이 계산
-        const colMaxLens = columns.map((col, idx) => {
-          let maxLen = col.length;
-          for (const row of result.recordset) {
-            const val = row[col] !== null && row[col] !== undefined ? String(row[col]) : '';
-            if (val.length > maxLen) maxLen = val.length;
-          }
-          return Math.max(min, Math.min(max, maxLen));
-        });
-        sheet.columns = columns.map((key, i) => ({ header: key, key, width: colMaxLens[i] }));
-        sheet.addRows(result.recordset);
       }
       console.log(`\t---> ${result.recordset.length} rows were selected `);
     } catch (error) {
