@@ -198,5 +198,79 @@ node src/index.js -q resources/queries-sample.json --db main --out output/result
 
 ---
 
-## 6. 문의/기여
+## 6. 모듈 구조
+
+### 핵심 파일 구조
+```
+src/
+├── index.js                  # 메인 실행 파일
+├── excel-style-helper.js     # 엑셀 스타일 관련 유틸리티
+test/
+├── test-exceljs-style.js     # ExcelJS 기본 테스트
+└── test-excel-style-helper.js # 스타일 헬퍼 모듈 테스트
+```
+
+### 스타일 헬퍼 모듈 (`excel-style-helper.js`)
+
+엑셀 셀 속성 관련 로직을 별도로 분리한 유틸리티 모듈입니다.
+
+#### 주요 함수
+
+| 함수명 | 설명 | 용도 |
+|--------|------|------|
+| `parseBorder(border)` | 테두리 객체를 ExcelJS 형식으로 변환 | 테두리 스타일 적용 |
+| `parseFont(fontStyle)` | 폰트 객체를 ExcelJS 형식으로 변환 | 폰트 스타일 적용 |
+| `parseFill(fillStyle)` | 채우기 객체를 ExcelJS 형식으로 변환 | 배경색 적용 |
+| `parseAlignment(alignmentStyle)` | 정렬 객체를 ExcelJS 형식으로 변환 | 텍스트 정렬 적용 |
+| `applyCellStyle(cell, style)` | 단일 셀에 종합 스타일 적용 | 개별 셀 스타일링 |
+| `applyHeaderStyle(sheet, columns, headerStyle)` | 헤더 행에 스타일 적용 | 헤더 스타일링 |
+| `applyBodyStyle(sheet, columns, dataRowCount, bodyStyle)` | 데이터 행들에 스타일 적용 | 데이터 스타일링 |
+| `calculateColumnWidths(columns, data, colwidths)` | 컬럼 너비 자동 계산 | 자동 너비 조정 |
+| `applySheetStyle(sheet, data, excelStyle)` | 시트 전체에 데이터와 스타일 적용 | 통합 시트 처리 |
+| `createTableOfContents(workbook, sheetNames)` | 목차 시트 생성 | 목차 생성 |
+
+#### 사용 예시
+```javascript
+const excelStyleHelper = require('./excel-style-helper');
+
+// 시트에 데이터와 스타일을 한 번에 적용
+excelStyleHelper.applySheetStyle(sheet, data, {
+  header: { font: { bold: true }, fill: { color: '4F81BD' } },
+  body: { font: { size: 11 }, fill: { color: 'FFFFCC' } }
+});
+
+// 목차 시트 생성
+const tocSheet = excelStyleHelper.createTableOfContents(workbook, sheetNames);
+```
+
+### 테스트 실행
+```bash
+# 스타일 헬퍼 모듈 테스트
+node test/test-excel-style-helper.js
+
+# ExcelJS 기본 테스트
+node test/test-exceljs-style.js
+```
+
+---
+
+## 7. 배포
+
+### 배포본 생성
+```bash
+# 자동 배포본 생성 스크립트 실행
+build-release.bat
+```
+
+### 배포본 구조
+- 실행 파일들 (*.bat)
+- 소스 코드 (src/)
+- 설정 파일들 (resources/)
+- 자동 설치 스크립트 (install.bat)
+- 사용자 가이드 (QUICK_START.md)
+- 버전 정보 (VERSION.txt)
+
+---
+
+## 8. 문의/기여
 - 개선 요청, 버그 제보, 추가 기능 문의는 언제든 환영합니다!

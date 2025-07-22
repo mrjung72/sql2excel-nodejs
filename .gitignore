@@ -2,3 +2,18 @@ config/
 resources/
 node_modules/
 result/
+
+# 배포 관련
+release/
+
+# 테스트 결과 파일
+test-*.xlsx
+*-output.xlsx
+
+# 임시 파일
+*.tmp
+*.temp
+
+# 로그 파일
+logs/
+.env

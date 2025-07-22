@@ -5,6 +5,7 @@ const ExcelJS = require('exceljs');
 const yargs = require('yargs');
 const JSON5 = require('json5');
 const xml2js = require('xml2js');
+const excelStyleHelper = require('./excel-style-helper');
 
 function substituteVars(str, vars) {
   return str.replace(/\$\{(\w+)\}/g, (_, v) => vars[v] ?? '');
@@ -86,21 +87,7 @@ function parseColWidths(colwidths, colCount) {
   };
 }
 
-function parseBorder(border) {
-  // border: {all, top, left, right, bottom}
-  if (!border) return undefined;
-  const makeSide = (side) => border[side] ? { style: border[side].style, color: border[side].color ? { argb: border[side].color } : undefined } : undefined;
-  if (border.all) {
-    const side = makeSide('all');
-    return { top: side, left: side, right: side, bottom: side };
-  }
-  return {
-    top: makeSide('top'),
-    left: makeSide('left'),
-    right: makeSide('right'),
-    bottom: makeSide('bottom')
-  };
-}
+// parseBorder 함수는 excel-style-helper.js로 이동됨
 
 function isSheetEnabled(sheetDef) {
   let use = true;
@@ -246,83 +233,8 @@ async function main() {
       const sheet = workbook.addWorksheet(sheetName);
       createdSheetNames.push({ displayName: sheetDef.name, tabName: sheetName });
       if (result.recordset.length > 0) {
-        // 컬럼 정보
-        const columns = Object.keys(result.recordset[0]);
-        // 컬럼 너비 자동 계산 (min/max)
-        let colwidths = excelStyle.header?.colwidths;
-        let min = 10, max = 30;
-        if (colwidths && typeof colwidths === 'object') {
-          if (colwidths.min) min = Number(colwidths.min);
-          if (colwidths.max) max = Number(colwidths.max);
-        }
-        // 각 컬럼별 최대 길이 계산
-        const colMaxLens = columns.map((col, idx) => {
-          let maxLen = col.length;
-          for (const row of result.recordset) {
-            const val = row[col] !== null && row[col] !== undefined ? String(row[col]) : '';
-            if (val.length > maxLen) maxLen = val.length;
-          }
-          return Math.max(min, Math.min(max, maxLen));
-        });
-        sheet.columns = columns.map((key, i) => ({ header: key, key, width: colMaxLens[i] }));
-        sheet.addRows(result.recordset);
-        // 헤더 셀별 스타일 적용
-        if (excelStyle.header) {
-          for (let i = 1; i <= columns.length; i++) {
-            const cell = sheet.getRow(1).getCell(i);
-            if (excelStyle.header.font) {
-              cell.font = {
-                name: excelStyle.header.font?.name,
-                size: excelStyle.header.font?.size ? Number(excelStyle.header.font.size) : undefined,
-                color: excelStyle.header.font?.color ? { argb: excelStyle.header.font.color } : undefined,
-                bold: excelStyle.header.font?.bold === 'true' || excelStyle.header.font?.bold === true
-              };
-            }
-            if (excelStyle.header.fill?.color) {
-              cell.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: excelStyle.header.fill.color }
-              };
-            }
-            if (excelStyle.header.alignment) {
-              cell.alignment = { ...excelStyle.header.alignment };
-            }
-            if (excelStyle.header.border) {
-              cell.border = parseBorder(excelStyle.header.border);
-            }
-          }
-        }
-        // 데이터 셀별 스타일 적용
-        if (excelStyle.body) {
-          for (let r = 0; r < result.recordset.length; r++) {
-            const row = sheet.getRow(r + 2);
-            for (let i = 1; i <= columns.length; i++) {
-              const cell = row.getCell(i);
-              if (excelStyle.body.font) {
-                cell.font = {
-                  name: excelStyle.body.font?.name,
-                  size: excelStyle.body.font?.size ? Number(excelStyle.body.font.size) : undefined,
-                  color: excelStyle.body.font?.color ? { argb: excelStyle.body.font.color } : undefined,
-                  bold: excelStyle.body.font?.bold === 'true' || excelStyle.body.font?.bold === true
-                };
-              }
-              if (excelStyle.body.fill?.color) {
-                cell.fill = {
-                  type: 'pattern',
-                  pattern: 'solid',
-                  fgColor: { argb: excelStyle.body.fill.color }
-                };
-              }
-              if (excelStyle.body.alignment) {
-                cell.alignment = { ...excelStyle.body.alignment };
-              }
-              if (excelStyle.body.border) {
-                cell.border = parseBorder(excelStyle.body.border);
-              }
-            }
-          }
-        }
+        // 헬퍼 함수를 사용하여 시트에 데이터와 스타일 적용
+        excelStyleHelper.applySheetStyle(sheet, result.recordset, excelStyle);
       }
       console.log(`\t---> ${result.recordset.length} rows were selected `);
     } catch (error) {
@@ -333,39 +245,15 @@ async function main() {
   }
   // 목차 시트 추가
   if (createdSheetNames.length > 0) {
-    const tocSheet = workbook.addWorksheet('목차');
-    tocSheet.addRow(['No', 'Sheet Name']);
-    createdSheetNames.forEach((obj, idx) => {
-      const row = tocSheet.addRow([idx + 1, obj.displayName]);
-      // 시트명에 하이퍼링크 추가 (실제 탭 이름 기준)
-      row.getCell(2).value = {
-        text: obj.displayName,
-        hyperlink: `#'${obj.tabName}'!A1`
-      };
-      row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
-    });
+    const tocSheet = excelStyleHelper.createTableOfContents(workbook, createdSheetNames);
+    
     // 목차 시트를 첫 번째로 이동
     workbook.worksheets = [tocSheet, ...workbook.worksheets.filter(ws => ws.name !== '목차')];
-    // 간단한 스타일
-    tocSheet.getRow(1).font = { bold: true };
-    tocSheet.columns = [
-      { header: 'No', key: 'no', width: 6 },
-      { header: 'Sheet Name', key: 'name', width: 30 }
-    ];
 
     // 별도 목차 엑셀 파일 생성
     const tocWb = new ExcelJS.Workbook();
-    const tocOnly = tocWb.addWorksheet('목차');
-    tocOnly.addRow(['No', 'Sheet Name']);
-    createdSheetNames.forEach((obj, idx) => {
-      const row = tocOnly.addRow([idx + 1, obj.displayName]);
-      row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
-    });
-    tocOnly.getRow(1).font = { bold: true };
-    tocOnly.columns = [
-      { header: 'No', key: 'no', width: 6 },
-      { header: 'Sheet Name', key: 'name', width: 30 }
-    ];
+    excelStyleHelper.createTableOfContents(tocWb, createdSheetNames);
+    
     // 파일명: 기존 outFile 기준 _목차_yyyymmddhhmmss.xlsx
     const tocExt = path.extname(outFile);
     const tocBase = outFile.slice(0, -tocExt.length);
