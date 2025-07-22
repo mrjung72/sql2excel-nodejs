@@ -151,11 +151,9 @@ async function main() {
   printAvailableXmlFiles();
 
   const argv = yargs
-    .option('query', { alias: 'q', describe: '쿼리 정의 파일 경로 (JSON)', default: 'resources/queries.json' })
-    .option('xml', { alias: 'x', describe: '쿼리 정의 파일 경로 (XML)', default: 'resources/queries-sample.xml' })
+    .option('query', { alias: 'q', describe: '쿼리 정의 파일 경로 (JSON)', default: '' })
+    .option('xml', { alias: 'x', describe: '쿼리 정의 파일 경로 (XML)', default: '' })
     .option('config', { alias: 'c', describe: 'DB 접속 정보 파일', default: 'config/dbinfo.json' })
-    .option('db', { describe: 'DB 접속 ID (config.json의 dbs 키)', default: '' })
-    .option('out', { alias: 'o', describe: '엑셀 출력 파일명', default: '' })
     .option('var', { alias: 'v', describe: '쿼리 변수 (key=value)', array: true, default: [] })
     .help().argv;
 
