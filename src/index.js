@@ -294,7 +294,7 @@ async function main() {
 
     // 별도 목차 엑셀 파일 생성
     const tocWb = new ExcelJS.Workbook();
-    excelStyleHelper.createTableOfContents(tocWb, createdSheetNames);
+    excelStyleHelper.createExternalTableOfContents(tocWb, createdSheetNames, outFile);
     
     // 파일명: 기존 outFile 기준 _목차_yyyymmddhhmmss.xlsx
     const tocExt = path.extname(outFile);

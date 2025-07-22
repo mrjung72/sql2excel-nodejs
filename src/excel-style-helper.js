@@ -5,6 +5,8 @@
  * 다양한 헬퍼 함수들을 제공합니다.
  */
 
+const path = require('path');
+
 /**
  * border 객체를 ExcelJS 형식으로 변환
  * @param {Object} border - 테두리 설정 객체
@@ -245,15 +247,39 @@ function createTableOfContents(workbook, sheetNames) {
   sheetNames.forEach((obj, idx) => {
     const row = tocSheet.addRow([idx + 1, obj.displayName]);
     
-    // 하이퍼링크 설정
-    row.getCell(2).value = {
-      text: obj.displayName,
-      hyperlink: `#'${obj.tabName}'!A1`
-    };
-    row.getCell(2).font = { 
-      color: { argb: '0563C1' }, 
-      underline: true 
-    };
+    // 하이퍼링크 설정 - HYPERLINK 함수 사용 (호환성 최적)
+    const sheetNameForLink = obj.tabName.replace(/'/g, "''"); // 작은따옴표 이스케이프
+    const displayNameForFormula = obj.displayName.replace(/"/g, '""'); // 큰따옴표 이스케이프
+    
+    // HYPERLINK 함수를 사용한 내부 링크 (Excel에서 가장 안정적)
+    const hyperlinkFormula = `HYPERLINK("#'${sheetNameForLink}'!A1","${displayNameForFormula}")`;
+    
+    try {
+      row.getCell(2).value = { formula: hyperlinkFormula };
+      row.getCell(2).font = { 
+        color: { argb: '0563C1' }, 
+        underline: true 
+      };
+    } catch (error) {
+      // HYPERLINK 함수 실패 시 직접 하이퍼링크 방식 시도
+      try {
+        row.getCell(2).value = {
+          text: obj.displayName,
+          hyperlink: `#'${sheetNameForLink}'!A1`
+        };
+        row.getCell(2).font = { 
+          color: { argb: '0563C1' }, 
+          underline: true 
+        };
+      } catch (error2) {
+        // 모든 방법 실패 시 일반 텍스트로 표시
+        row.getCell(2).value = obj.displayName;
+        row.getCell(2).font = { 
+          color: { argb: '0563C1' } 
+        };
+        console.warn(`[WARN] Hyperlink creation failed for sheet: ${obj.displayName}`);
+      }
+    }
   });
 
   // 컬럼 설정
@@ -268,6 +294,104 @@ function createTableOfContents(workbook, sheetNames) {
   return tocSheet;
 }
 
+/**
+ * 별도 파일용 목차 시트 생성 (외부 파일 링크 사용)
+ * @param {Object} workbook - ExcelJS 워크북 객체
+ * @param {Array} sheetNames - 시트명 배열
+ * @param {string} targetFileName - 대상 엑셀 파일명
+ * @returns {Object} 생성된 목차 시트
+ */
+function createExternalTableOfContents(workbook, sheetNames, targetFileName) {
+  const tocSheet = workbook.addWorksheet('목차');
+  
+  // 제목 및 안내사항 추가
+  const titleRow = tocSheet.addRow(['📊 Excel 시트 목차']);
+  titleRow.getCell(1).font = { size: 16, bold: true, color: { argb: '2F5597' } };
+  tocSheet.mergeCells(1, 1, 1, 4);
+  
+  tocSheet.addRow([]);
+  
+  const fileInfoRow = tocSheet.addRow(['📁 대상 파일:', path.basename(targetFileName)]);
+  fileInfoRow.getCell(1).font = { bold: true };
+  fileInfoRow.getCell(2).font = { color: { argb: '0563C1' } };
+  
+  tocSheet.addRow([]);
+  
+  // 헤더 추가
+  const headerRow = tocSheet.addRow(['No', 'Sheet Name', 'Description', 'File Link']);
+  headerRow.font = { bold: true };
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'D9E2F3' }
+  };
+  
+  // 시트 목록 추가
+  sheetNames.forEach((obj, idx) => {
+    const row = tocSheet.addRow([
+      idx + 1, 
+      obj.displayName, 
+      `${obj.displayName} 시트의 데이터를 확인하세요`, 
+      '📂 파일 열기'
+    ]);
+    
+    // 시트명 스타일링
+    row.getCell(2).font = { 
+      bold: true,
+      color: { argb: '2F5597' }
+    };
+    
+    // 설명 스타일링
+    row.getCell(3).font = { 
+      italic: true,
+      color: { argb: '666666' }
+    };
+    
+    // 외부 파일 링크 설정
+    try {
+      row.getCell(4).value = {
+        text: '📂 파일 열기',
+        hyperlink: targetFileName
+      };
+      row.getCell(4).font = { 
+        color: { argb: '0563C1' }, 
+        underline: true 
+      };
+    } catch (error) {
+      row.getCell(4).value = '파일 열기';
+      row.getCell(4).font = { 
+        color: { argb: '666666' } 
+      };
+    }
+  });
+
+  // 컬럼 설정
+  tocSheet.columns = [
+    { header: 'No', key: 'no', width: 6 },
+    { header: 'Sheet Name', key: 'name', width: 25 },
+    { header: 'Description', key: 'desc', width: 35 },
+    { header: 'File Link', key: 'link', width: 15 }
+  ];
+
+  // 사용법 안내 추가
+  tocSheet.addRow([]);
+  tocSheet.addRow([]);
+  const usageRow1 = tocSheet.addRow(['💡 사용법']);
+  usageRow1.getCell(1).font = { bold: true, color: { argb: '2F5597' } };
+  
+  tocSheet.addRow(['   1. "파일 열기" 링크를 클릭하여 메인 엑셀 파일을 엽니다']);
+  tocSheet.addRow(['   2. 메인 파일에서 원하는 시트 탭을 클릭합니다']);
+  tocSheet.addRow(['   3. 각 시트는 위 목록의 순서대로 배치되어 있습니다']);
+  
+  // 안내 메시지 스타일링
+  for (let i = tocSheet.rowCount - 2; i <= tocSheet.rowCount; i++) {
+    const row = tocSheet.getRow(i);
+    row.getCell(1).font = { color: { argb: '666666' } };
+  }
+
+  return tocSheet;
+}
+
 module.exports = {
   parseBorder,
   parseFont,
@@ -278,5 +402,6 @@ module.exports = {
   applyBodyStyle,
   calculateColumnWidths,
   applySheetStyle,
-  createTableOfContents
+  createTableOfContents,
+  createExternalTableOfContents
 }; 
