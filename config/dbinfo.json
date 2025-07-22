@@ -1,11 +1,20 @@
 {
-  "user": "db_user",
-  "password": "db_password",
-  "server": "db_server_ip_or_dns",
-  "port": 1433,
-  "database": "db_name",
-  "options": {
-    "encrypt": true,
-    "trustServerCertificate": true
+  "dbs": {
+    "main": {
+      "user": "user1",
+      "password": "pw1",
+      "server": "ip1",
+      "database": "db1",
+      "port": 1433,
+      "options": { "encrypt": true, "trustServerCertificate": true }
+    },
+    "erp": {
+      "user": "user2",
+      "password": "pw2",
+      "server": "ip2",
+      "database": "db2",
+      "port": 1433,
+      "options": { "encrypt": true, "trustServerCertificate": true }
+    }
   }
 } 

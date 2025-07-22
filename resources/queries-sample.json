@@ -1,4 +1,6 @@
 {
+  "db": "erp",
+  "output": "output/고객리스트_2024.xlsx",
   "vars": {
     "startDate": "2024-01-01",
     "endDate": "2024-06-30",

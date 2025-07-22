@@ -1,4 +1,6 @@
 <queries>
+  <db id="main"/>
+  <output>output/매출집계_2024.xlsx</output>
   <vars>
     <var name="startDate">2024-01-01</var>
     <var name="endDate">2024-06-30</var>
