@@ -93,21 +93,37 @@ async function main() {
   const pool = new mssql.ConnectionPool(dbConfig);
   await pool.connect();
 
+  console.log('-------------------------------------------------------------------------------');
+  console.log(`[${argv.out}] START WORK`);
+  console.log('-------------------------------------------------------------------------------');
   const workbook = new ExcelJS.Workbook();
 
   for (const sheetDef of sheets) {
-    const sql = substituteVars(sheetDef.query, mergedVars);
-    console.log(`[INFO] Executing for sheet '${sheetDef.name}':\n${sql}`);
-    const result = await pool.request().query(sql);
-    const sheet = workbook.addWorksheet(sheetDef.name);
-    if (result.recordset.length > 0) {
-      sheet.columns = Object.keys(result.recordset[0]).map(key => ({ header: key, key }));
-      sheet.addRows(result.recordset);
-    }
-  }
 
+    const sql = substituteVars(sheetDef.query, mergedVars);
+    console.log(`[INFO] Executing for sheet '${sheetDef.name}'`);
+    
+    try {
+      
+      const result = await pool.request().query(sql);
+      const sheet = workbook.addWorksheet(sheetDef.name);
+      if (result.recordset.length > 0) {
+        sheet.columns = Object.keys(result.recordset[0]).map(key => ({ header: key, key }));
+        sheet.addRows(result.recordset);
+      }
+      console.log(`\t---> ${result.recordset.length} rows were selected `);
+      
+    } catch (error) {
+      console.log(`----------------------------------[ERROR]--------------------------------------\n`);
+      console.log(`${sql}`);
+      console.log('\n-------------------------------------------------------------------------------');
+    }
+    
+  }
+  
   await workbook.xlsx.writeFile(argv.out);
-  console.log(`[SUCCESS] Excel file saved: ${argv.out}`);
+  console.log(`\n\n[${argv.out}] Excel file created `);
+  console.log('-------------------------------------------------------------------------------\n\n');
   await pool.close();
 }
 
