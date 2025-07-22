@@ -1,7 +1,7 @@
 {
   "excel": {
-    "db": "main",
-    "output": "output/주문관리_보고서_${reportDate}.xlsx",
+    "db": "sampleDB",
+    "output": "output/주문관리_보고서.xlsx",
     "header": {
       "font": { "name": "맑은 고딕", "size": 12, "color": "FFFFFF", "bold": true },
       "fill": { "color": "4F81BD" },

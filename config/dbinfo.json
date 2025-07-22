@@ -4,7 +4,7 @@
       "user": "sample",
       "password": "sample1234!",
       "server": "localhost",
-      "database": "SAMPLE_DB",
+      "database": "SampleDB",
       "port": 1433,
       "options": { "encrypt": true, "trustServerCertificate": true }
     },
