@@ -1,1 +1,144 @@
-# sql2excel-nodejs
+# sql2excel-nodejs 사용 매뉴얼
+
+## 개요
+- 다양한 SQL 쿼리 결과를 여러 시트로 엑셀 파일로 저장하는 Node.js CLI 도구
+- 멀티 DB 지원, 쿼리/엑셀/시트별 다양한 옵션 지원
+- XML/JSON 쿼리 정의 파일 지원
+
+---
+
+## 1. 설치 및 준비
+
+1. Node.js 16+ 설치
+2. 의존성 설치
+   ```bash
+   npm install
+   ```
+3. DB 접속정보 설정: `resources/config.json` 참고
+
+---
+
+## 2. 쿼리 정의 파일 구조
+
+### XML 예시 (`resources/queries-sample.xml`)
+```xml
+<queries>
+  <excel db="main" output="output/매출집계_2024.xlsx">
+    <header>
+      <font name="맑은 고딕" size="12" color="FFFFFF" bold="true"/>
+      <fill color="4F81BD"/>
+      <colwidths min="10" max="30"/>
+    </header>
+    <body>
+      <font name="맑은 고딕" size="11" color="000000" bold="false"/>
+      <fill color="FFFFCC"/>
+    </body>
+  </excel>
+  <vars>
+    <var name="startDate">2024-01-01</var>
+    <var name="endDate">2024-06-30</var>
+    <var name="regionList">'서울','부산'</var>
+  </vars>
+  <sheet name="Orders" use="true">
+    <![CDATA[
+      SELECT * FROM Orders
+      WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
+    ]]>
+  </sheet>
+  <sheet name="Customers" use="false">
+    <![CDATA[
+      SELECT * FROM Customers
+      WHERE region IN (${regionList})
+    ]]>
+  </sheet>
+</queries>
+```
+
+### JSON 예시 (`resources/queries-sample.json`)
+```json
+{
+  "excel": {
+    "db": "main",
+    "output": "output/매출집계_2024.xlsx",
+    "header": {
+      "font": { "name": "맑은 고딕", "size": 12, "color": "FFFFFF", "bold": true },
+      "fill": { "color": "4F81BD" },
+      "colwidths": { "min": 10, "max": 30 }
+    },
+    "body": {
+      "font": { "name": "맑은 고딕", "size": 11, "color": "000000", "bold": false },
+      "fill": { "color": "FFFFCC" }
+    }
+  },
+  "vars": {
+    "startDate": "2024-01-01",
+    "endDate": "2024-06-30",
+    "regionList": "'서울','부산'"
+  },
+  "sheets": [
+    {
+      "name": "Orders",
+      "use": true,
+      "query": "SELECT * FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'"
+    },
+    {
+      "name": "Customers",
+      "use": false,
+      "query": "SELECT * FROM Customers WHERE region IN (${regionList})"
+    }
+  ]
+}
+```
+
+---
+
+## 3. 실행 방법
+
+### 기본 실행
+```bash
+node src/index.js -x resources/queries-sample.xml
+```
+또는
+```bash
+node src/index.js -q resources/queries-sample.json
+```
+
+### 주요 옵션
+- `-x`, `--xml` : XML 쿼리 정의 파일 경로
+- `-q`, `--query` : JSON 쿼리 정의 파일 경로
+- `-c`, `--config` : DB 접속정보 파일 경로(기본값: resources/config.json)
+- `--db` : 사용할 DB ID (config.json의 dbs 키)
+- `-o`, `--out` : 엑셀 파일명(경로)
+- `-v`, `--var` : 쿼리 변수 (key=value, 여러 개 가능)
+
+### 예시
+```bash
+node src/index.js -x resources/queries-sample.xml -v startDate=2024-01-01 -v endDate=2024-06-30
+node src/index.js -q resources/queries-sample.json --db main --out output/result.xlsx
+```
+
+---
+
+## 4. 주요 기능
+
+- 여러 DB 접속정보 지원 (config.json)
+- 쿼리파일에서 DB, 엑셀경로, 스타일(폰트, bold, 배경색, 컬럼너비 min/max) 한 번에 지정
+- 시트별 사용여부(use) 지정 가능
+- 전역 변수/CLI 변수 지원 (중복시 CLI 우선)
+- 엑셀 파일명에 자동으로 실행시각(yyyymmddhhmmss) 추가
+- 컬럼별 데이터 길이에 따라 자동 너비(최소/최대값 내)
+- 헤더/데이터 각각 스타일 적용
+- 실행 시 XML 쿼리파일 목록 자동 안내
+- 결과 엑셀 파일 경로의 폴더가 없으면 자동 생성
+
+---
+
+## 5. 기타 참고
+- 쿼리문 내 `${변수명}` 형태로 변수 사용 가능
+- 시트별로 `use="false"` 또는 `"use": false`로 비활성화 가능
+- 쿼리파일 구조/옵션은 필요에 따라 확장 가능
+
+---
+
+## 6. 문의/기여
+- 개선 요청, 버그 제보, 추가 기능 문의는 언제든 환영합니다!

@@ -1,6 +1,17 @@
 {
-  "db": "erp",
-  "output": "output/고객리스트_2024.xlsx",
+  "excel": {
+    "db": "main",
+    "output": "output/매출집계_2024.xlsx",
+    "header": {
+      "font": { "name": "맑은 고딕", "size": 12, "color": "FFFFFF", "bold": true },
+      "fill": { "color": "4F81BD" },
+      "colwidths": { "min": 10, "max": 30 }
+    },
+    "body": {
+      "font": { "name": "맑은 고딕", "size": 11, "color": "000000", "bold": false },
+      "fill": { "color": "FFFFCC" }
+    }
+  },
   "vars": {
     "startDate": "2024-01-01",
     "endDate": "2024-06-30",
@@ -9,10 +20,12 @@
   "sheets": [
     {
       "name": "Orders",
+      "use": true,
       "query": "SELECT * FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'"
     },
     {
       "name": "Customers",
+      "use": false,
       "query": "SELECT * FROM Customers WHERE region IN (${regionList})"
     }
   ]

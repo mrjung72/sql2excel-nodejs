@@ -72,6 +72,20 @@ function getNowTimestampStr() {
   return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 }
 
+function parseColWidths(colwidths, colCount) {
+  // colwidths: {min, max} or undefined
+  // colCount: 실제 컬럼 개수
+  return function(lengths) {
+    // lengths: 각 컬럼별 최대 문자열 길이 배열
+    let min = 10, max = 30;
+    if (colwidths && typeof colwidths === 'object') {
+      if (colwidths.min) min = Number(colwidths.min);
+      if (colwidths.max) max = Number(colwidths.max);
+    }
+    return lengths.map(len => Math.max(min, Math.min(max, len)));
+  };
+}
+
 async function main() {
   printAvailableXmlFiles();
 
@@ -111,13 +125,47 @@ async function main() {
   // CLI 변수 > 파일 전역변수 우선 적용
   const mergedVars = { ...globalVars, ...cliVars };
 
+  // 엑셀 전체 스타일 파싱 및 db/output 우선 적용
+  let excelStyle = {};
+  let excelDb = undefined;
+  let excelOutput = undefined;
+  if (argv.xml && fs.existsSync(resolvePath(argv.xml))) {
+    const xml = fs.readFileSync(resolvePath(argv.xml), 'utf8');
+    const parsed = await xml2js.parseStringPromise(xml, { trim: true });
+    if (parsed.queries && parsed.queries.excel && parsed.queries.excel[0]) {
+      const excel = parsed.queries.excel[0];
+      if (excel.$ && excel.$.db) excelDb = excel.$.db;
+      if (excel.$ && excel.$.output) excelOutput = excel.$.output;
+      excelStyle.header = {};
+      excelStyle.body = {};
+      if (excel.header && excel.header[0]) {
+        const h = excel.header[0];
+        if (h.font && h.font[0] && h.font[0].$) excelStyle.header.font = h.font[0].$;
+        if (h.fill && h.fill[0] && h.fill[0].$) excelStyle.header.fill = h.fill[0].$;
+        if (h.colwidths && h.colwidths[0] && h.colwidths[0].$) excelStyle.header.colwidths = h.colwidths[0].$;
+      }
+      if (excel.body && excel.body[0]) {
+        const b = excel.body[0];
+        if (b.font && b.font[0] && b.font[0].$) excelStyle.body.font = b.font[0].$;
+        if (b.fill && b.fill[0] && b.fill[0].$) excelStyle.body.fill = b.fill[0].$;
+      }
+    }
+  } else if (argv.query && fs.existsSync(resolvePath(argv.query))) {
+    const queries = JSON5.parse(fs.readFileSync(resolvePath(argv.query), 'utf8'));
+    if (queries.excel) {
+      excelStyle = queries.excel;
+      if (queries.excel.db) excelDb = queries.excel.db;
+      if (queries.excel.output) excelOutput = queries.excel.output;
+    }
+  }
+
   // DB 접속 정보 로드 (멀티 DB 지원)
   const configPath = resolvePath(argv.config);
   if (!fs.existsSync(configPath)) {
     throw new Error(`DB 접속 정보 파일이 존재하지 않습니다: ${configPath}`);
   }
   const configObj = JSON5.parse(fs.readFileSync(configPath, 'utf8'));
-  const dbKey = argv.db || dbId || 'main';
+  const dbKey = argv.db || excelDb || dbId || 'main';
   if (!configObj.dbs || !configObj.dbs[dbKey]) {
     throw new Error(`DB 접속 ID를 찾을 수 없습니다: ${dbKey}`);
   }
@@ -125,8 +173,8 @@ async function main() {
   const pool = new mssql.ConnectionPool(dbConfig);
   await pool.connect();
 
-  // 엑셀 파일 경로 결정 (CLI > 쿼리파일 > 기본값)
-  let outFile = argv.out || outputPath || 'output.xlsx';
+  // 엑셀 파일 경로 결정 (CLI > excel > 쿼리파일 > 기본값)
+  let outFile = argv.out || excelOutput || outputPath || 'output.xlsx';
   outFile = path.isAbsolute(outFile) ? outFile : path.join(process.cwd(), outFile);
   // 파일명에 _yyyymmddhhmmss 추가
   const ext = path.extname(outFile);
@@ -140,13 +188,78 @@ async function main() {
   const workbook = new ExcelJS.Workbook();
 
   for (const sheetDef of sheets) {
+    // use 속성 체크
+    let use = true;
+    if (typeof sheetDef.use !== 'undefined') {
+      if (sheetDef.use === false || sheetDef.use === 0 || sheetDef.use === 'false' || sheetDef.use === '0') use = false;
+    } else if (sheetDef.hasOwnProperty('$') && typeof sheetDef.$.use !== 'undefined') {
+      // XML 파싱 시
+      if (sheetDef.$.use === 'false' || sheetDef.$.use === '0') use = false;
+    }
+    if (!use) {
+      console.log(`[SKIP] Sheet '${sheetDef.name}' is disabled (use=false)`);
+      continue;
+    }
     const sql = substituteVars(sheetDef.query, mergedVars);
     console.log(`[INFO] Executing for sheet '${sheetDef.name}'`);
     try {
       const result = await pool.request().query(sql);
       const sheet = workbook.addWorksheet(sheetDef.name);
       if (result.recordset.length > 0) {
-        sheet.columns = Object.keys(result.recordset[0]).map(key => ({ header: key, key }));
+        // 컬럼 정보
+        const columns = Object.keys(result.recordset[0]);
+        // 헤더 스타일 적용
+        if (excelStyle.header) {
+          sheet.getRow(1).font = {
+            name: excelStyle.header.font?.name,
+            size: excelStyle.header.font?.size ? Number(excelStyle.header.font.size) : undefined,
+            color: excelStyle.header.font?.color ? { argb: excelStyle.header.font.color } : undefined,
+            bold: excelStyle.header.font?.bold === 'true' || excelStyle.header.font?.bold === true
+          };
+          if (excelStyle.header.fill?.color) {
+            sheet.getRow(1).fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: excelStyle.header.fill.color }
+            };
+          }
+        }
+        // 데이터 스타일 적용
+        if (excelStyle.body) {
+          for (let i = 0; i < result.recordset.length; i++) {
+            const row = sheet.getRow(i + 2);
+            row.font = {
+              name: excelStyle.body.font?.name,
+              size: excelStyle.body.font?.size ? Number(excelStyle.body.font.size) : undefined,
+              color: excelStyle.body.font?.color ? { argb: excelStyle.body.font.color } : undefined,
+              bold: excelStyle.body.font?.bold === 'true' || excelStyle.body.font?.bold === true
+            };
+            if (excelStyle.body.fill?.color) {
+              row.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: excelStyle.body.fill.color }
+              };
+            }
+          }
+        }
+        // 컬럼 너비 자동 계산 (min/max)
+        let colwidths = excelStyle.header?.colwidths;
+        let min = 10, max = 30;
+        if (colwidths && typeof colwidths === 'object') {
+          if (colwidths.min) min = Number(colwidths.min);
+          if (colwidths.max) max = Number(colwidths.max);
+        }
+        // 각 컬럼별 최대 길이 계산
+        const colMaxLens = columns.map((col, idx) => {
+          let maxLen = col.length;
+          for (const row of result.recordset) {
+            const val = row[col] !== null && row[col] !== undefined ? String(row[col]) : '';
+            if (val.length > maxLen) maxLen = val.length;
+          }
+          return Math.max(min, Math.min(max, maxLen));
+        });
+        sheet.columns = columns.map((key, i) => ({ header: key, key, width: colMaxLens[i] }));
         sheet.addRows(result.recordset);
       }
       console.log(`\t---> ${result.recordset.length} rows were selected `);
