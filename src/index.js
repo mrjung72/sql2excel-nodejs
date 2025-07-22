@@ -89,6 +89,36 @@ function parseColWidths(colwidths, colCount) {
 
 // parseBorder 함수는 excel-style-helper.js로 이동됨
 
+/**
+ * XML 형식의 border 요소를 JSON 형식으로 변환
+ * @param {Object} xmlBorder - XML에서 파싱된 border 객체
+ * @returns {Object} JSON 형식의 border 객체
+ */
+function parseXmlBorder(xmlBorder) {
+  const result = {};
+  
+  // <border><all style="thin" color="000000"/></border> 형식 처리
+  if (xmlBorder.all && xmlBorder.all[0] && xmlBorder.all[0].$) {
+    result.all = xmlBorder.all[0].$;
+  }
+  
+  // 개별 방향별 테두리 처리
+  if (xmlBorder.top && xmlBorder.top[0] && xmlBorder.top[0].$) {
+    result.top = xmlBorder.top[0].$;
+  }
+  if (xmlBorder.left && xmlBorder.left[0] && xmlBorder.left[0].$) {
+    result.left = xmlBorder.left[0].$;
+  }
+  if (xmlBorder.right && xmlBorder.right[0] && xmlBorder.right[0].$) {
+    result.right = xmlBorder.right[0].$;
+  }
+  if (xmlBorder.bottom && xmlBorder.bottom[0] && xmlBorder.bottom[0].$) {
+    result.bottom = xmlBorder.bottom[0].$;
+  }
+  
+  return result;
+}
+
 function isSheetEnabled(sheetDef) {
   let use = true;
   // JSON: use 속성
@@ -174,11 +204,23 @@ async function main() {
         if (h.font && h.font[0] && h.font[0].$) excelStyle.header.font = h.font[0].$;
         if (h.fill && h.fill[0] && h.fill[0].$) excelStyle.header.fill = h.fill[0].$;
         if (h.colwidths && h.colwidths[0] && h.colwidths[0].$) excelStyle.header.colwidths = h.colwidths[0].$;
+        if (h.alignment && h.alignment[0] && h.alignment[0].$) {
+          excelStyle.header.alignment = h.alignment[0].$;
+        }
+        if (h.border && h.border[0]) {
+          excelStyle.header.border = parseXmlBorder(h.border[0]);
+        }
       }
       if (excel.body && excel.body[0]) {
         const b = excel.body[0];
         if (b.font && b.font[0] && b.font[0].$) excelStyle.body.font = b.font[0].$;
         if (b.fill && b.fill[0] && b.fill[0].$) excelStyle.body.fill = b.fill[0].$;
+        if (b.alignment && b.alignment[0] && b.alignment[0].$) {
+          excelStyle.body.alignment = b.alignment[0].$;
+        }
+        if (b.border && b.border[0]) {
+          excelStyle.body.border = parseXmlBorder(b.border[0]);
+        }
       }
     }
   } else if (argv.query && fs.existsSync(resolvePath(argv.query))) {

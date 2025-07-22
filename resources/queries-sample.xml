@@ -12,9 +12,9 @@
     <body>
       <font name="맑은 고딕" size="11" color="000000" bold="false"/>
       <fill color="FFFFCC"/>
-      <alignment horizontal="center" vertical="middle"/>
+      <alignment horizontal="left" vertical="middle"/>
       <border>
-        <all style="thin" color="000000"/>
+        <all style="thin" color="CCCCCC"/>
       </border>
     </body>
   </excel>
@@ -23,16 +23,49 @@
     <var name="endDate">2024-06-30</var>
     <var name="regionList">'서울','부산'</var>
   </vars>
-  <sheet name="Orders" use="true">
+  <sheet name="주문_목록" use="true">
     <![CDATA[
-      SELECT * FROM Orders
+      SELECT 
+        OrderNumber as 주문번호,
+        FORMAT(OrderDate, 'yyyy-MM-dd') as 주문일,
+        OrderStatus as 주문상태,
+        PaymentStatus as 결제상태,
+        FORMAT(TotalAmount, 'N0') as 총금액,
+        PaymentMethod as 결제방법
+      FROM SampleDB.dbo.Orders
       WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
+      ORDER BY OrderDate DESC
     ]]>
   </sheet>
-  <sheet name="Customers" use="false">
+  <sheet name="고객_목록" use="true">
     <![CDATA[
-      SELECT * FROM Customers
-      WHERE region IN (${regionList})
+      SELECT 
+        CustomerCode as 고객코드,
+        CustomerName as 고객명,
+        ContactName as 담당자명,
+        City as 도시,
+        Region as 지역,
+        CustomerType as 고객유형,
+        FORMAT(CreditLimit, 'N0') as 신용한도
+      FROM SampleDB.dbo.Customers
+      WHERE Region IN (${regionList}) AND IsActive = 1
+      ORDER BY CreditLimit DESC
+    ]]>
+  </sheet>
+  <sheet name="주문_상세" use="false">
+    <![CDATA[
+      SELECT 
+        o.OrderNumber as 주문번호,
+        c.CustomerName as 고객명,
+        od.ProductName as 제품명,
+        FORMAT(od.UnitPrice, 'N0') as 단가,
+        od.Quantity as 수량,
+        FORMAT(od.LineTotal, 'N0') as 금액
+      FROM SampleDB.dbo.Orders o
+      INNER JOIN SampleDB.dbo.Customers c ON o.CustomerID = c.CustomerID
+      INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID
+      WHERE o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}'
+      ORDER BY o.OrderDate DESC
     ]]>
   </sheet>
 </queries> 

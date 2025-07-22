@@ -274,14 +274,32 @@ node test/test-exceljs-style.js
 
 #### 3단계: 샘플 쿼리 실행
 ```bash
-# 주문관리 보고서 생성 (10개 시트)
+# JSON 설정파일 - 주문관리 보고서 생성 (10개 시트)
 node src/index.js -q resources/queries-sample-orders.json
+# 또는
+test-sample-orders.bat
 
-# 생성되는 시트:
-# - 전체_고객_목록, 활성_고객_목록, 주요지역_고객
-# - 전체_주문_목록, 기간별_주문, 처리중_주문, 주문_상세_내역
-# - 고객별_주문_집계, 월별_매출_집계, 지역별_매출_분석
+# XML 설정파일 - 매출집계 보고서 생성 (3개 시트)
+node src/index.js -x resources/queries-sample.xml
+# 또는
+test-sample-xml.bat
 ```
+
+#### JSON vs XML 설정파일 비교
+| 항목 | JSON | XML |
+|------|------|-----|
+| 설정 방식 | 객체 기반 | 태그 기반 |
+| 스타일 지원 | ✅ 완전 지원 | ✅ 완전 지원 |
+| 테두리 설정 | `"border": {"all": {"style": "thin"}}` | `<border><all style="thin"/></border>` |
+| 정렬 설정 | `"alignment": {"horizontal": "center"}` | `<alignment horizontal="center"/>` |
+| 폰트 설정 | `"font": {"bold": true}` | `<font bold="true"/>` |
+| 중첩 구조 | 직관적 | 더 구조적 |
+
+#### 스타일 적용 확인
+XML과 JSON 모두 다음 스타일이 동일하게 적용됩니다:
+- **헤더**: 중앙정렬, 파란배경, 흰글자, 검은테두리, 굵은글씨
+- **데이터**: 좌측정렬, 노란배경, 검은글자, 회색테두리, 일반글씨
+- **컬럼너비**: 자동조정 (최소 10, 최대 30)
 
 #### 포함된 샘플 데이터
 - **고객**: 삼성전자, LG전자, 현대자동차, 신세계백화점, 부산항만공사, 롯데백화점, 대구은행, 인천공항, 기아자동차, KAIST, Sony, Apple 등
