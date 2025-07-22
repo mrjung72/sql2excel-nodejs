@@ -102,6 +102,34 @@ function parseBorder(border) {
   };
 }
 
+function isSheetEnabled(sheetDef) {
+  let use = true;
+  // JSON: use 속성
+  if (typeof sheetDef.use !== 'undefined') {
+    if (
+      sheetDef.use === false ||
+      sheetDef.use === 0 ||
+      sheetDef.use === 'false' ||
+      sheetDef.use === '0' ||
+      sheetDef.use === '' ||
+      sheetDef.use === null
+    ) use = false;
+  }
+  // XML: $.use 속성
+  else if (sheetDef.hasOwnProperty('$') && typeof sheetDef.$.use !== 'undefined') {
+    const val = sheetDef.$.use;
+    if (
+      val === false ||
+      val === 0 ||
+      val === 'false' ||
+      val === '0' ||
+      val === '' ||
+      val === null
+    ) use = false;
+  }
+  return use;
+}
+
 async function main() {
   printAvailableXmlFiles();
 
@@ -205,15 +233,8 @@ async function main() {
   const createdSheetNames = [];
 
   for (const sheetDef of sheets) {
-    // use 속성 체크
-    let use = true;
-    if (typeof sheetDef.use !== 'undefined') {
-      if (sheetDef.use === false || sheetDef.use === 0 || sheetDef.use === 'false' || sheetDef.use === '0') use = false;
-    } else if (sheetDef.hasOwnProperty('$') && typeof sheetDef.$.use !== 'undefined') {
-      // XML 파싱 시
-      if (sheetDef.$.use === 'false' || sheetDef.$.use === '0') use = false;
-    }
-    if (!use) {
+    // robust use 속성 체크
+    if (!isSheetEnabled(sheetDef)) {
       console.log(`[SKIP] Sheet '${sheetDef.name}' is disabled (use=false)`);
       continue;
     }
