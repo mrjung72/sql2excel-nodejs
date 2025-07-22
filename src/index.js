@@ -184,17 +184,28 @@ async function main() {
   // CLI 변수 > 파일 전역변수 우선 적용
   const mergedVars = { ...globalVars, ...cliVars };
 
-  // 엑셀 전체 스타일 파싱 및 db/output 우선 적용
+  // 기본값 설정
   let excelStyle = {};
   let excelDb = undefined;
   let excelOutput = undefined;
+  let createSeparateToc = false; // 별도 목차 파일 생성 여부
+  
   if (argv.xml && fs.existsSync(resolvePath(argv.xml))) {
     const xml = fs.readFileSync(resolvePath(argv.xml), 'utf8');
     const parsed = await xml2js.parseStringPromise(xml, { trim: true });
+    
+    // queries 루트 엘리먼트에서 separateToc 속성 확인
+    if (parsed.queries && parsed.queries.$) {
+      if (parsed.queries.$.separateToc) createSeparateToc = parsed.queries.$.separateToc === 'true';
+    }
+    
     if (parsed.queries && parsed.queries.excel && parsed.queries.excel[0]) {
       const excel = parsed.queries.excel[0];
       if (excel.$ && excel.$.db) excelDb = excel.$.db;
       if (excel.$ && excel.$.output) excelOutput = excel.$.output;
+      // excel 엘리먼트의 separateToc가 있으면 우선적용 (덮어쓰기)
+      if (excel.$ && excel.$.separateToc) createSeparateToc = excel.$.separateToc === 'true';
+      
       excelStyle.header = {};
       excelStyle.body = {};
       if (excel.header && excel.header[0]) {
@@ -227,6 +238,7 @@ async function main() {
       excelStyle = queries.excel;
       if (queries.excel.db) excelDb = queries.excel.db;
       if (queries.excel.output) excelOutput = queries.excel.output;
+      if (queries.excel.separateToc !== undefined) createSeparateToc = queries.excel.separateToc;
     }
   }
 
@@ -315,16 +327,20 @@ async function main() {
     excelStyleHelper.populateTableOfContents(tocSheet, createdSheetNames);
     console.log(`[목차] 시트 내용 생성 완료 (맨 왼쪽 위치)`);
 
-    // 별도 목차 엑셀 파일 생성
-    const tocWb = new ExcelJS.Workbook();
-    excelStyleHelper.createExternalTableOfContents(tocWb, createdSheetNames, outFile);
-    
-    // 파일명: 기존 outFile 기준 _목차_yyyymmddhhmmss.xlsx
-    const tocExt = path.extname(outFile);
-    const tocBase = outFile.slice(0, -tocExt.length);
-    const tocFile = `${tocBase}_목차_${getNowTimestampStr()}${tocExt}`;
-    await tocWb.xlsx.writeFile(tocFile);
-    console.log(`[목차] 별도 엑셀 파일 생성: ${tocFile}`);
+    // 별도 목차 엑셀 파일 생성 (설정에 따라 조건부 생성)
+    if (createSeparateToc) {
+      const tocWb = new ExcelJS.Workbook();
+      excelStyleHelper.createExternalTableOfContents(tocWb, createdSheetNames, outFile);
+      
+      // 파일명: 기존 outFile 기준 _목차_yyyymmddhhmmss.xlsx
+      const tocExt = path.extname(outFile);
+      const tocBase = outFile.slice(0, -tocExt.length);
+      const tocFile = `${tocBase}_목차_${getNowTimestampStr()}${tocExt}`;
+      await tocWb.xlsx.writeFile(tocFile);
+      console.log(`[목차] 별도 엑셀 파일 생성: ${tocFile}`);
+    } else {
+      console.log(`[목차] 별도 파일 생성 안함 (separateToc=false)`);
+    }
   }
 
   await workbook.xlsx.writeFile(outFile);

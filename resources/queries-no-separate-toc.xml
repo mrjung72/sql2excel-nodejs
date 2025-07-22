@@ -1,0 +1,69 @@
+<queries>
+  <excel db="sampleDB" output="output/매출집계_2024_목차없음.xlsx" separateToc="false">
+    <header>
+      <font name="맑은 고딕" size="12" color="FFFFFF" bold="true"/>
+      <fill color="4F81BD"/>
+      <colwidths min="20" max="50"/>
+      <alignment horizontal="center" vertical="middle"/>
+      <border>
+        <all style="thin" color="000000"/>
+      </border>
+    </header>
+    <body>
+      <font name="맑은 고딕" size="11" color="000000" bold="false"/>
+      <fill color="FFFFCC"/>
+      <alignment horizontal="left" vertical="middle"/>
+      <border>
+        <all style="thin" color="CCCCCC"/>
+      </border>
+    </body>
+  </excel>
+  <vars>
+    <var name="startDate">2024-01-01</var>
+    <var name="endDate">2024-06-30</var>
+    <var name="regionList">'서울','부산'</var>
+  </vars>
+  <sheet name="주문_목록" use="true">
+    <![CDATA[
+      SELECT 
+        OrderNumber as 주문번호,
+        FORMAT(OrderDate, 'yyyy-MM-dd') as 주문일,
+        CustomerName as 고객명,
+        ProductName as 상품명,
+        Quantity as 수량,
+        UnitPrice as 단가,
+        (Quantity * UnitPrice) as 금액
+      FROM OrderSummary
+      WHERE OrderDate BETWEEN '${startDate}' AND '${endDate}'
+      ORDER BY OrderDate DESC
+    ]]>
+  </sheet>
+  <sheet name="고객_목록" use="true">
+    <![CDATA[
+      SELECT 
+        CustomerID as 고객번호,
+        CompanyName as 회사명,
+        ContactName as 담당자,
+        Country as 국가,
+        City as 도시,
+        Phone as 전화번호
+      FROM Customer
+      ORDER BY CompanyName
+    ]]>
+  </sheet>
+  <sheet name="주문_상세" use="true">
+    <![CDATA[
+      SELECT 
+        OrderDetailID as 상세번호,
+        OrderID as 주문번호,
+        ProductID as 상품번호,
+        ProductName as 상품명,
+        Quantity as 수량,
+        UnitPrice as 단가,
+        (Quantity * UnitPrice) as 라인합계
+      FROM OrderDetail od
+      INNER JOIN Product p ON od.ProductID = p.ProductID
+      ORDER BY OrderID, ProductID
+    ]]>
+  </sheet>
+</queries> 

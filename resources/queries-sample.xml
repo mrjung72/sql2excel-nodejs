@@ -1,5 +1,5 @@
 <queries>
-  <excel db="sampleDB" output="d:\temp/output/매출집계_2024.xlsx">
+  <excel db="sampleDB" output="output/매출집계_2024.xlsx" separateToc="false">
     <header>
       <font name="맑은 고딕" size="12" color="FFFFFF" bold="true"/>
       <fill color="4F81BD"/>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<queries db="sampleDB" output="output/매출집계_긴시트명테스트_${year}.xlsx">
+<queries db="sampleDB" output="output/매출집계_긴시트명테스트_${year}.xlsx" separateToc="true">
   <variables>
     <var name="year">2024</var>
   </variables>
