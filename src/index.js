@@ -245,55 +245,59 @@ async function main() {
         });
         sheet.columns = columns.map((key, i) => ({ header: key, key, width: colMaxLens[i] }));
         sheet.addRows(result.recordset);
-        // 헤더 스타일 적용
+        // 헤더 셀별 스타일 적용
         if (excelStyle.header) {
-          sheet.getRow(1).font = {
-            name: excelStyle.header.font?.name,
-            size: excelStyle.header.font?.size ? Number(excelStyle.header.font.size) : undefined,
-            color: excelStyle.header.font?.color ? { argb: excelStyle.header.font.color } : undefined,
-            bold: excelStyle.header.font?.bold === 'true' || excelStyle.header.font?.bold === true
-          };
-          if (excelStyle.header.fill?.color) {
-            sheet.getRow(1).fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: { argb: excelStyle.header.fill.color }
-            };
-          }
-          if (excelStyle.header.alignment) {
-            sheet.getRow(1).alignment = { ...excelStyle.header.alignment };
-          }
-          if (excelStyle.header.border) {
-            const border = parseBorder(excelStyle.header.border);
-            for (let i = 1; i <= columns.length; i++) {
-              sheet.getRow(1).getCell(i).border = border;
+          for (let i = 1; i <= columns.length; i++) {
+            const cell = sheet.getRow(1).getCell(i);
+            if (excelStyle.header.font) {
+              cell.font = {
+                name: excelStyle.header.font?.name,
+                size: excelStyle.header.font?.size ? Number(excelStyle.header.font.size) : undefined,
+                color: excelStyle.header.font?.color ? { argb: excelStyle.header.font.color } : undefined,
+                bold: excelStyle.header.font?.bold === 'true' || excelStyle.header.font?.bold === true
+              };
+            }
+            if (excelStyle.header.fill?.color) {
+              cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: excelStyle.header.fill.color }
+              };
+            }
+            if (excelStyle.header.alignment) {
+              cell.alignment = { ...excelStyle.header.alignment };
+            }
+            if (excelStyle.header.border) {
+              cell.border = parseBorder(excelStyle.header.border);
             }
           }
         }
-        // 데이터 스타일 적용
+        // 데이터 셀별 스타일 적용
         if (excelStyle.body) {
-          for (let i = 0; i < result.recordset.length; i++) {
-            const row = sheet.getRow(i + 2);
-            row.font = {
-              name: excelStyle.body.font?.name,
-              size: excelStyle.body.font?.size ? Number(excelStyle.body.font.size) : undefined,
-              color: excelStyle.body.font?.color ? { argb: excelStyle.body.font.color } : undefined,
-              bold: excelStyle.body.font?.bold === 'true' || excelStyle.body.font?.bold === true
-            };
-            if (excelStyle.body.fill?.color) {
-              row.fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: excelStyle.body.fill.color }
-              };
-            }
-            if (excelStyle.body.alignment) {
-              row.alignment = { ...excelStyle.body.alignment };
-            }
-            if (excelStyle.body.border) {
-              const border = parseBorder(excelStyle.body.border);
-              for (let j = 1; j <= columns.length; j++) {
-                row.getCell(j).border = border;
+          for (let r = 0; r < result.recordset.length; r++) {
+            const row = sheet.getRow(r + 2);
+            for (let i = 1; i <= columns.length; i++) {
+              const cell = row.getCell(i);
+              if (excelStyle.body.font) {
+                cell.font = {
+                  name: excelStyle.body.font?.name,
+                  size: excelStyle.body.font?.size ? Number(excelStyle.body.font.size) : undefined,
+                  color: excelStyle.body.font?.color ? { argb: excelStyle.body.font.color } : undefined,
+                  bold: excelStyle.body.font?.bold === 'true' || excelStyle.body.font?.bold === true
+                };
+              }
+              if (excelStyle.body.fill?.color) {
+                cell.fill = {
+                  type: 'pattern',
+                  pattern: 'solid',
+                  fgColor: { argb: excelStyle.body.fill.color }
+                };
+              }
+              if (excelStyle.body.alignment) {
+                cell.alignment = { ...excelStyle.body.alignment };
+              }
+              if (excelStyle.body.border) {
+                cell.border = parseBorder(excelStyle.body.border);
               }
             }
           }
