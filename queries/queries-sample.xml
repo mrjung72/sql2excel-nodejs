@@ -69,4 +69,24 @@
       ORDER BY o.OrderDate DESC
     ]]>
   </sheet>
+  <sheet name="와일드카드기호사용_Customer" use="false">
+    <![CDATA[
+      SELECT c.*
+      FROM SampleDB.dbo.Orders o
+      INNER JOIN SampleDB.dbo.Customers c ON o.CustomerID = c.CustomerID
+      INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID
+      WHERE o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}'
+      ORDER BY o.OrderDate DESC
+    ]]>
+  </sheet>
+  <sheet name="와일드카드기호사용_Order" use="false">
+    <![CDATA[
+      SELECT o.*
+      FROM SampleDB.dbo.Orders o
+      INNER JOIN SampleDB.dbo.Customers c ON o.CustomerID = c.CustomerID
+      INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID
+      WHERE o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}'
+      ORDER BY o.OrderDate DESC
+    ]]>
+  </sheet>
 </queries> 
