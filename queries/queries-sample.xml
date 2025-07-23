@@ -24,7 +24,7 @@
     <var name="endDate">2024-06-30</var>
     <var name="regionList">'서울','부산'</var>
   </vars>
-  <sheet name="${envType}_주문_목록" use="true">
+  <sheet name="${envType}_주문_목록" use="true" aggregateColumn="주문상태">
     <![CDATA[
       SELECT 
         OrderNumber as 주문번호,
@@ -38,7 +38,7 @@
       ORDER BY OrderDate DESC
     ]]>
   </sheet>
-  <sheet name="고객_목록" use="true">
+  <sheet name="고객_목록" use="true" aggregateColumn="지역">
     <![CDATA[
       SELECT 
         CustomerCode as 고객코드,

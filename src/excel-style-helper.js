@@ -318,6 +318,7 @@ function createTableOfContents(workbook, sheetNames) {
     { header: 'No', key: 'no', width: 6 },
     { header: 'Sheet Name', key: 'name', width: 25 },
     { header: 'Records', key: 'records', width: 12 },
+    { header: 'Aggregate Info', key: 'aggregate', width: 35 },
     { header: 'Note', key: 'note', width: 18 }
   ];
 
@@ -349,7 +350,7 @@ function populateTableOfContents(tocSheet, sheetNames) {
   tocSheet.spliceRows(1, tocSheet.rowCount);
   
   // 헤더 추가
-  tocSheet.addRow(['No', 'Sheet Name', 'Records', 'Note']);
+  tocSheet.addRow(['No', 'Sheet Name', 'Records', 'Aggregate Info', 'Note']);
   
   // 시트 목록 추가
   sheetNames.forEach((obj, idx) => {
@@ -357,7 +358,17 @@ function populateTableOfContents(tocSheet, sheetNames) {
     const isTruncated = obj.originalName && obj.originalName !== obj.tabName;
     const noteText = isTruncated ? '(31자 초과로 잘림)' : '';
     
-    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0, noteText]);
+    // 집계 정보 텍스트 생성
+    let aggregateInfo = '';
+    if (obj.aggregateColumn && obj.aggregateData && obj.aggregateData.length > 0) {
+      const topItems = obj.aggregateData.slice(0, 3); // 상위 3개만 표시
+      aggregateInfo = `[${obj.aggregateColumn}] ${topItems.map(item => `${item.key}:${item.count}`).join(', ')}`;
+      if (obj.aggregateData.length > 3) {
+        aggregateInfo += ` 외 ${obj.aggregateData.length - 3}개`;
+      }
+    }
+    
+    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0, aggregateInfo, noteText]);
     
     // 하이퍼링크 설정 - 실제 시트명(tabName) 사용
     const sheetNameForLink = obj.tabName.replace(/'/g, "''"); // 작은따옴표 이스케이프
@@ -429,9 +440,53 @@ function populateTableOfContents(tocSheet, sheetNames) {
     recordCountCell.numFmt = '#,##0'; // 천 단위 구분자
     recordCountCell.alignment = { horizontal: 'right' };
     
-    // 비고 컬럼 스타일링
+    // 집계 데이터 컬럼에 하이퍼링크 적용
+    const aggregateCell = row.getCell(4);
+    if (aggregateInfo) {
+      // 집계 정보에도 하이퍼링크 적용
+      const aggregateFormula = `HYPERLINK("#'${sheetNameForLink}'!A1","${aggregateInfo.replace(/"/g, '""')}")`;
+      
+      try {
+        aggregateCell.value = { formula: aggregateFormula };
+        aggregateCell.font = { 
+          color: { argb: '0563C1' }, 
+          underline: true 
+        };
+      } catch (error) {
+        // HYPERLINK 함수 실패 시 직접 하이퍼링크 방식 시도
+        try {
+          aggregateCell.value = {
+            text: aggregateInfo,
+            hyperlink: `#'${sheetNameForLink}'!A1`
+          };
+          aggregateCell.font = { 
+            color: { argb: '0563C1' }, 
+            underline: true 
+          };
+        } catch (error2) {
+          // 모든 방법 실패 시 일반 텍스트로 표시
+          aggregateCell.value = aggregateInfo;
+          aggregateCell.font = { 
+            color: { argb: '2F5597' }
+          };
+        }
+      }
+      
+      // 집계 데이터 스타일링
+      aggregateCell.alignment = { horizontal: 'left', vertical: 'middle' };
+      aggregateCell.font = { 
+        ...aggregateCell.font,
+        size: 10
+      };
+    } else {
+      // 집계 데이터가 없는 경우
+      aggregateCell.value = '';
+      aggregateCell.font = { color: { argb: '999999' } };
+    }
+    
+    // 비고 컬럼 스타일링 (5번째 컬럼)
     if (isTruncated) {
-      row.getCell(4).font = { 
+      row.getCell(5).font = { 
         italic: true,
         color: { argb: 'D2691E' } // 주황색으로 경고 표시
       };

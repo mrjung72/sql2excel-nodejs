@@ -37,6 +37,8 @@ async function loadQueriesFromXML(xmlPath) {
   }
   const sheets = parsed.queries.sheet.map(s => ({
     name: s.$.name,
+    use: s.$.use,
+    aggregateColumn: s.$.aggregateColumn || null,
     query: (s._ || (s["_"] ? s["_"] : (s["$"] ? s["$"] : '')) || (s["__cdata"] ? s["__cdata"] : '') || (s["cdata"] ? s["cdata"] : '') || (s["#cdata-section"] ? s["#cdata-section"] : '') || (s["__text"] ? s["__text"] : '') || (s["#text"] ? s["#text"] : '') || (s["$text"] ? s["$text"] : '') || (s["$value"] ? s["$value"] : '') || (s["value"] ? s["value"] : '') || '').toString().trim()
   }));
   return { globalVars, sheets, dbId, outputPath };
@@ -303,11 +305,35 @@ async function main() {
       // 실제 생성된 시트명 가져오기 (31자 초과시 잘린 이름)
       const actualSheetName = sheet.name;
       
+      // 집계 컬럼이 지정된 경우 집계 데이터 계산
+      let aggregateData = null;
+      if (sheetDef.aggregateColumn && recordCount > 0) {
+        const aggregateColumn = sheetDef.aggregateColumn;
+        const aggregateMap = {};
+        
+        result.recordset.forEach(row => {
+          const value = row[aggregateColumn];
+          if (value !== null && value !== undefined) {
+            const key = String(value).trim();
+            aggregateMap[key] = (aggregateMap[key] || 0) + 1;
+          }
+        });
+        
+        // 집계 결과를 배열로 변환 (건수가 많은 순으로 정렬)
+        aggregateData = Object.entries(aggregateMap)
+          .map(([key, count]) => ({ key, count }))
+          .sort((a, b) => b.count - a.count);
+          
+        console.log(`\t[집계] ${aggregateColumn} 컬럼 집계: ${aggregateData.map(item => `${item.key}(${item.count})`).join(', ')}`);
+      }
+      
       createdSheetNames.push({ 
         displayName: sheetName, 
         originalName: sheetName,
         tabName: actualSheetName, 
-        recordCount: recordCount 
+        recordCount: recordCount,
+        aggregateColumn: sheetDef.aggregateColumn,
+        aggregateData: aggregateData
       });
       createdSheetCounts.push(recordCount);
       
