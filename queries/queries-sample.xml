@@ -1,5 +1,5 @@
 <queries>
-  <excel db="sampleDB" output="d:/temp/매출집계_2024.xlsx" separateToc="false">
+  <excel db="sampleDB" output="d:/temp/매출집계_2024.xlsx" separateToc="false" maxRows="2000">
     <header>
       <font name="맑은 고딕" size="12" color="FFFFFF" bold="true"/>
       <fill color="4F81BD"/>
@@ -24,7 +24,7 @@
     <var name="endDate">2024-06-30</var>
     <var name="regionList">'서울','부산'</var>
   </vars>
-  <sheet name="${envType}_주문_목록" use="true" aggregateColumn="주문상태">
+  <sheet name="${envType}_주문_목록" use="true" aggregateColumn="결제방법" maxRows="1000">
     <![CDATA[
       SELECT 
         OrderNumber as 주문번호,

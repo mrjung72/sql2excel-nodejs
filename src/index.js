@@ -39,6 +39,7 @@ async function loadQueriesFromXML(xmlPath) {
     name: s.$.name,
     use: s.$.use,
     aggregateColumn: s.$.aggregateColumn || null,
+    maxRows: s.$.maxRows ? parseInt(s.$.maxRows) : null,
     query: (s._ || (s["_"] ? s["_"] : (s["$"] ? s["$"] : '')) || (s["__cdata"] ? s["__cdata"] : '') || (s["cdata"] ? s["cdata"] : '') || (s["#cdata-section"] ? s["#cdata-section"] : '') || (s["__text"] ? s["__text"] : '') || (s["#text"] ? s["#text"] : '') || (s["$text"] ? s["$text"] : '') || (s["$value"] ? s["$value"] : '') || (s["value"] ? s["value"] : '') || '').toString().trim()
   }));
   return { globalVars, sheets, dbId, outputPath };
@@ -195,6 +196,7 @@ async function main() {
   let excelDb = undefined;
   let excelOutput = undefined;
   let createSeparateToc = false; // 별도 목차 파일 생성 여부
+  let globalMaxRows = null; // 전역 최대 조회 건수
   
   if (argv.xml && fs.existsSync(resolvePath(argv.xml))) {
     const xml = fs.readFileSync(resolvePath(argv.xml), 'utf8');
@@ -211,6 +213,8 @@ async function main() {
       if (excel.$ && excel.$.output) excelOutput = excel.$.output;
       // excel 엘리먼트의 separateToc가 있으면 우선적용 (덮어쓰기)
       if (excel.$ && excel.$.separateToc) createSeparateToc = excel.$.separateToc === 'true';
+      // excel 엘리먼트의 maxRows 읽기
+      if (excel.$ && excel.$.maxRows) globalMaxRows = parseInt(excel.$.maxRows);
       
       excelStyle.header = {};
       excelStyle.body = {};
@@ -245,6 +249,7 @@ async function main() {
       if (queries.excel.db) excelDb = queries.excel.db;
       if (queries.excel.output) excelOutput = queries.excel.output;
       if (queries.excel.separateToc !== undefined) createSeparateToc = queries.excel.separateToc;
+      if (queries.excel.maxRows !== undefined) globalMaxRows = parseInt(queries.excel.maxRows);
     }
   }
 
@@ -294,8 +299,23 @@ async function main() {
       console.log(`[목차] 맨 첫 번째 시트로 생성됨`);
     }
     
-    const sql = substituteVars(sheetDef.query, mergedVars);
+    let sql = substituteVars(sheetDef.query, mergedVars);
     const sheetName = substituteVars(sheetDef.name, mergedVars);
+    
+    // maxRows 제한 적용 (개별 시트 설정 > 전역 설정 우선)
+    const effectiveMaxRows = sheetDef.maxRows || globalMaxRows;
+    if (effectiveMaxRows && effectiveMaxRows > 0) {
+      // SQL에 TOP 절이 없는 경우에만 추가
+      if (!sql.trim().toUpperCase().includes('TOP ')) {
+        // SELECT 다음에 TOP N을 삽입
+        sql = sql.replace(/^\s*SELECT\s+/i, `SELECT TOP ${effectiveMaxRows} `);
+        const source = sheetDef.maxRows ? '시트별' : '전역';
+        console.log(`\t[제한] 최대 ${effectiveMaxRows}건으로 제한됨 (${source} 설정)`);
+      } else {
+        console.log(`\t[제한] 쿼리에 이미 TOP 절이 존재하여 maxRows 설정 무시됨`);
+      }
+    }
+    
     console.log(`[INFO] Executing for sheet '${sheetName}'`);
     try {
       const result = await pool.request().query(sql);

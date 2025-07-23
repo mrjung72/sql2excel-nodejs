@@ -2,6 +2,7 @@
   "excel": {
     "db": "sampleDB",
     "output": "output/매출집계_2024.xlsx",
+    "maxRows": 1500,
     "header": {
       "font": { "name": "맑은 고딕", "size": 12, "color": "FFFFFF", "bold": true },
       "fill": { "color": "4F81BD" },
@@ -25,11 +26,15 @@
     {
       "name": "Orders",
       "use": true,
+      "maxRows": 1000,
+      "aggregateColumn": "OrderStatus",
       "query": "SELECT * FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'"
     },
     {
       "name": "Customers",
       "use": false,
+      "maxRows": 500,
+      "aggregateColumn": "Region",
       "query": "SELECT * FROM Customers WHERE region IN (${regionList})"
     }
   ]

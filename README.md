@@ -39,13 +39,13 @@
     <var name="endDate">2024-06-30</var>
     <var name="regionList">'서울','부산'</var>
   </vars>
-  <sheet name="Orders" use="true">
+  <sheet name="Orders" use="true" aggregateColumn="OrderStatus" maxRows="1000">
     <![CDATA[
       SELECT * FROM Orders
       WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
     ]]>
   </sheet>
-  <sheet name="Customers" use="false">
+  <sheet name="Customers" use="false" aggregateColumn="Region" maxRows="500">
     <![CDATA[
       SELECT * FROM Customers
       WHERE region IN (${regionList})
@@ -79,11 +79,15 @@
     {
       "name": "Orders",
       "use": true,
+      "aggregateColumn": "OrderStatus",
+      "maxRows": 1000,
       "query": "SELECT * FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'"
     },
     {
       "name": "Customers",
       "use": false,
+      "aggregateColumn": "Region",
+      "maxRows": 500,
       "query": "SELECT * FROM Customers WHERE region IN (${regionList})"
     }
   ]
@@ -130,6 +134,9 @@ node src/index.js -q resources/queries-sample.json --db main --out output/result
 - 헤더/데이터 각각 스타일 적용
 - 실행 시 XML 쿼리파일 목록 자동 안내
 - 결과 엑셀 파일 경로의 폴더가 없으면 자동 생성
+- **자동 목차 시트 생성** (하이퍼링크 포함)
+- **컬럼별 집계 데이터 표시** (목차 시트에서 한눈에 확인)
+- **조회 건수 제한 기능** (대용량 데이터 처리 시 안전장치)
 
 ---
 
@@ -188,17 +195,97 @@ node src/index.js -q resources/queries-sample.json --db main --out output/result
 |--------|--------|---------------------|--------|
 | name   | sheet  | 시트명(변수 사용 가능)| "매출_${startDate}_~_${endDate}" |
 | use    | sheet  | 사용여부            | true/false |
+| aggregateColumn | sheet | 집계할 컬럼명 (목차 시트에 표시) | "주문상태", "지역" |
+| maxRows | sheet | 최대 조회 건수 제한 | 1000, 5000 |
 
 ---
 
-## 5. 기타 참고
+## 5. 목차 시트 및 집계 기능
+
+### 자동 목차 시트
+- 모든 엑셀 파일에 자동으로 **'목차'** 시트가 첫 번째 시트로 생성됩니다
+- 목차 시트는 파란색 탭으로 구분되며, 다음 정보를 포함합니다:
+
+| 컬럼 | 설명 | 하이퍼링크 |
+|------|------|------------|
+| No | 시트 순번 | ❌ |
+| Sheet Name | 실제 시트명 (변수 치환됨) | ✅ 클릭 시 해당 시트로 이동 |
+| Records | 데이터 건수 (천 단위 구분자) | ✅ 클릭 시 해당 시트로 이동 |
+| Aggregate Info | 집계 정보 | ✅ 클릭 시 해당 시트로 이동 |
+| Note | 비고 (시트명 잘림 등) | ❌ |
+
+### 컬럼별 집계 기능
+각 시트에서 특정 컬럼의 값별 건수를 자동으로 집계하여 목차에 표시합니다.
+
+#### XML에서 집계 컬럼 및 조회 제한 지정
+```xml
+<sheet name="주문_목록" use="true" aggregateColumn="주문상태" maxRows="1000">
+  <![CDATA[
+    SELECT OrderID, OrderStatus, CustomerName, OrderDate 
+    FROM Orders 
+    WHERE OrderDate >= '${startDate}'
+  ]]>
+</sheet>
+```
+
+#### JSON에서 집계 컬럼 및 조회 제한 지정
+```json
+{
+  "name": "주문_목록",
+  "use": true,
+  "aggregateColumn": "주문상태",
+  "maxRows": 1000,
+  "query": "SELECT OrderID, OrderStatus, CustomerName, OrderDate FROM Orders WHERE OrderDate >= '${startDate}'"
+}
+```
+
+#### 집계 결과 표시 예시
+```
+[주문상태] Shipped:15, Processing:8, Cancelled:3 외 2개
+[지역] 서울:25, 부산:12, 대구:8
+[카테고리] 전자제품:45, 의류:32, 도서:18 외 5개
+```
+
+### 조회 건수 제한 기능 (maxRows)
+대용량 데이터 처리 시 시스템 부하를 줄이고 안전하게 작업할 수 있도록 조회 건수를 제한합니다.
+
+#### 작동 원리
+- SQL 쿼리에 `TOP N` 절을 자동으로 추가하여 조회 건수를 제한
+- 쿼리에 이미 `TOP` 절이 있는 경우 maxRows 설정을 무시하고 경고 메시지 출력
+- 제한이 적용되면 콘솔에 `[제한] 최대 N건으로 제한됨` 메시지 표시
+
+#### 사용 예시
+```xml
+<!-- 최대 5000건까지만 조회 -->
+<sheet name="대용량_주문데이터" maxRows="5000">
+  <![CDATA[
+    SELECT * FROM Orders WHERE OrderDate >= '2024-01-01'
+  ]]>
+</sheet>
+```
+
+#### 주의사항
+- **제한 없음**: maxRows 미설정 또는 0 이하의 값
+- **기존 TOP 절**: 쿼리에 이미 TOP이 있으면 maxRows 무시됨
+- **대용량 처리**: 수십만 건 이상의 데이터는 적절한 제한 권장
+
+### 목차 시트 특징
+- **하이퍼링크**: 시트명, 데이터 건수, 집계 정보 클릭 시 해당 시트로 즉시 이동
+- **시트명 자동 처리**: 31자 초과 시 자동 잘림 및 원본명 주석 표시
+- **집계 정보**: 상위 3개 항목 표시, 나머지는 "외 N개"로 요약
+- **정렬**: 집계 항목은 건수가 많은 순으로 정렬
+- **스타일**: 파란색 링크, 천 단위 구분자, 적절한 컬럼 너비 자동 설정
+
+---
+
+## 6. 기타 참고
 - 쿼리문 내 `${변수명}` 형태로 변수 사용 가능
 - 시트별로 `use="false"` 또는 `"use": false`로 비활성화 가능
 - 쿼리파일 구조/옵션은 필요에 따라 확장 가능
 
 ---
 
-## 6. 모듈 구조
+## 7. 모듈 구조
 
 ### 핵심 파일 구조
 ```
@@ -227,7 +314,8 @@ test/
 | `applyBodyStyle(sheet, columns, dataRowCount, bodyStyle)` | 데이터 행들에 스타일 적용 | 데이터 스타일링 |
 | `calculateColumnWidths(columns, data, colwidths)` | 컬럼 너비 자동 계산 | 자동 너비 조정 |
 | `applySheetStyle(sheet, data, excelStyle)` | 시트 전체에 데이터와 스타일 적용 | 통합 시트 처리 |
-| `createTableOfContents(workbook, sheetNames)` | 목차 시트 생성 | 목차 생성 |
+| `createTableOfContents(workbook, sheetNames)` | 새로운 목차 시트 생성 | 별도 파일용 목차 생성 |
+| `populateTableOfContents(tocSheet, sheetNames)` | 기존 목차 시트에 내용 채우기 | 메인 파일 목차 업데이트 |
 
 #### 사용 예시
 ```javascript
@@ -239,8 +327,21 @@ excelStyleHelper.applySheetStyle(sheet, data, {
   body: { font: { size: 11 }, fill: { color: 'FFFFCC' } }
 });
 
-// 목차 시트 생성
-const tocSheet = excelStyleHelper.createTableOfContents(workbook, sheetNames);
+// 기존 목차 시트에 내용 채우기 (집계 정보 및 하이퍼링크 포함)
+const sheetInfo = [
+  { 
+    displayName: '주문_목록', 
+    tabName: '주문_목록', 
+    recordCount: 150,
+    aggregateColumn: '주문상태',
+    aggregateData: [
+      { key: 'Shipped', count: 89 },
+      { key: 'Processing', count: 45 },
+      { key: 'Cancelled', count: 16 }
+    ]
+  }
+];
+excelStyleHelper.populateTableOfContents(tocSheet, sheetInfo);
 ```
 
 ### 테스트 실행
