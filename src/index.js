@@ -329,9 +329,9 @@ async function main() {
     }
   }
   
-  // 목차 시트 추가
-  if (createdSheetNames.length > 0) {
-    const tocSheet = workbook.addWorksheet('목차');
+  // 목차 시트에 내용 채우기
+  if (createdSheetNames.length > 0 && tocSheet) {
+    // 이미 생성된 목차 시트에 내용 추가
     tocSheet.addRow(['No', 'Sheet Name', 'Data Count']);
     createdSheetNames.forEach((obj, idx) => {
       const row = tocSheet.addRow([idx + 1, obj.displayName, createdSheetCounts[idx]]);
@@ -358,26 +358,29 @@ async function main() {
       { header: 'Data Count', key: 'count', width: 12 }
     ];
 
-    // 별도 목차 엑셀 파일 생성
-    const tocWb = new ExcelJS.Workbook();
-    const tocOnly = tocWb.addWorksheet('목차');
-    tocOnly.addRow(['No', 'Sheet Name', 'Data Count']);
-    createdSheetNames.forEach((obj, idx) => {
-      const row = tocOnly.addRow([idx + 1, obj.displayName, createdSheetCounts[idx]]);
-      row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
-      row.getCell(3).font = { color: { argb: '0563C1' }, underline: true };
-    });
-    tocOnly.getRow(1).font = { bold: true };
-    tocOnly.columns = [
-      { header: 'No', key: 'no', width: 6 },
-      { header: 'Sheet Name', key: 'name', width: 30 },
-      { header: 'Data Count', key: 'count', width: 12 }
-    ];
-    const tocExt = path.extname(outFile);
-    const tocBase = outFile.slice(0, -tocExt.length);
-    const tocFile = `${tocBase}_목차_${getNowTimestampStr()}${tocExt}`;
-    await tocWb.xlsx.writeFile(tocFile);
-    console.log(`[목차] 별도 엑셀 파일 생성: ${tocFile}`);
+    if (createSeparateToc) {
+      // 별도 목차 엑셀 파일 생성
+      const tocWb = new ExcelJS.Workbook();
+      const tocOnly = tocWb.addWorksheet('목차');
+      tocOnly.addRow(['No', 'Sheet Name', 'Data Count']);
+      createdSheetNames.forEach((obj, idx) => {
+        const row = tocOnly.addRow([idx + 1, obj.displayName, createdSheetCounts[idx]]);
+        row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
+        row.getCell(3).font = { color: { argb: '0563C1' }, underline: true };
+      });
+      tocOnly.getRow(1).font = { bold: true };
+      tocOnly.columns = [
+        { header: 'No', key: 'no', width: 6 },
+        { header: 'Sheet Name', key: 'name', width: 30 },
+        { header: 'Data Count', key: 'count', width: 12 }
+      ];
+      const tocExt = path.extname(outFile);
+      const tocBase = outFile.slice(0, -tocExt.length);
+      const tocFile = `${tocBase}_목차_${getNowTimestampStr()}${tocExt}`;
+      await tocWb.xlsx.writeFile(tocFile);
+      console.log(`[목차] 별도 엑셀 파일 생성: ${tocFile}`);
+    }
+
   }
   console.log(`\nGenerating excel file ... `);
   console.log(`Wating a few seconds ... `);
