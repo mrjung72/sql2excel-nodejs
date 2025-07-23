@@ -274,6 +274,7 @@ async function main() {
   console.log('-------------------------------------------------------------------------------');
   const workbook = new ExcelJS.Workbook();
   const createdSheetNames = [];
+  const createdSheetCounts = [];
 
   // 목차 시트를 맨 처음에 생성 (내용은 나중에 채움)
   let tocSheet = null;
@@ -308,6 +309,7 @@ async function main() {
         tabName: actualSheetName, 
         recordCount: recordCount 
       });
+      createdSheetCounts.push(recordCount);
       
       // 시트명이 잘렸는지 확인하고 로그 출력
       if (sheetName !== actualSheetName) {
@@ -326,29 +328,58 @@ async function main() {
     }
   }
   
-  // 목차 시트 내용 채우기 (시트는 이미 맨 처음에 생성됨)
-  if (createdSheetNames.length > 0 && tocSheet) {
-    excelStyleHelper.populateTableOfContents(tocSheet, createdSheetNames);
-    console.log(`[목차] 시트 내용 생성 완료 (맨 왼쪽 위치)`);
+  // 목차 시트 추가
+  if (createdSheetNames.length > 0) {
+    const tocSheet = workbook.addWorksheet('목차');
+    tocSheet.addRow(['No', 'Sheet Name', 'Data Count']);
+    createdSheetNames.forEach((obj, idx) => {
+      const row = tocSheet.addRow([idx + 1, obj.displayName, createdSheetCounts[idx]]);
+      // 시트명에 하이퍼링크 추가 (실제 탭 이름 기준)
+      row.getCell(2).value = {
+        text: obj.displayName,
+        hyperlink: `#'${obj.tabName}'!A1`
+      };
+      row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
+      // 데이터 건수에도 하이퍼링크 추가
+      row.getCell(3).value = {
+        text: createdSheetCounts[idx].toString(),
+        hyperlink: `#'${obj.tabName}'!A1`
+      };
+      row.getCell(3).font = { color: { argb: '0563C1' }, underline: true };
+    });
+    // 목차 시트를 첫 번째로 이동
+    workbook.worksheets = [tocSheet, ...workbook.worksheets.filter(ws => ws.name !== '목차')];
+    // 간단한 스타일
+    tocSheet.getRow(1).font = { bold: true };
+    tocSheet.columns = [
+      { header: 'No', key: 'no', width: 6 },
+      { header: 'Sheet Name', key: 'name', width: 30 },
+      { header: 'Data Count', key: 'count', width: 12 }
+    ];
 
-    // 별도 목차 엑셀 파일 생성 (설정에 따라 조건부 생성)
-    if (createSeparateToc) {
-      const tocWb = new ExcelJS.Workbook();
-      excelStyleHelper.createExternalTableOfContents(tocWb, createdSheetNames, outFile);
-      
-      // 파일명: 기존 outFile 기준 _목차_yyyymmddhhmmss.xlsx
-      const tocExt = path.extname(outFile);
-      const tocBase = outFile.slice(0, -tocExt.length);
-      const tocFile = `${tocBase}_목차_${getNowTimestampStr()}${tocExt}`;
-      await tocWb.xlsx.writeFile(tocFile);
-      console.log(`[목차] 별도 엑셀 파일 생성: ${tocFile}`);
-    } else {
-      console.log(`[목차] 별도 파일 생성 안함 (separateToc=false)`);
-    }
+    // 별도 목차 엑셀 파일 생성
+    const tocWb = new ExcelJS.Workbook();
+    const tocOnly = tocWb.addWorksheet('목차');
+    tocOnly.addRow(['No', 'Sheet Name', 'Data Count']);
+    createdSheetNames.forEach((obj, idx) => {
+      const row = tocOnly.addRow([idx + 1, obj.displayName, createdSheetCounts[idx]]);
+      row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
+      row.getCell(3).font = { color: { argb: '0563C1' }, underline: true };
+    });
+    tocOnly.getRow(1).font = { bold: true };
+    tocOnly.columns = [
+      { header: 'No', key: 'no', width: 6 },
+      { header: 'Sheet Name', key: 'name', width: 30 },
+      { header: 'Data Count', key: 'count', width: 12 }
+    ];
+    const tocExt = path.extname(outFile);
+    const tocBase = outFile.slice(0, -tocExt.length);
+    const tocFile = `${tocBase}_목차_${getNowTimestampStr()}${tocExt}`;
+    await tocWb.xlsx.writeFile(tocFile);
+    console.log(`[목차] 별도 엑셀 파일 생성: ${tocFile}`);
   }
   console.log(`\nGenerating excel file ... `);
   console.log(`Wating a few seconds ... `);
-
   await workbook.xlsx.writeFile(outFile);
   console.log(`\n\n[${outFile}] Excel file created `);
   console.log('-------------------------------------------------------------------------------\n\n');
@@ -357,4 +388,4 @@ async function main() {
 
 if (require.main === module) {
   main().catch(err => { console.error(err); process.exit(1); });
-} 
+}
