@@ -321,7 +321,8 @@ async function main() {
       console.log(`\t---> ${recordCount} rows were selected `);
     } catch (error) {
       console.log(`----------------------------------[ERROR]--------------------------------------\n`);
-      console.log(`${sql}`);
+      console.log(error);
+      console.log(`\n\nSQL: ${sql}`);
       console.log('\n-------------------------------------------------------------------------------');
     }
   }
