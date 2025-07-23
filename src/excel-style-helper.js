@@ -393,13 +393,41 @@ function populateTableOfContents(tocSheet, sheetNames) {
       }
     }
     
-    // 데이터 건수 스타일링
+    // 데이터 건수 스타일링 및 하이퍼링크
     const recordCountCell = row.getCell(3);
+    const recordCountText = (obj.recordCount || 0).toString();
+    
+    // 데이터 건수에도 하이퍼링크 적용
+    const recordCountFormula = `HYPERLINK("#'${sheetNameForLink}'!A1","${recordCountText}")`;
+    
+    try {
+      recordCountCell.value = { formula: recordCountFormula };
+      recordCountCell.font = { 
+        color: { argb: '0563C1' }, 
+        underline: true 
+      };
+    } catch (error) {
+      // HYPERLINK 함수 실패 시 직접 하이퍼링크 방식 시도
+      try {
+        recordCountCell.value = {
+          text: recordCountText,
+          hyperlink: `#'${sheetNameForLink}'!A1`
+        };
+        recordCountCell.font = { 
+          color: { argb: '0563C1' }, 
+          underline: true 
+        };
+      } catch (error2) {
+        // 모든 방법 실패 시 일반 텍스트로 표시
+        recordCountCell.value = obj.recordCount || 0;
+        recordCountCell.font = { 
+          color: obj.recordCount > 0 ? { argb: '2F5597' } : { argb: '999999' } 
+        };
+      }
+    }
+    
     recordCountCell.numFmt = '#,##0'; // 천 단위 구분자
     recordCountCell.alignment = { horizontal: 'right' };
-    recordCountCell.font = { 
-      color: obj.recordCount > 0 ? { argb: '2F5597' } : { argb: '999999' } 
-    };
     
     // 비고 컬럼 스타일링
     if (isTruncated) {

@@ -331,32 +331,13 @@ async function main() {
   
   // 목차 시트에 내용 채우기
   if (createdSheetNames.length > 0 && tocSheet) {
-    // 이미 생성된 목차 시트에 내용 추가
-    tocSheet.addRow(['No', 'Sheet Name', 'Data Count']);
-    createdSheetNames.forEach((obj, idx) => {
-      const row = tocSheet.addRow([idx + 1, obj.displayName, createdSheetCounts[idx]]);
-      // 시트명에 하이퍼링크 추가 (실제 탭 이름 기준)
-      row.getCell(2).value = {
-        text: obj.displayName,
-        hyperlink: `#'${obj.tabName}'!A1`
-      };
-      row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
-      // 데이터 건수에도 하이퍼링크 추가
-      row.getCell(3).value = {
-        text: createdSheetCounts[idx].toString(),
-        hyperlink: `#'${obj.tabName}'!A1`
-      };
-      row.getCell(3).font = { color: { argb: '0563C1' }, underline: true };
-    });
+    // excel-style-helper 모듈의 함수 사용하여 안전한 목차 생성
+    excelStyleHelper.populateTableOfContents(tocSheet, createdSheetNames);
+    
     // 목차 시트를 첫 번째로 이동
     workbook.worksheets = [tocSheet, ...workbook.worksheets.filter(ws => ws.name !== '목차')];
-    // 간단한 스타일
-    tocSheet.getRow(1).font = { bold: true };
-    tocSheet.columns = [
-      { header: 'No', key: 'no', width: 6 },
-      { header: 'Sheet Name', key: 'name', width: 30 },
-      { header: 'Data Count', key: 'count', width: 12 }
-    ];
+    
+    console.log(`[목차] 내용 채우기 완료 (총 ${createdSheetNames.length}개 시트)`);
 
     if (createSeparateToc) {
       // 별도 목차 엑셀 파일 생성
