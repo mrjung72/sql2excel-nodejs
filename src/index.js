@@ -49,14 +49,18 @@ function resolvePath(p) {
 }
 
 function printAvailableXmlFiles() {
-  const dir = path.join(process.cwd(), 'resources');
+  const dir = path.join(process.cwd(), 'queries');
   if (!fs.existsSync(dir)) return;
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.xml'));
   if (files.length > 0) {
+    console.log('-------------------------------------------------------------------------------');
     console.log('[INFO] 사용 가능한 XML 쿼리 정의 파일 목록:');
-    files.forEach(f => console.log('  - resources/' + f));
+    console.log('-------------------------------------------------------------------------------');
+    files.forEach(f => console.log('  - queries/' + f));
+    console.log('-------------------------------------------------------------------------------');
+
   } else {
-    console.log('[INFO] resources 폴더에 XML 쿼리 정의 파일이 없습니다.');
+    console.log('[INFO] queries 폴더에 XML 쿼리 정의 파일이 없습니다.');
   }
 }
 
@@ -342,6 +346,8 @@ async function main() {
       console.log(`[목차] 별도 파일 생성 안함 (separateToc=false)`);
     }
   }
+  console.log(`\nGenerating excel file ... `);
+  console.log(`Wating a few seconds ... `);
 
   await workbook.xlsx.writeFile(outFile);
   console.log(`\n\n[${outFile}] Excel file created `);
