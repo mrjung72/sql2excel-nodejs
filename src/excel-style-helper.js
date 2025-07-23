@@ -140,6 +140,22 @@ function applyHeaderStyle(sheet, columns, headerStyle) {
 }
 
 /**
+ * 지정된 행에 헤더 스타일을 적용
+ * @param {Object} sheet - ExcelJS 워크시트 객체
+ * @param {Array} columns - 컬럼 배열
+ * @param {Object} headerStyle - 헤더 스타일 객체
+ * @param {number} rowNumber - 헤더가 위치할 행 번호
+ */
+function applyHeaderStyleAtRow(sheet, columns, headerStyle, rowNumber) {
+  if (!headerStyle || !sheet || !columns) return;
+
+  for (let i = 1; i <= columns.length; i++) {
+    const cell = sheet.getRow(rowNumber).getCell(i);
+    applyCellStyle(cell, headerStyle);
+  }
+}
+
+/**
  * 데이터 행들에 스타일을 적용
  * @param {Object} sheet - ExcelJS 워크시트 객체
  * @param {Array} columns - 컬럼 배열
@@ -151,6 +167,26 @@ function applyBodyStyle(sheet, columns, dataRowCount, bodyStyle) {
 
   for (let r = 0; r < dataRowCount; r++) {
     const row = sheet.getRow(r + 2); // 헤더 다음 행부터
+    for (let i = 1; i <= columns.length; i++) {
+      const cell = row.getCell(i);
+      applyCellStyle(cell, bodyStyle);
+    }
+  }
+}
+
+/**
+ * 지정된 시작 행부터 데이터 행들에 스타일을 적용
+ * @param {Object} sheet - ExcelJS 워크시트 객체
+ * @param {Array} columns - 컬럼 배열
+ * @param {number} dataRowCount - 데이터 행 수
+ * @param {Object} bodyStyle - 데이터 스타일 객체
+ * @param {number} startRow - 데이터 시작 행 번호
+ */
+function applyBodyStyleAtRow(sheet, columns, dataRowCount, bodyStyle, startRow) {
+  if (!bodyStyle || !sheet || !columns || dataRowCount <= 0) return;
+
+  for (let r = 0; r < dataRowCount; r++) {
+    const row = sheet.getRow(startRow + r);
     for (let i = 1; i <= columns.length; i++) {
       const cell = row.getCell(i);
       applyCellStyle(cell, bodyStyle);
@@ -194,7 +230,7 @@ function calculateColumnWidths(columns, data, colwidths = { min: 10, max: 30 }) 
  * @param {Object} excelStyle.header - 헤더 스타일
  * @param {Object} excelStyle.body - 데이터 스타일
  */
-function applySheetStyle(sheet, data, excelStyle) {
+function applySheetStyle(sheet, data, excelStyle, startRow = 1) {
   if (!sheet || !data || data.length === 0) return;
 
   const columns = Object.keys(data[0]);
@@ -217,17 +253,28 @@ function applySheetStyle(sheet, data, excelStyle) {
     sheet.columns = columns.map(key => ({ header: key, key }));
   }
 
-  // 데이터 추가
-  sheet.addRows(data);
+  // 헤더 행 추가 (startRow 위치에)
+  const headerRow = sheet.getRow(startRow);
+  columns.forEach((col, index) => {
+    headerRow.getCell(index + 1).value = col;
+  });
 
-  // 헤더 스타일 적용
+  // 데이터 행 추가 (startRow + 1부터)
+  data.forEach((row, rowIndex) => {
+    const dataRow = sheet.getRow(startRow + 1 + rowIndex);
+    columns.forEach((col, colIndex) => {
+      dataRow.getCell(colIndex + 1).value = row[col];
+    });
+  });
+
+  // 헤더 스타일 적용 (startRow에 적용)
   if (excelStyle.header) {
-    applyHeaderStyle(sheet, columns, excelStyle.header);
+    applyHeaderStyleAtRow(sheet, columns, excelStyle.header, startRow);
   }
 
-  // 데이터 스타일 적용
+  // 데이터 스타일 적용 (startRow + 1부터)
   if (excelStyle.body) {
-    applyBodyStyle(sheet, columns, data.length, excelStyle.body);
+    applyBodyStyleAtRow(sheet, columns, data.length, excelStyle.body, startRow + 1);
   }
 }
 

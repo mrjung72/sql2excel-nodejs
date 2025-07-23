@@ -388,8 +388,31 @@ async function main() {
       }
       
       if (recordCount > 0) {
-        // 헬퍼 함수를 사용하여 시트에 데이터와 스타일 적용
-        excelStyleHelper.applySheetStyle(sheet, result.recordset, excelStyle);
+        // 데이터와 스타일 적용 (1행부터 시작)
+        excelStyleHelper.applySheetStyle(sheet, result.recordset, excelStyle, 1);
+        
+        // 데이터 추가 후 맨 앞에 DB 정보 행 삽입
+        sheet.spliceRows(1, 0, [`📊 출처: ${sheetDbKey} DB`]);
+        sheet.spliceRows(2, 0, []);  // 빈 행 추가
+        
+        // DB 정보 셀 스타일링
+        const dbCell = sheet.getCell('A1');
+        dbCell.font = { bold: true, size: 11, color: { argb: 'FFFFFF' } };
+        dbCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '366092' } };
+        
+        console.log(`\t[DB정보] ${sheetDbKey} DB 출처 표시 완료`);
+      } else {
+        // 데이터가 없는 경우
+        sheet.addRow([`📊 출처: ${sheetDbKey} DB`]);
+        sheet.addRow([]);
+        sheet.addRow(['데이터가 없습니다.']);
+        
+        // 스타일링
+        sheet.getCell('A1').font = { bold: true, size: 11, color: { argb: 'FFFFFF' } };
+        sheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '366092' } };
+        sheet.getCell('A3').font = { italic: true, color: { argb: '999999' } };
+        
+        console.log(`\t[DB정보] ${sheetDbKey} DB 출처 표시 완료 (데이터 없음)`);
       }
       console.log(`\t---> ${recordCount} rows were selected `);
     } catch (error) {
