@@ -39,13 +39,13 @@
     <var name="endDate">2024-06-30</var>
     <var name="regionList">'서울','부산'</var>
   </vars>
-  <sheet name="Orders" use="true" aggregateColumn="OrderStatus" maxRows="1000">
+  <sheet name="Orders" use="true" aggregateColumn="OrderStatus" maxRows="1000" db="sampleDB">
     <![CDATA[
       SELECT * FROM Orders
       WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
     ]]>
   </sheet>
-  <sheet name="Customers" use="false" aggregateColumn="Region" maxRows="500">
+  <sheet name="Customers" use="false" aggregateColumn="Region" maxRows="500" db="erpDB">
     <![CDATA[
       SELECT * FROM Customers
       WHERE region IN (${regionList})
@@ -81,6 +81,7 @@
       "use": true,
       "aggregateColumn": "OrderStatus",
       "maxRows": 1000,
+      "db": "sampleDB",
       "query": "SELECT * FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'"
     },
     {
@@ -88,6 +89,7 @@
       "use": false,
       "aggregateColumn": "Region",
       "maxRows": 500,
+      "db": "erpDB",
       "query": "SELECT * FROM Customers WHERE region IN (${regionList})"
     }
   ]
@@ -137,6 +139,7 @@ node src/index.js -q resources/queries-sample.json --db main --out output/result
 - **자동 목차 시트 생성** (하이퍼링크 포함)
 - **컬럼별 집계 데이터 표시** (목차 시트에서 한눈에 확인)
 - **조회 건수 제한 기능** (대용량 데이터 처리 시 안전장치)
+- **시트별 다중 DB 연결** (여러 데이터베이스의 데이터를 하나의 엑셀로 통합)
 
 ---
 
@@ -197,6 +200,7 @@ node src/index.js -q resources/queries-sample.json --db main --out output/result
 | use    | sheet  | 사용여부            | true/false |
 | aggregateColumn | sheet | 집계할 컬럼명 (목차 시트에 표시) | "주문상태", "지역" |
 | maxRows | sheet | 최대 조회 건수 제한 | 1000, 5000 |
+| db     | sheet  | 접속할 데이터베이스 ID (config의 dbs 키) | "sampleDB", "erpDB" |
 
 ---
 
@@ -268,6 +272,90 @@ node src/index.js -q resources/queries-sample.json --db main --out output/result
 - **제한 없음**: maxRows 미설정 또는 0 이하의 값
 - **기존 TOP 절**: 쿼리에 이미 TOP이 있으면 maxRows 무시됨
 - **대용량 처리**: 수십만 건 이상의 데이터는 적절한 제한 권장
+
+### 시트별 다중 DB 연결 기능
+여러 데이터베이스의 데이터를 하나의 엑셀 파일로 통합할 수 있습니다.
+
+#### 작동 원리
+- 각 시트마다 개별 데이터베이스 연결 설정 가능
+- DB 연결 풀을 효율적으로 관리하여 동일 DB는 재사용
+- 시트별 DB 설정이 없으면 기본 DB 사용
+- 모든 작업 완료 후 자동으로 모든 DB 연결 정리
+
+#### XML에서 시트별 DB 지정
+```xml
+<excel db="mainDB" maxRows="2000">
+  <!-- 기본 DB 설정 -->
+</excel>
+
+<sheet name="주문_데이터" db="orderDB" maxRows="1000">
+  <![CDATA[
+    SELECT * FROM Orders WHERE OrderDate >= '2024-01-01'
+  ]]>
+</sheet>
+
+<sheet name="고객_데이터" db="customerDB">
+  <![CDATA[
+    SELECT * FROM Customers WHERE Status = 'ACTIVE'
+  ]]>
+</sheet>
+
+<sheet name="통계_데이터">
+  <!-- db 속성 없음 -> 기본 DB(mainDB) 사용 -->
+  <![CDATA[
+    SELECT * FROM Statistics
+  ]]>
+</sheet>
+```
+
+#### JSON에서 시트별 DB 지정
+```json
+{
+  "excel": {
+    "db": "mainDB",
+    "maxRows": 2000
+  },
+  "sheets": [
+    {
+      "name": "주문_데이터",
+      "db": "orderDB",
+      "maxRows": 1000,
+      "query": "SELECT * FROM Orders WHERE OrderDate >= '2024-01-01'"
+    },
+    {
+      "name": "고객_데이터", 
+      "db": "customerDB",
+      "query": "SELECT * FROM Customers WHERE Status = 'ACTIVE'"
+    },
+    {
+      "name": "통계_데이터",
+      "query": "SELECT * FROM Statistics"
+    }
+  ]
+}
+```
+
+#### DB 연결 로그 예시
+```
+[DB] mainDB 데이터베이스에 연결 중...
+[DB] mainDB 데이터베이스 연결 완료
+[INFO] Executing for sheet '주문_데이터' on DB 'orderDB'
+[DB] orderDB 데이터베이스에 연결 중...
+[DB] orderDB 데이터베이스 연결 완료
+[INFO] Executing for sheet '고객_데이터' on DB 'customerDB'
+[DB] customerDB 데이터베이스에 연결 중...
+[DB] customerDB 데이터베이스 연결 완료
+[INFO] Executing for sheet '통계_데이터' on DB 'mainDB'
+[DB] mainDB 데이터베이스 연결 종료
+[DB] orderDB 데이터베이스 연결 종료
+[DB] customerDB 데이터베이스 연결 종료
+```
+
+#### 사용 시나리오
+- **시스템 통합**: 여러 시스템의 데이터를 하나의 보고서로
+- **부서별 데이터**: 각 부서의 DB에서 데이터를 가져와 통합 분석
+- **환경별 비교**: 개발/스테이징/운영 DB의 동일 테이블 비교
+- **데이터 마이그레이션**: 구버전과 신버전 DB 데이터 비교
 
 ### 목차 시트 특징
 - **하이퍼링크**: 시트명, 데이터 건수, 집계 정보 클릭 시 해당 시트로 즉시 이동

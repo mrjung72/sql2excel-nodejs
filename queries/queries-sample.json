@@ -28,6 +28,7 @@
       "use": true,
       "maxRows": 1000,
       "aggregateColumn": "OrderStatus",
+      "db": "sampleDB",
       "query": "SELECT * FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'"
     },
     {
@@ -35,6 +36,7 @@
       "use": false,
       "maxRows": 500,
       "aggregateColumn": "Region",
+      "db": "erpDB",
       "query": "SELECT * FROM Customers WHERE region IN (${regionList})"
     }
   ]

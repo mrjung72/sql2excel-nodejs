@@ -40,6 +40,7 @@ async function loadQueriesFromXML(xmlPath) {
     use: s.$.use,
     aggregateColumn: s.$.aggregateColumn || null,
     maxRows: s.$.maxRows ? parseInt(s.$.maxRows) : null,
+    db: s.$.db || null,
     query: (s._ || (s["_"] ? s["_"] : (s["$"] ? s["$"] : '')) || (s["__cdata"] ? s["__cdata"] : '') || (s["cdata"] ? s["cdata"] : '') || (s["#cdata-section"] ? s["#cdata-section"] : '') || (s["__text"] ? s["__text"] : '') || (s["#text"] ? s["#text"] : '') || (s["$text"] ? s["$text"] : '') || (s["$value"] ? s["$value"] : '') || (s["value"] ? s["value"] : '') || '').toString().trim()
   }));
   return { globalVars, sheets, dbId, outputPath };
@@ -259,13 +260,33 @@ async function main() {
     throw new Error(`DB 접속 정보 파일이 존재하지 않습니다: ${configPath}`);
   }
   const configObj = JSON5.parse(fs.readFileSync(configPath, 'utf8'));
-  const dbKey = argv.db || dbId || excelDb;
-  if (!configObj.dbs || !configObj.dbs[dbKey]) {
-    throw new Error(`DB 접속 ID를 찾을 수 없습니다: ${dbKey}`);
+  
+  // 다중 DB 연결 관리 객체
+  const dbPools = {};
+  
+  // 기본 DB 연결 설정
+  const defaultDbKey = argv.db || dbId || excelDb;
+  if (!configObj.dbs || !configObj.dbs[defaultDbKey]) {
+    throw new Error(`기본 DB 접속 ID를 찾을 수 없습니다: ${defaultDbKey}`);
   }
-  const dbConfig = configObj.dbs[dbKey];
-  const pool = new mssql.ConnectionPool(dbConfig);
-  await pool.connect();
+  
+  // DB 연결 풀 생성 함수
+  async function getDbPool(dbKey) {
+    if (!dbPools[dbKey]) {
+      if (!configObj.dbs[dbKey]) {
+        throw new Error(`DB 접속 ID를 찾을 수 없습니다: ${dbKey}`);
+      }
+      console.log(`[DB] ${dbKey} 데이터베이스에 연결 중...`);
+      const pool = new mssql.ConnectionPool(configObj.dbs[dbKey]);
+      await pool.connect();
+      dbPools[dbKey] = pool;
+      console.log(`[DB] ${dbKey} 데이터베이스 연결 완료`);
+    }
+    return dbPools[dbKey];
+  }
+  
+  // 기본 DB 연결
+  const defaultPool = await getDbPool(defaultDbKey);
 
   // 엑셀 파일 경로 결정 (CLI > excel > 쿼리파일 > 기본값)
   let outFile = argv.out || excelOutput || outputPath || 'output.xlsx';
@@ -316,9 +337,13 @@ async function main() {
       }
     }
     
-    console.log(`[INFO] Executing for sheet '${sheetName}'`);
+    // 시트별 DB 연결 결정 (개별 시트 설정 > 기본 DB 설정 우선)
+    const sheetDbKey = sheetDef.db || defaultDbKey;
+    const currentPool = await getDbPool(sheetDbKey);
+    
+    console.log(`[INFO] Executing for sheet '${sheetName}' on DB '${sheetDbKey}'`);
     try {
-      const result = await pool.request().query(sql);
+      const result = await currentPool.request().query(sql);
       const sheet = workbook.addWorksheet(sheetName);
       const recordCount = result.recordset.length;
       
@@ -414,7 +439,12 @@ async function main() {
   await workbook.xlsx.writeFile(outFile);
   console.log(`\n\n[${outFile}] Excel file created `);
   console.log('-------------------------------------------------------------------------------\n\n');
-  await pool.close();
+  
+  // 모든 DB 연결 정리
+  for (const [dbKey, pool] of Object.entries(dbPools)) {
+    console.log(`[DB] ${dbKey} 데이터베이스 연결 종료`);
+    await pool.close();
+  }
 }
 
 if (require.main === module) {
