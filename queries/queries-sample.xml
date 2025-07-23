@@ -19,11 +19,12 @@
     </body>
   </excel>
   <vars>
+    <var name="envType">운영</var>
     <var name="startDate">2024-01-01</var>
     <var name="endDate">2024-06-30</var>
     <var name="regionList">'서울','부산'</var>
   </vars>
-  <sheet name="주문_목록" use="true">
+  <sheet name="${envType}_주문_목록" use="true">
     <![CDATA[
       SELECT 
         OrderNumber as 주문번호,

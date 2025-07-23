@@ -304,7 +304,7 @@ async function main() {
       const actualSheetName = sheet.name;
       
       createdSheetNames.push({ 
-        displayName: sheetDef.name, 
+        displayName: sheetName, 
         originalName: sheetName,
         tabName: actualSheetName, 
         recordCount: recordCount 
