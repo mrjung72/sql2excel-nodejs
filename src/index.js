@@ -8,7 +8,25 @@ const xml2js = require('xml2js');
 const excelStyleHelper = require('./excel-style-helper');
 
 function substituteVars(str, vars) {
-  return str.replace(/\$\{(\w+)\}/g, (_, v) => vars[v] ?? '');
+  return str.replace(/\$\{(\w+)\}/g, (_, v) => {
+    const value = vars[v];
+    if (value === undefined || value === null) return '';
+    
+    // 배열 타입인 경우 IN절 처리
+    if (Array.isArray(value)) {
+      // 문자열 배열인 경우 따옴표로 감싸기
+      const inClause = value.map(val => {
+        if (typeof val === 'string') {
+          return `'${val.replace(/'/g, "''")}'`; // SQL 인젝션 방지를 위한 따옴표 이스케이핑
+        }
+        return val;
+      }).join(', ');
+      return inClause;
+    } else {
+      // 기존 방식: 단일 값 치환
+      return value;
+    }
+  });
 }
 
 async function loadQueriesFromXML(xmlPath) {
@@ -20,9 +38,34 @@ async function loadQueriesFromXML(xmlPath) {
   if (parsed.queries.vars && parsed.queries.vars[0] && parsed.queries.vars[0].var) {
     for (const v of parsed.queries.vars[0].var) {
       if (v.$ && v.$.name && v._) {
-        globalVars[v.$.name] = v._.toString();
+        let value = v._.toString();
+        // 배열 형태 문자열을 실제 배열로 변환
+        if (value.startsWith('[') && value.endsWith(']')) {
+          try {
+            value = JSON.parse(value);
+          } catch (e) {
+            // JSON 파싱 실패 시 문자열 그대로 사용
+          }
+        }
+        // boolean 값 처리
+        if (value === 'true') value = true;
+        if (value === 'false') value = false;
+        // 숫자 값 처리
+        if (!isNaN(value) && !isNaN(parseFloat(value)) && typeof value === 'string') {
+          value = parseFloat(value);
+        }
+        globalVars[v.$.name] = value;
       } else if (v.$ && v.$.name && typeof v === 'string') {
-        globalVars[v.$.name] = v;
+        let value = v;
+        // 배열 형태 문자열을 실제 배열로 변환
+        if (value.startsWith('[') && value.endsWith(']')) {
+          try {
+            value = JSON.parse(value);
+          } catch (e) {
+            // JSON 파싱 실패 시 문자열 그대로 사용
+          }
+        }
+        globalVars[v.$.name] = value;
       }
     }
   }
@@ -274,11 +317,11 @@ async function main() {
   async function getDbPool(dbKey) {
     if (!dbPools[dbKey]) {
       if (!configObj.dbs[dbKey]) {
-        throw new Error(`DB 접속 ID를 찾을 수 없습니다: ${dbKey}`);
-      }
+    throw new Error(`DB 접속 ID를 찾을 수 없습니다: ${dbKey}`);
+  }
       console.log(`[DB] ${dbKey} 데이터베이스에 연결 중...`);
       const pool = new mssql.ConnectionPool(configObj.dbs[dbKey]);
-      await pool.connect();
+  await pool.connect();
       dbPools[dbKey] = pool;
       console.log(`[DB] ${dbKey} 데이터베이스 연결 완료`);
     }
@@ -434,26 +477,26 @@ async function main() {
     console.log(`[목차] 내용 채우기 완료 (총 ${createdSheetNames.length}개 시트)`);
 
     if (createSeparateToc) {
-      // 별도 목차 엑셀 파일 생성
-      const tocWb = new ExcelJS.Workbook();
-      const tocOnly = tocWb.addWorksheet('목차');
-      tocOnly.addRow(['No', 'Sheet Name', 'Data Count']);
-      createdSheetNames.forEach((obj, idx) => {
-        const row = tocOnly.addRow([idx + 1, obj.displayName, createdSheetCounts[idx]]);
-        row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
-        row.getCell(3).font = { color: { argb: '0563C1' }, underline: true };
-      });
-      tocOnly.getRow(1).font = { bold: true };
-      tocOnly.columns = [
-        { header: 'No', key: 'no', width: 6 },
-        { header: 'Sheet Name', key: 'name', width: 30 },
-        { header: 'Data Count', key: 'count', width: 12 }
-      ];
-      const tocExt = path.extname(outFile);
-      const tocBase = outFile.slice(0, -tocExt.length);
-      const tocFile = `${tocBase}_목차_${getNowTimestampStr()}${tocExt}`;
-      await tocWb.xlsx.writeFile(tocFile);
-      console.log(`[목차] 별도 엑셀 파일 생성: ${tocFile}`);
+    // 별도 목차 엑셀 파일 생성
+    const tocWb = new ExcelJS.Workbook();
+    const tocOnly = tocWb.addWorksheet('목차');
+    tocOnly.addRow(['No', 'Sheet Name', 'Data Count']);
+    createdSheetNames.forEach((obj, idx) => {
+      const row = tocOnly.addRow([idx + 1, obj.displayName, createdSheetCounts[idx]]);
+      row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
+      row.getCell(3).font = { color: { argb: '0563C1' }, underline: true };
+    });
+    tocOnly.getRow(1).font = { bold: true };
+    tocOnly.columns = [
+      { header: 'No', key: 'no', width: 6 },
+      { header: 'Sheet Name', key: 'name', width: 30 },
+      { header: 'Data Count', key: 'count', width: 12 }
+    ];
+    const tocExt = path.extname(outFile);
+    const tocBase = outFile.slice(0, -tocExt.length);
+    const tocFile = `${tocBase}_목차_${getNowTimestampStr()}${tocExt}`;
+    await tocWb.xlsx.writeFile(tocFile);
+    console.log(`[목차] 별도 엑셀 파일 생성: ${tocFile}`);
     }
 
   }
@@ -466,7 +509,7 @@ async function main() {
   // 모든 DB 연결 정리
   for (const [dbKey, pool] of Object.entries(dbPools)) {
     console.log(`[DB] ${dbKey} 데이터베이스 연결 종료`);
-    await pool.close();
+  await pool.close();
   }
 }
 

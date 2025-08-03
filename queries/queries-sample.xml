@@ -22,7 +22,10 @@
     <var name="envType">운영</var>
     <var name="startDate">2024-01-01</var>
     <var name="endDate">2024-06-30</var>
-    <var name="regionList">'서울','부산'</var>
+    <var name="regionList">["서울", "부산"]</var>
+    <var name="statusList">["ACTIVE", "PENDING", "COMPLETED"]</var>
+    <var name="categoryIds">[1, 2, 3, 5]</var>
+    <var name="maxRows">1000</var>
   </vars>
   <sheet name="${envType}_주문_목록" use="true" aggregateColumn="결제방법" maxRows="10" db="sampleDB">
     <![CDATA[
@@ -87,6 +90,37 @@
       INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID
       WHERE o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}'
       ORDER BY o.OrderDate DESC
+    ]]>
+  </sheet>
+  <sheet name="배열변수_주문상태별_조회" use="false" aggregateColumn="주문상태">
+    <![CDATA[
+      SELECT 
+        OrderNumber as 주문번호,
+        FORMAT(OrderDate, 'yyyy-MM-dd') as 주문일,
+        OrderStatus as 주문상태,
+        PaymentStatus as 결제상태,
+        FORMAT(TotalAmount, 'N0') as 총금액,
+        PaymentMethod as 결제방법
+      FROM SampleDB.dbo.Orders
+      WHERE OrderDate >= '${startDate}' 
+        AND OrderDate <= '${endDate}'
+        AND OrderStatus IN (${statusList})
+      ORDER BY OrderDate DESC
+    ]]>
+  </sheet>
+  <sheet name="배열변수_카테고리별_상품" use="false" aggregateColumn="카테고리명">
+    <![CDATA[
+      SELECT 
+        p.ProductID as 상품ID,
+        p.ProductName as 상품명,
+        c.CategoryName as 카테고리명,
+        FORMAT(p.UnitPrice, 'N0') as 단가,
+        p.UnitsInStock as 재고수량
+      FROM SampleDB.dbo.Products p
+      INNER JOIN SampleDB.dbo.Categories c ON p.CategoryID = c.CategoryID
+      WHERE p.CategoryID IN (${categoryIds})
+        AND p.Discontinued = 0
+      ORDER BY c.CategoryName, p.ProductName
     ]]>
   </sheet>
 </queries> 

@@ -20,7 +20,10 @@
   "vars": {
     "startDate": "2024-01-01",
     "endDate": "2024-06-30",
-    "regionList": "'서울','부산'"
+    "regionList": ["서울", "부산"],
+    "statusList": ["ACTIVE", "PENDING", "COMPLETED"],
+    "categoryIds": [1, 2, 3, 5],
+    "maxRows": 1000
   },
   "sheets": [
     {
@@ -38,6 +41,22 @@
       "aggregateColumn": "Region",
       "db": "erpDB",
       "query": "SELECT * FROM Customers WHERE region IN (${regionList})"
+    },
+    {
+      "name": "배열변수_주문상태별_조회",
+      "use": false,
+      "maxRows": 800,
+      "aggregateColumn": "OrderStatus",
+      "db": "sampleDB",
+      "query": "SELECT OrderNumber, OrderDate, OrderStatus, PaymentStatus, TotalAmount FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}' AND OrderStatus IN (${statusList})"
+    },
+    {
+      "name": "배열변수_카테고리별_상품",
+      "use": false,
+      "maxRows": 600,
+      "aggregateColumn": "CategoryName",
+      "db": "sampleDB",
+      "query": "SELECT p.ProductID, p.ProductName, c.CategoryName, p.UnitPrice FROM Products p INNER JOIN Categories c ON p.CategoryID = c.CategoryID WHERE p.CategoryID IN (${categoryIds})"
     }
   ]
 } 
