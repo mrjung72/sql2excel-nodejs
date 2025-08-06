@@ -408,14 +408,17 @@ function populateTableOfContents(tocSheet, sheetNames) {
     // 집계 정보 텍스트 생성
     let aggregateInfo = '';
     if (obj.aggregateColumn && obj.aggregateData && obj.aggregateData.length > 0) {
-      const topItems = obj.aggregateData.slice(0, 3); // 상위 3개만 표시
-      aggregateInfo = `[${obj.aggregateColumn}] ${topItems.map(item => `${item.key}:${item.count}`).join(', ')}`;
-      if (obj.aggregateData.length > 3) {
-        aggregateInfo += ` 외 ${obj.aggregateData.length - 3}개`;
+      const topItems = obj.aggregateData.slice(0, 4); // 상위 4개만 표시
+      aggregateInfo = `(${topItems.map(item => `${item.key}:${item.count}`).join(', ')}`;
+      if (obj.aggregateData.length > 4) {
+        aggregateInfo += ` 외 ${obj.aggregateData.length - 4}개)`;
+      } else {
+        aggregateInfo += ')';
       }
     }
+    aggregateInfo = `관련데이터 ${obj.recordCount}건 ${aggregateInfo}`
     
-    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0, aggregateInfo, noteText]);
+    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0, aggregateInfo]);
     
     // 하이퍼링크 설정 - 실제 시트명(tabName) 사용
     const sheetNameForLink = obj.tabName.replace(/'/g, "''"); // 작은따옴표 이스케이프
