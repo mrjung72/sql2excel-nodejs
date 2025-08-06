@@ -34,7 +34,7 @@ echo.
 echo 3. 엑셀 파일 생성 (XML 파일)
 echo 4. 엑셀 파일 생성 (JSON 파일)
 echo.
-echo 5. 고급 메뉴 (변수 설정, 로그 등)
+echo 5. 고급 메뉴 (파일 편집, 설정 등)
 echo 6. 도움말 보기
 echo 0. 종료
 echo =========================================
@@ -168,28 +168,12 @@ if not exist "%xml_file%" (
 )
 
 echo.
-echo 변수를 설정하시겠습니까? (Y/N)
-set /p use_vars=
-set var_params=
-if /i "!use_vars!"=="Y" (
-    echo.
-    echo 변수를 입력하세요 (key=value 형태, 여러 개는 공백으로 구분):
-    echo 예: year=2024 dept=IT region=서울
-    set /p user_vars=
-    if not "!user_vars!"=="" (
-        for %%v in (!user_vars!) do (
-            set var_params=!var_params! --var "%%v"
-        )
-    )
-)
-
-echo.
 echo 엑셀 파일을 생성하고 있습니다...
 echo.
 :: Record start time
 set start_time=%time%
 
-node src/excel-cli.js export --xml "%xml_file%" !var_params!
+node src/excel-cli.js export --xml "%xml_file%"
 
 if %errorlevel% equ 0 (
     echo.
@@ -243,28 +227,12 @@ if not exist "%json_file%" (
 )
 
 echo.
-echo 변수를 설정하시겠습니까? (Y/N)
-set /p use_vars=
-set var_params=
-if /i "!use_vars!"=="Y" (
-    echo.
-    echo 변수를 입력하세요 (key=value 형태, 여러 개는 공백으로 구분):
-    echo 예: year=2024 dept=IT region=서울
-    set /p user_vars=
-    if not "!user_vars!"=="" (
-        for %%v in (!user_vars!) do (
-            set var_params=!var_params! --var "%%v"
-        )
-    )
-)
-
-echo.
 echo 엑셀 파일을 생성하고 있습니다...
 echo.
 :: Record start time
 set start_time=%time%
 
-node src/excel-cli.js export --query "%json_file%" !var_params!
+node src/excel-cli.js export --query "%json_file%"
 
 if %errorlevel% equ 0 (
     echo.
@@ -296,18 +264,16 @@ echo.
 echo 1. 쿼리문정의 파일 편집
 echo 2. DB 설정 파일 편집
 echo 3. 출력 폴더 열기
-echo 4. 로그 폴더 열기 (있는 경우)
-echo 5. 프로젝트 정보
+echo 4. 프로젝트 정보
 echo 0. 메인 메뉴로 돌아가기
 echo =========================================
 echo.
-set /p adv_choice=선택하세요 (0-5): 
+set /p adv_choice=선택하세요 (0-4): 
 
 if "%adv_choice%"=="1" goto EDIT_QUERY
 if "%adv_choice%"=="2" goto EDIT_CONFIG
 if "%adv_choice%"=="3" goto OPEN_OUTPUT
-if "%adv_choice%"=="4" goto OPEN_LOGS
-if "%adv_choice%"=="5" goto PROJECT_INFO
+if "%adv_choice%"=="4" goto PROJECT_INFO
 if "%adv_choice%"=="0" goto MENU
 
 echo 잘못된 선택입니다.
@@ -383,19 +349,6 @@ echo.
 echo 출력 폴더를 열고 있습니다...
 if not exist "output" mkdir output
 explorer output
-echo.
-pause
-goto ADVANCED
-
-:OPEN_LOGS
-echo.
-if exist "logs" (
-    echo 로그 폴더를 열고 있습니다...
-    explorer logs
-) else (
-    echo 로그 폴더가 없습니다.
-    echo (sql2excel은 별도의 로그를 생성하지 않습니다)
-)
 echo.
 pause
 goto ADVANCED

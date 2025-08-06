@@ -63,8 +63,8 @@ npm run help
 sql2excel.bat
 
 # 빠른 실행 배치 파일들
-export-xml.bat queries/my-queries.xml year=2024 dept=IT
-export-json.bat queries/my-queries.json year=2024 dept=IT
+export-xml.bat queries/my-queries.xml
+export-json.bat queries/my-queries.json
 validate.bat queries/my-queries.xml
 db-test.bat
 ```
@@ -72,7 +72,6 @@ db-test.bat
 #### 주요 기능
 - **스마트 메뉴**: 인터랙티브한 메뉴 시스템
 - **파일 자동 감지**: XML/JSON 파일 자동 인식  
-- **변수 지원**: 명령줄에서 변수 입력 가능
 - **오류 처리**: 친화적인 오류 메시지
 - **결과 확인**: 생성된 파일 폴더 자동 열기 옵션
 - **Node.js 검증**: Node.js 설치 여부 자동 확인
@@ -817,3 +816,5 @@ node src/index.js --query ./queries/sample-queries.json
 
 ## 9. 문의/기여
 - 개선 요청, 버그 제보, 추가 기능 문의는 언제든 환영합니다!
+site : sql2excel.com
+Contact to sql2excel.nodejs@gmail.com

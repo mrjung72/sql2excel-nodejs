@@ -10,11 +10,10 @@ echo.
 
 :: Check if parameter provided
 if "%~1"=="" (
-    echo 사용법: export-json.bat [JSON파일경로] [변수1=값1] [변수2=값2] ...
+    echo 사용법: export-json.bat [JSON파일경로]
     echo.
     echo 예시:
     echo   export-json.bat queries\my-queries.json
-    echo   export-json.bat queries\my-queries.json year=2024 dept=IT
     echo.
     echo 사용 가능한 JSON 파일들:
     if exist "queries\*.json" (
@@ -38,27 +37,11 @@ if not exist "%json_file%" (
     exit /b 1
 )
 
-:: Build variable parameters
-set var_params=
-shift
-:parse_vars
-if "%~1"=="" goto run_export
-set var_params=%var_params% --var "%~1"
-shift
-goto parse_vars
-
-:run_export
 echo.
 echo 엑셀 파일을 생성하고 있습니다...
 echo.
 
-if "%var_params%"=="" (
-    node src/excel-cli.js export --query "%json_file%"
-) else (
-    echo 사용된 변수: %var_params%
-    echo.
-    node src/excel-cli.js export --query "%json_file%" %var_params%
-)
+node src/excel-cli.js export --query "%json_file%"
 
 if %errorlevel% equ 0 (
     echo.
