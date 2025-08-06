@@ -4,6 +4,7 @@
 - 다양한 SQL 쿼리 결과를 여러 시트로 엑셀 파일로 저장하는 Node.js CLI 도구
 - 멀티 DB 지원, 쿼리/엑셀/시트별 다양한 옵션 지원
 - XML/JSON 쿼리 정의 파일 지원
+- 데이터베이스 연결 테스트 및 검증 기능
 
 ---
 
@@ -14,7 +15,41 @@
    ```bash
    npm install
    ```
-3. DB 접속정보 설정: `resources/config.json` 참고
+3. DB 접속정보 설정: `config/dbinfo.json` 파일 설정
+
+### 새로운 CLI 명령어
+
+v1.1부터 새로운 CLI 인터페이스가 추가되었습니다:
+
+```bash
+# 엑셀 파일 생성
+node src/excel-cli.js export --xml ./queries/sample-queries.xml
+
+# 쿼리 파일 검증
+node src/excel-cli.js validate --xml ./queries/sample-queries.xml
+
+# 데이터베이스 연결 테스트
+node src/excel-cli.js list-dbs
+
+# 도움말
+node src/excel-cli.js help
+```
+
+### NPM 스크립트
+
+```bash
+# 엑셀 내보내기
+npm run export -- --xml ./queries/sample-queries.xml
+
+# 쿼리 파일 검증
+npm run validate -- --xml ./queries/sample-queries.xml
+
+# DB 연결 테스트
+npm run list-dbs
+
+# 도움말
+npm run help
+```
 
 ---
 
@@ -547,5 +582,108 @@ build-release.bat
 
 ---
 
-## 8. 문의/기여
+## 8. CLI 명령어 참조
+
+### 1. 데이터베이스 연결 테스트
+
+```bash
+# 모든 설정된 데이터베이스 연결 테스트
+node src/excel-cli.js list-dbs
+
+# 또는 NPM 스크립트 사용
+npm run list-dbs
+```
+
+**출력 예시:**
+```
+📋 데이터베이스 연결 테스트 시작
+
+총 2개 데이터베이스 연결 테스트:
+
+  sampleDB: ✅ 연결 성공
+  erpDB: ❌ 연결 실패 - ConnectionError: Failed to connect to localhost:1433
+
+================================================================================
+📊 연결 테스트 결과 요약
+================================================================================
+총 데이터베이스: 2개
+연결 성공: 1개
+연결 실패: 1개
+
+❌ 연결 실패한 데이터베이스:
+  - erpDB: ConnectionError: Failed to connect to localhost:1433
+
+✅ 연결 성공한 데이터베이스:
+  - sampleDB: localhost/SampleDB:1433
+```
+
+### 2. 쿼리 파일 검증
+
+```bash
+# XML 쿼리 파일 검증
+node src/excel-cli.js validate --xml ./queries/sample-queries.xml
+
+# JSON 쿼리 파일 검증
+node src/excel-cli.js validate --query ./queries/sample-queries.json
+
+# NPM 스크립트 사용
+npm run validate -- --xml ./queries/sample-queries.xml
+```
+
+**출력 예시:**
+```
+📋 쿼리 파일 검증 시작
+
+파일 경로: ./queries/sample-queries.xml
+파일 형식: XML
+✅ 파일 존재 확인
+✅ XML 형식 검증
+   시트 개수: 3개
+✅ 데이터베이스 설정 로드
+   설정된 DB 개수: 2개
+
+✅ 모든 검증이 완료되었습니다.
+```
+
+### 3. 엑셀 파일 생성
+
+```bash
+# XML 파일로 엑셀 생성
+node src/excel-cli.js export --xml ./queries/sample-queries.xml
+
+# JSON 파일로 엑셀 생성
+node src/excel-cli.js export --query ./queries/sample-queries.json
+
+# 변수 지정하여 실행
+node src/excel-cli.js export --xml ./queries/sample-queries.xml --var "year=2024" --var "dept=IT"
+
+# 사용자 정의 DB 설정 파일 사용
+node src/excel-cli.js export --xml ./queries/sample-queries.xml --config ./config/custom-db.json
+
+# NPM 스크립트 사용
+npm run export -- --xml ./queries/sample-queries.xml --var "year=2024"
+```
+
+### 4. 모든 옵션
+
+| 옵션 | 단축형 | 설명 | 예시 |
+|------|--------|------|------|
+| `--xml` | `-x` | XML 쿼리 정의 파일 경로 | `--xml ./queries/sample.xml` |
+| `--query` | `-q` | JSON 쿼리 정의 파일 경로 | `--query ./queries/sample.json` |
+| `--config` | `-c` | DB 설정 파일 경로 (기본: config/dbinfo.json) | `--config ./config/custom.json` |
+| `--var` | `-v` | 쿼리 변수 설정 (여러 개 가능) | `--var "year=2024" --var "dept=IT"` |
+
+### 5. 기존 호환성
+
+기존 방식도 계속 지원됩니다:
+
+```bash
+# 기존 방식 (여전히 동작)
+node src/index.js --xml ./queries/sample-queries.xml
+node src/index.js --query ./queries/sample-queries.json
+```
+
+---
+
+## 9. 문의/기여
 - 개선 요청, 버그 제보, 추가 기능 문의는 언제든 환영합니다!
