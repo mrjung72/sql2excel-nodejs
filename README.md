@@ -20,7 +20,7 @@ SQL문을 이용하여 엑셀파일을 생성하는 솔류션 입니다.(NodeJs�
 
 ### 새로운 CLI 명령어
 
-v1.1부터 새로운 CLI 인터페이스가 추가되었습니다:
+v1.1부터 새로운 CLI 인터페이스가 추가되었고, v1.2부터 쿼리 정의 재사용 기능이 추가되었습니다:
 
 ```bash
 # 엑셀 파일 생성
@@ -52,11 +52,36 @@ npm run list-dbs
 npm run help
 ```
 
+### 🪟 윈도우 배치 파일 (v1.2)
+
+윈도우 사용자를 위한 편리한 배치 파일들이 제공됩니다:
+
+#### 메인 배치 파일
+```bash
+# 메인 메뉴 (모든 기능 통합)
+실행하기.bat
+sql2excel.bat
+
+# 빠른 실행 배치 파일들
+export-xml.bat queries/my-queries.xml year=2024 dept=IT
+export-json.bat queries/my-queries.json year=2024 dept=IT
+validate.bat queries/my-queries.xml
+db-test.bat
+```
+
+#### 주요 기능
+- **스마트 메뉴**: 인터랙티브한 메뉴 시스템
+- **파일 자동 감지**: XML/JSON 파일 자동 인식  
+- **변수 지원**: 명령줄에서 변수 입력 가능
+- **오류 처리**: 친화적인 오류 메시지
+- **결과 확인**: 생성된 파일 폴더 자동 열기 옵션
+- **Node.js 검증**: Node.js 설치 여부 자동 확인
+
 ---
 
 ## 2. 쿼리 정의 파일 구조
 
-### XML 예시 (`resources/queries-sample.xml`)
+### XML 예시 (쿼리 정의 재사용 포함)
 ```xml
 <queries>
   <excel db="main" output="output/매출집계_2024.xlsx">
@@ -70,27 +95,48 @@ npm run help
       <fill color="FFFFCC"/>
     </body>
   </excel>
+  
+  <!-- 재사용 가능한 쿼리 정의 -->
+  <queryDefs>
+    <queryDef name="common_orders" description="공통 주문 조회 쿼리">
+      <![CDATA[
+        SELECT OrderID, CustomerID, OrderDate, OrderStatus, TotalAmount
+        FROM Orders
+        WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
+      ]]>
+    </queryDef>
+    <queryDef name="common_customers" description="공통 고객 조회 쿼리">
+      <![CDATA[
+        SELECT CustomerID, CustomerName, Region, ContactName
+        FROM Customers
+        WHERE region IN (${regionList})
+      ]]>
+    </queryDef>
+  </queryDefs>
+  
   <vars>
     <var name="startDate">2024-01-01</var>
     <var name="endDate">2024-06-30</var>
     <var name="regionList">'서울','부산'</var>
   </vars>
-  <sheet name="Orders" use="true" aggregateColumn="OrderStatus" maxRows="1000" db="sampleDB">
+  
+  <!-- 쿼리 정의 참조 사용 -->
+  <sheet name="Orders" use="true" queryRef="common_orders" aggregateColumn="OrderStatus" maxRows="1000" db="sampleDB"/>
+  <sheet name="Customers" use="true" queryRef="common_customers" aggregateColumn="Region" maxRows="500" db="erpDB"/>
+  
+  <!-- 직접 쿼리 사용 (기존 방식) -->
+  <sheet name="OrderSummary" use="true" aggregateColumn="Status" db="sampleDB">
     <![CDATA[
-      SELECT * FROM Orders
+      SELECT OrderStatus as Status, COUNT(*) as Count, SUM(TotalAmount) as TotalAmount
+      FROM Orders
       WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
-    ]]>
-  </sheet>
-  <sheet name="Customers" use="false" aggregateColumn="Region" maxRows="500" db="erpDB">
-    <![CDATA[
-      SELECT * FROM Customers
-      WHERE region IN (${regionList})
+      GROUP BY OrderStatus
     ]]>
   </sheet>
 </queries>
 ```
 
-### JSON 예시 (`resources/queries-sample.json`)
+### JSON 예시 (쿼리 정의 재사용 포함)
 ```json
 {
   "excel": {
@@ -106,6 +152,16 @@ npm run help
       "fill": { "color": "FFFFCC" }
     }
   },
+  "queryDefs": {
+    "common_orders": {
+      "description": "공통 주문 조회 쿼리",
+      "query": "SELECT OrderID, CustomerID, OrderDate, OrderStatus, TotalAmount FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'"
+    },
+    "common_customers": {
+      "description": "공통 고객 조회 쿼리", 
+      "query": "SELECT CustomerID, CustomerName, Region, ContactName FROM Customers WHERE region IN (${regionList})"
+    }
+  },
   "vars": {
     "startDate": "2024-01-01",
     "endDate": "2024-06-30",
@@ -115,22 +171,95 @@ npm run help
     {
       "name": "Orders",
       "use": true,
+      "queryRef": "common_orders",
       "aggregateColumn": "OrderStatus",
       "maxRows": 1000,
-      "db": "sampleDB",
-      "query": "SELECT * FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'"
+      "db": "sampleDB"
     },
     {
       "name": "Customers",
-      "use": false,
+      "use": true,
+      "queryRef": "common_customers",
       "aggregateColumn": "Region",
       "maxRows": 500,
-      "db": "erpDB",
-      "query": "SELECT * FROM Customers WHERE region IN (${regionList})"
+      "db": "erpDB"
+    },
+    {
+      "name": "OrderSummary",
+      "use": true,
+      "aggregateColumn": "Status",
+      "db": "sampleDB",
+      "query": "SELECT OrderStatus as Status, COUNT(*) as Count, SUM(TotalAmount) as TotalAmount FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}' GROUP BY OrderStatus"
     }
   ]
 }
 ```
+
+### 🔄 쿼리 정의 재사용 기능 (v1.2)
+
+쿼리 정의 기능을 사용하면 동일한 SQL을 여러 시트에서 재사용할 수 있습니다.
+
+#### 주요 장점
+- **코드 재사용**: 동일한 쿼리를 여러 시트에서 사용 가능
+- **유지보수 효율성**: 한 곳에서 쿼리 수정 시 모든 참조 시트에 적용
+- **가독성 향상**: 복잡한 쿼리를 명명하여 의미를 명확히 표현
+- **일관성 보장**: 동일한 비즈니스 로직을 여러 곳에서 일관되게 사용
+
+#### 사용 방법
+
+**XML 형식:**
+```xml
+<!-- 1. 쿼리 정의 -->
+<queryDefs>
+  <queryDef name="sales_by_region" description="지역별 매출 조회">
+    <![CDATA[
+      SELECT Region, SUM(Amount) as TotalSales, COUNT(*) as OrderCount
+      FROM Orders o JOIN Customers c ON o.CustomerID = c.CustomerID
+      WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
+      GROUP BY Region
+    ]]>
+  </queryDef>
+</queryDefs>
+
+<!-- 2. 쿼리 참조 -->
+<sheet name="RegionSales" queryRef="sales_by_region" use="true" db="sampleDB"/>
+<sheet name="RegionSales_Copy" queryRef="sales_by_region" use="true" db="sampleDB"/>
+```
+
+**JSON 형식:**
+```json
+{
+  "queryDefs": {
+    "sales_by_region": {
+      "description": "지역별 매출 조회",
+      "query": "SELECT Region, SUM(Amount) as TotalSales, COUNT(*) as OrderCount FROM Orders o JOIN Customers c ON o.CustomerID = c.CustomerID WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}' GROUP BY Region"
+    }
+  },
+  "sheets": [
+    {
+      "name": "RegionSales",
+      "queryRef": "sales_by_region",
+      "use": true,
+      "db": "sampleDB"
+    },
+    {
+      "name": "RegionSales_Copy", 
+      "queryRef": "sales_by_region",
+      "use": true,
+      "db": "sampleDB"
+    }
+  ]
+}
+```
+
+#### 속성 설명
+
+| 속성 | 설명 | 필수 | 예시 |
+|------|------|------|------|
+| `queryRef` | 참조할 쿼리 정의 이름 | 선택 | `"common_orders"` |
+| `query` | 직접 SQL 쿼리 (기존 방식) | 선택 | `"SELECT * FROM Orders"` |
+
+**주의:** `queryRef`와 `query` 중 하나만 사용해야 합니다. `queryRef`가 있으면 `query`는 무시됩니다.
 
 ---
 

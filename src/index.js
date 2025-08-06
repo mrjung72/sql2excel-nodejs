@@ -33,6 +33,26 @@ async function loadQueriesFromXML(xmlPath) {
   const xml = fs.readFileSync(xmlPath, 'utf8');
   const parsed = await xml2js.parseStringPromise(xml, { trim: true });
   if (!parsed.queries || !parsed.queries.sheet) throw new Error('Invalid XML format');
+  
+  // 쿼리 정의 파싱
+  let queryDefs = {};
+  if (parsed.queries.queryDefs && parsed.queries.queryDefs[0] && parsed.queries.queryDefs[0].queryDef) {
+    for (const queryDef of parsed.queries.queryDefs[0].queryDef) {
+      if (queryDef.$ && queryDef.$.name) {
+        const queryName = queryDef.$.name;
+        const queryText = (queryDef._ || queryDef['#text'] || queryDef.__cdata || '').toString().trim();
+        
+        if (queryText) {
+          queryDefs[queryName] = {
+            name: queryName,
+            description: queryDef.$.description || '',
+            query: queryText
+          };
+        }
+      }
+    }
+  }
+  
   // 전역 변수 파싱
   let globalVars = {};
   if (parsed.queries.vars && parsed.queries.vars[0] && parsed.queries.vars[0].var) {
@@ -78,15 +98,35 @@ async function loadQueriesFromXML(xmlPath) {
   if (parsed.queries.output && parsed.queries.output[0]) {
     outputPath = parsed.queries.output[0];
   }
-  const sheets = parsed.queries.sheet.map(s => ({
-    name: s.$.name,
-    use: s.$.use,
-    aggregateColumn: s.$.aggregateColumn || null,
-    maxRows: s.$.maxRows ? parseInt(s.$.maxRows) : null,
-    db: s.$.db || null,
-    query: (s._ || (s["_"] ? s["_"] : (s["$"] ? s["$"] : '')) || (s["__cdata"] ? s["__cdata"] : '') || (s["cdata"] ? s["cdata"] : '') || (s["#cdata-section"] ? s["#cdata-section"] : '') || (s["__text"] ? s["__text"] : '') || (s["#text"] ? s["#text"] : '') || (s["$text"] ? s["$text"] : '') || (s["$value"] ? s["$value"] : '') || (s["value"] ? s["value"] : '') || '').toString().trim()
-  }));
-  return { globalVars, sheets, dbId, outputPath };
+  const sheets = parsed.queries.sheet.map(s => {
+    let query = '';
+    
+    // queryRef 속성이 있으면 쿼리 정의에서 참조
+    if (s.$.queryRef) {
+      const queryRef = s.$.queryRef;
+      if (queryDefs[queryRef]) {
+        query = queryDefs[queryRef].query;
+        console.log(`[쿼리 참조] 시트 "${s.$.name}"이(가) 쿼리 정의 "${queryRef}"을(를) 참조합니다.`);
+      } else {
+        throw new Error(`쿼리 정의를 찾을 수 없습니다: ${queryRef} (시트: ${s.$.name})`);
+      }
+    } else {
+      // 직접 쿼리가 있으면 사용
+      query = (s._ || (s["_"] ? s["_"] : (s["$"] ? s["$"] : '')) || (s["__cdata"] ? s["__cdata"] : '') || (s["cdata"] ? s["cdata"] : '') || (s["#cdata-section"] ? s["#cdata-section"] : '') || (s["__text"] ? s["__text"] : '') || (s["#text"] ? s["#text"] : '') || (s["$text"] ? s["$text"] : '') || (s["$value"] ? s["$value"] : '') || (s["value"] ? s["value"] : '') || '').toString().trim();
+    }
+    
+    return {
+      name: s.$.name,
+      use: s.$.use,
+      aggregateColumn: s.$.aggregateColumn || null,
+      maxRows: s.$.maxRows ? parseInt(s.$.maxRows) : null,
+      db: s.$.db || null,
+      queryRef: s.$.queryRef || null,
+      query: query
+    };
+  });
+  
+  return { globalVars, sheets, dbId, outputPath, queryDefs };
 }
 
 function resolvePath(p) {
@@ -215,17 +255,41 @@ async function main() {
     cliVars[key] = value;
   }
 
-  let sheets, globalVars = {}, dbId, outputPath;
+  let sheets, globalVars = {}, dbId, outputPath, queryDefs = {};
   if (argv.xml && fs.existsSync(resolvePath(argv.xml))) {
     const xmlResult = await loadQueriesFromXML(resolvePath(argv.xml));
     globalVars = xmlResult.globalVars;
     sheets = xmlResult.sheets;
     dbId = xmlResult.dbId;
     outputPath = xmlResult.outputPath;
+    queryDefs = xmlResult.queryDefs || {};
   } else if (argv.query && fs.existsSync(resolvePath(argv.query))) {
     const queries = JSON5.parse(fs.readFileSync(resolvePath(argv.query), 'utf8'));
     globalVars = queries.vars || {};
-    sheets = queries.sheets;
+    
+    // JSON에서 쿼리 정의 파싱
+    queryDefs = queries.queryDefs || {};
+    
+    // JSON 시트에서 queryRef 처리
+    sheets = (queries.sheets || []).map(sheet => {
+      let query = sheet.query || '';
+      
+      // queryRef가 있으면 쿼리 정의에서 참조
+      if (sheet.queryRef) {
+        if (queryDefs[sheet.queryRef]) {
+          query = queryDefs[sheet.queryRef].query || queryDefs[sheet.queryRef];
+          console.log(`[쿼리 참조] 시트 "${sheet.name}"이(가) 쿼리 정의 "${sheet.queryRef}"을(를) 참조합니다.`);
+        } else {
+          throw new Error(`쿼리 정의를 찾을 수 없습니다: ${sheet.queryRef} (시트: ${sheet.name})`);
+        }
+      }
+      
+      return {
+        ...sheet,
+        query: query
+      };
+    });
+    
     dbId = queries.db;
     outputPath = queries.output;
   } else {

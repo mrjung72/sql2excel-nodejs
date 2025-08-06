@@ -10,7 +10,7 @@ const command = args[0];
 // 도움말 표시
 function showHelp() {
     console.log(`
-SQL2Excel 도구 v1.1
+SQL2Excel 도구 v1.2
 사용법: node src/excel-cli.js <명령> [옵션]
 
 명령:
@@ -259,6 +259,34 @@ async function validateQueryFile(options) {
             console.log('✅ XML 형식 검증');
             console.log(`   시트 개수: ${Array.isArray(parsed.queries.sheet) ? parsed.queries.sheet.length : 1}개`);
             
+            // 쿼리 정의 확인
+            if (parsed.queries.queryDefs && parsed.queries.queryDefs[0] && parsed.queries.queryDefs[0].queryDef) {
+                const queryDefCount = Array.isArray(parsed.queries.queryDefs[0].queryDef) ? parsed.queries.queryDefs[0].queryDef.length : 1;
+                console.log(`   쿼리 정의 개수: ${queryDefCount}개`);
+                
+                // 쿼리 참조 검증
+                const sheets = Array.isArray(parsed.queries.sheet) ? parsed.queries.sheet : [parsed.queries.sheet];
+                const queryDefs = {};
+                
+                // 쿼리 정의 수집
+                const queryDefArray = Array.isArray(parsed.queries.queryDefs[0].queryDef) ? parsed.queries.queryDefs[0].queryDef : [parsed.queries.queryDefs[0].queryDef];
+                queryDefArray.forEach(def => {
+                    if (def.$ && def.$.name) {
+                        queryDefs[def.$.name] = true;
+                    }
+                });
+                
+                // 쿼리 참조 검증
+                for (const sheet of sheets) {
+                    if (sheet.$ && sheet.$.queryRef) {
+                        if (!queryDefs[sheet.$.queryRef]) {
+                            throw new Error(`시트 "${sheet.$.name}"에서 참조하는 쿼리 정의 "${sheet.$.queryRef}"를 찾을 수 없습니다.`);
+                        }
+                        console.log(`   ✅ 시트 "${sheet.$.name}" -> 쿼리 정의 "${sheet.$.queryRef}" 참조 확인`);
+                    }
+                }
+            }
+            
         } else if (fileType === 'JSON') {
             const JSON5 = require('json5');
             const parsed = JSON5.parse(fileContent);
@@ -269,6 +297,22 @@ async function validateQueryFile(options) {
             
             console.log('✅ JSON 형식 검증');
             console.log(`   시트 개수: ${parsed.sheets.length}개`);
+            
+            // 쿼리 정의 확인
+            if (parsed.queryDefs) {
+                const queryDefCount = Object.keys(parsed.queryDefs).length;
+                console.log(`   쿼리 정의 개수: ${queryDefCount}개`);
+                
+                // 쿼리 참조 검증
+                for (const sheet of parsed.sheets) {
+                    if (sheet.queryRef) {
+                        if (!parsed.queryDefs[sheet.queryRef]) {
+                            throw new Error(`시트 "${sheet.name}"에서 참조하는 쿼리 정의 "${sheet.queryRef}"를 찾을 수 없습니다.`);
+                        }
+                        console.log(`   ✅ 시트 "${sheet.name}" -> 쿼리 정의 "${sheet.queryRef}" 참조 확인`);
+                    }
+                }
+            }
         }
         
         // 데이터베이스 설정 확인
