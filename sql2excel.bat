@@ -181,11 +181,6 @@ if %errorlevel% equ 0 (
     echo 시작 시간: %start_time%
     echo 완료 시간: %time%
     echo.
-    echo 생성된 파일을 확인하시겠습니까? (Y/N)
-    set /p open_folder=
-    if /i "!open_folder!"=="Y" (
-        explorer output
-    )
 ) else (
     echo.
     echo ❌ 엑셀 파일 생성 중 오류가 발생했습니다.
