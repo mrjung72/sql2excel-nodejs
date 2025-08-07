@@ -817,5 +817,5 @@ node src/index.js --query ./queries/sample-queries.json
 
 ## 9. 문의/기여
 - 개선 요청, 버그 제보, 추가 기능 문의는 언제든 환영합니다!
-site : sql2excel.com
-Contact to sql2excel.nodejs@gmail.com
+- site : sql2excel.com
+- Contact to sql2excel.nodejs@gmail.com
