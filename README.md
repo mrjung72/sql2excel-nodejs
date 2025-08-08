@@ -1,34 +1,67 @@
-# sql2excel-nodejs 사용 매뉴얼
+# SQL2Excel - SQL 쿼리 결과를 엑셀 파일로 생성
 
-## 개요
-SQL문을 이용하여 엑셀파일을 생성하는 솔류션 입니다.(NodeJs기반)
-- 현재 MSSQL만 지원. 향후 타 DB추가 예정
-- 다양한 SQL 쿼리 결과를 여러 시트로 엑셀 파일로 저장하는 Node.js CLI 도구
-- 멀티 DB 지원, 쿼리/엑셀/시트별 다양한 옵션 지원
-- XML/JSON 쿼리 정의 파일 지원
-- 데이터베이스 연결 테스트 및 검증 기능
+SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니다.
 
----
+## 🎯 주요 기능
 
-## 1. 설치 및 준비
+- 📊 **멀티 시트 지원**: 여러 SQL 쿼리 결과를 하나의 엑셀 파일에 시트별로 저장
+- 🎨 **엑셀 스타일링**: 헤더/데이터 영역 각각 폰트, 색상, 테두리, 정렬 등 세부 스타일 설정
+- 🔗 **다중 DB 연결**: 시트별로 다른 데이터베이스 연결 가능
+- 📝 **변수 시스템**: 쿼리 내 변수 사용으로 동적 쿼리 생성
+- 🔄 **쿼리 재사용**: 공통 쿼리 정의 후 여러 시트에서 재사용
+- 📋 **자동 목차**: 목차 시트 자동 생성 및 하이퍼링크 제공
+- 📊 **집계 기능**: 지정 컬럼의 값별 건수 자동 집계 및 표시
+- 🚦 **조회 제한**: 대용량 데이터 처리를 위한 건수 제한 기능
+- 🖥️ **CLI 인터페이스**: 명령줄 도구로 간편한 실행
+- 🪟 **윈도우 배치 파일**: 윈도우 사용자를 위한 배치 파일 제공
+- 📄 **XML/JSON 지원**: 유연한 설정 파일 형식 지원
 
-1. Node.js 16+ 설치
-2. 의존성 설치
-   ```bash
-   npm install
-   ```
-3. DB 접속정보 설정: `config/dbinfo.json` 파일 설정
+## 🚀 빠른 시작
 
-### 새로운 CLI 명령어
+### 1. 설치
+```bash
+npm install
+```
 
-v1.1부터 새로운 CLI 인터페이스가 추가되었고, v1.2부터 쿼리 정의 재사용 기능이 추가되었습니다:
+### 2. 데이터베이스 설정
+`config/dbinfo.json` 파일에 데이터베이스 연결 정보 설정:
+```json
+{
+  "dbs": {
+    "sampleDB": {
+      "server": "localhost",
+      "port": 1433,
+      "database": "SampleDB",
+      "user": "sa",
+      "password": "yourpassword",
+      "options": {
+        "encrypt": false,
+        "trustServerCertificate": true
+      }
+    }
+  }
+}
+```
 
+### 3. 엑셀 파일 생성
+```bash
+# CLI 명령어로 실행
+node src/excel-cli.js export --xml ./queries/queries-sample.xml
+
+# 또는 NPM 스크립트로 실행
+npm run export -- --xml ./queries/queries-sample.xml
+
+# 또는 윈도우 배치 파일로 실행
+실행하기.bat
+```
+
+### 4. 주요 CLI 명령어
 ```bash
 # 엑셀 파일 생성
-node src/excel-cli.js export --xml ./queries/sample-queries.xml
+node src/excel-cli.js export --xml ./queries/sample.xml
 
 # 쿼리 파일 검증
-node src/excel-cli.js validate --xml ./queries/sample-queries.xml
+node src/excel-cli.js validate --xml ./queries/sample.xml
 
 # 데이터베이스 연결 테스트
 node src/excel-cli.js list-dbs
@@ -37,785 +70,53 @@ node src/excel-cli.js list-dbs
 node src/excel-cli.js help
 ```
 
-### NPM 스크립트
+## 📚 문서
 
-```bash
-# 엑셀 내보내기
-npm run export -- --xml ./queries/sample-queries.xml
+상세한 사용법과 고급 기능은 다음 문서를 참조하세요:
 
-# 쿼리 파일 검증
-npm run validate -- --xml ./queries/sample-queries.xml
+- **📖 [사용자 매뉴얼](USER_MANUAL.md)** - 완전한 사용 가이드
+- **📋 [버전 히스토리](CHANGELOG.md)** - 버전별 변경사항
 
-# DB 연결 테스트
-npm run list-dbs
+## 💡 사용 예시
 
-# 도움말
-npm run help
-```
-
-### 🪟 윈도우 배치 파일 (v1.2)
-
-윈도우 사용자를 위한 편리한 배치 파일들이 제공됩니다:
-
-#### 메인 배치 파일
-```bash
-# 메인 메뉴 (모든 기능 통합)
-실행하기.bat
-sql2excel.bat
-
-# 빠른 실행 배치 파일들
-export-xml.bat queries/my-queries.xml
-export-json.bat queries/my-queries.json
-validate.bat queries/my-queries.xml
-db-test.bat
-```
-
-#### 주요 기능
-- **스마트 메뉴**: 인터랙티브한 메뉴 시스템
-- **파일 자동 감지**: XML/JSON 파일 자동 인식  
-- **오류 처리**: 친화적인 오류 메시지
-- **결과 확인**: 생성된 파일 폴더 자동 열기 옵션
-- **Node.js 검증**: Node.js 설치 여부 자동 확인
-
----
-
-## 2. 쿼리 정의 파일 구조
-
-### XML 예시 (쿼리 정의 재사용 포함)
+### XML 설정 파일 예시
 ```xml
 <queries>
-  <excel db="main" output="output/매출집계_2024.xlsx">
+  <excel db="sampleDB" output="output/매출보고서.xlsx">
     <header>
       <font name="맑은 고딕" size="12" color="FFFFFF" bold="true"/>
       <fill color="4F81BD"/>
-      <colwidths min="10" max="30"/>
     </header>
-    <body>
-      <font name="맑은 고딕" size="11" color="000000" bold="false"/>
-      <fill color="FFFFCC"/>
-    </body>
   </excel>
   
-  <!-- 재사용 가능한 쿼리 정의 -->
-  <queryDefs>
-    <queryDef name="common_orders" description="공통 주문 조회 쿼리">
-      <![CDATA[
-        SELECT OrderID, CustomerID, OrderDate, OrderStatus, TotalAmount
-        FROM Orders
-        WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
-      ]]>
-    </queryDef>
-    <queryDef name="common_customers" description="공통 고객 조회 쿼리">
-      <![CDATA[
-        SELECT CustomerID, CustomerName, Region, ContactName
-        FROM Customers
-        WHERE region IN (${regionList})
-      ]]>
-    </queryDef>
-  </queryDefs>
-  
-  <vars>
-    <var name="startDate">2024-01-01</var>
-    <var name="endDate">2024-06-30</var>
-    <var name="regionList">'서울','부산'</var>
-  </vars>
-  
-  <!-- 쿼리 정의 참조 사용 -->
-  <sheet name="Orders" use="true" queryRef="common_orders" aggregateColumn="OrderStatus" maxRows="1000" db="sampleDB"/>
-  <sheet name="Customers" use="true" queryRef="common_customers" aggregateColumn="Region" maxRows="500" db="erpDB"/>
-  
-  <!-- 직접 쿼리 사용 (기존 방식) -->
-  <sheet name="OrderSummary" use="true" aggregateColumn="Status" db="sampleDB">
+  <sheet name="월별매출" use="true" aggregateColumn="Month">
     <![CDATA[
-      SELECT OrderStatus as Status, COUNT(*) as Count, SUM(TotalAmount) as TotalAmount
-      FROM Orders
-      WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
-      GROUP BY OrderStatus
+      SELECT MONTH(OrderDate) as Month, SUM(TotalAmount) as Sales
+      FROM Orders WHERE YEAR(OrderDate) = 2024
+      GROUP BY MONTH(OrderDate)
     ]]>
   </sheet>
 </queries>
 ```
 
-### JSON 예시 (쿼리 정의 재사용 포함)
-```json
-{
-  "excel": {
-    "db": "main",
-    "output": "output/매출집계_2024.xlsx",
-    "header": {
-      "font": { "name": "맑은 고딕", "size": 12, "color": "FFFFFF", "bold": true },
-      "fill": { "color": "4F81BD" },
-      "colwidths": { "min": 10, "max": 30 }
-    },
-    "body": {
-      "font": { "name": "맑은 고딕", "size": 11, "color": "000000", "bold": false },
-      "fill": { "color": "FFFFCC" }
-    }
-  },
-  "queryDefs": {
-    "common_orders": {
-      "description": "공통 주문 조회 쿼리",
-      "query": "SELECT OrderID, CustomerID, OrderDate, OrderStatus, TotalAmount FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'"
-    },
-    "common_customers": {
-      "description": "공통 고객 조회 쿼리", 
-      "query": "SELECT CustomerID, CustomerName, Region, ContactName FROM Customers WHERE region IN (${regionList})"
-    }
-  },
-  "vars": {
-    "startDate": "2024-01-01",
-    "endDate": "2024-06-30",
-    "regionList": "'서울','부산'"
-  },
-  "sheets": [
-    {
-      "name": "Orders",
-      "use": true,
-      "queryRef": "common_orders",
-      "aggregateColumn": "OrderStatus",
-      "maxRows": 1000,
-      "db": "sampleDB"
-    },
-    {
-      "name": "Customers",
-      "use": true,
-      "queryRef": "common_customers",
-      "aggregateColumn": "Region",
-      "maxRows": 500,
-      "db": "erpDB"
-    },
-    {
-      "name": "OrderSummary",
-      "use": true,
-      "aggregateColumn": "Status",
-      "db": "sampleDB",
-      "query": "SELECT OrderStatus as Status, COUNT(*) as Count, SUM(TotalAmount) as TotalAmount FROM Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}' GROUP BY OrderStatus"
-    }
-  ]
-}
+### 변수 사용 예시
+```bash
+node src/excel-cli.js export --xml ./queries/sales-report.xml \
+  --var "startDate=2024-01-01" \
+  --var "endDate=2024-06-30"
 ```
 
-### 🔄 쿼리 정의 재사용 기능 (v1.2)
+## 🔧 환경 요구사항
 
-쿼리 정의 기능을 사용하면 동일한 SQL을 여러 시트에서 재사용할 수 있습니다.
+- Node.js 16.0 이상
+- SQL Server 2012 이상
+- 적절한 데이터베이스 권한
 
-#### 주요 장점
-- **코드 재사용**: 동일한 쿼리를 여러 시트에서 사용 가능
-- **유지보수 효율성**: 한 곳에서 쿼리 수정 시 모든 참조 시트에 적용
-- **가독성 향상**: 복잡한 쿼리를 명명하여 의미를 명확히 표현
-- **일관성 보장**: 동일한 비즈니스 로직을 여러 곳에서 일관되게 사용
+## 📞 지원
 
-#### 사용 방법
-
-**XML 형식:**
-```xml
-<!-- 1. 쿼리 정의 -->
-<queryDefs>
-  <queryDef name="sales_by_region" description="지역별 매출 조회">
-    <![CDATA[
-      SELECT Region, SUM(Amount) as TotalSales, COUNT(*) as OrderCount
-      FROM Orders o JOIN Customers c ON o.CustomerID = c.CustomerID
-      WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
-      GROUP BY Region
-    ]]>
-  </queryDef>
-</queryDefs>
-
-<!-- 2. 쿼리 참조 -->
-<sheet name="RegionSales" queryRef="sales_by_region" use="true" db="sampleDB"/>
-<sheet name="RegionSales_Copy" queryRef="sales_by_region" use="true" db="sampleDB"/>
-```
-
-**JSON 형식:**
-```json
-{
-  "queryDefs": {
-    "sales_by_region": {
-      "description": "지역별 매출 조회",
-      "query": "SELECT Region, SUM(Amount) as TotalSales, COUNT(*) as OrderCount FROM Orders o JOIN Customers c ON o.CustomerID = c.CustomerID WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}' GROUP BY Region"
-    }
-  },
-  "sheets": [
-    {
-      "name": "RegionSales",
-      "queryRef": "sales_by_region",
-      "use": true,
-      "db": "sampleDB"
-    },
-    {
-      "name": "RegionSales_Copy", 
-      "queryRef": "sales_by_region",
-      "use": true,
-      "db": "sampleDB"
-    }
-  ]
-}
-```
-
-#### 속성 설명
-
-| 속성 | 설명 | 필수 | 예시 |
-|------|------|------|------|
-| `queryRef` | 참조할 쿼리 정의 이름 | 선택 | `"common_orders"` |
-| `query` | 직접 SQL 쿼리 (기존 방식) | 선택 | `"SELECT * FROM Orders"` |
-
-**주의:** `queryRef`와 `query` 중 하나만 사용해야 합니다. `queryRef`가 있으면 `query`는 무시됩니다.
+- **웹사이트**: sql2excel.com
+- **이메일**: sql2excel.nodejs@gmail.com
 
 ---
 
-## 3. 실행 방법
-
-### 기본 실행
-```bash
-node src/index.js -x resources/queries-sample.xml
-```
-또는
-```bash
-node src/index.js -q resources/queries-sample.json
-```
-
-### 주요 옵션
-- `-x`, `--xml` : XML 쿼리 정의 파일 경로
-- `-q`, `--query` : JSON 쿼리 정의 파일 경로
-- `-c`, `--config` : DB 접속정보 파일 경로(기본값: resources/config.json)
-- `--db` : 사용할 DB ID (config.json의 dbs 키)
-- `-o`, `--out` : 엑셀 파일명(경로)
-- `-v`, `--var` : 쿼리 변수 (key=value, 여러 개 가능)
-
-### 예시
-```bash
-node src/index.js -x resources/queries-sample.xml -v startDate=2024-01-01 -v endDate=2024-06-30
-node src/index.js -q resources/queries-sample.json --db main --out output/result.xlsx
-```
-
----
-
-## 4. 주요 기능
-
-- 여러 DB 접속정보 지원 (config.json)
-- 쿼리파일에서 DB, 엑셀경로, 스타일(폰트, bold, 배경색, 컬럼너비 min/max) 한 번에 지정
-- 시트별 사용여부(use) 지정 가능
-- 전역 변수/CLI 변수 지원 (중복시 CLI 우선)
-- 엑셀 파일명에 자동으로 실행시각(yyyymmddhhmmss) 추가
-- 컬럼별 데이터 길이에 따라 자동 너비(최소/최대값 내)
-- 헤더/데이터 각각 스타일 적용
-- 실행 시 XML 쿼리파일 목록 자동 안내
-- 결과 엑셀 파일 경로의 폴더가 없으면 자동 생성
-- **자동 목차 시트 생성** (하이퍼링크 포함)
-- **컬럼별 집계 데이터 표시** (목차 시트에서 한눈에 확인)
-- **조회 건수 제한 기능** (대용량 데이터 처리 시 안전장치)
-- **시트별 다중 DB 연결** (여러 데이터베이스의 데이터를 하나의 엑셀로 통합)
-- **DB 출처 표시** (각 시트 상단에 데이터 출처 DB 자동 표시)
-
----
-
-## 7. 엑셀 스타일/속성 설정 가이드
-
-### 엑셀 전체 스타일(excel)
-| 속성명      | 위치         | 설명                                      | 예시값           |
-|-------------|--------------|--------------------------------------------|------------------|
-| db          | excel        | 사용할 DB 접속 ID (config.json의 dbs 키)   | "main"          |
-| output      | excel        | 생성할 엑셀 파일 경로/이름                 | "output/result.xlsx" |
-| header      | excel        | 헤더(타이틀) 스타일                       | 객체             |
-| body        | excel        | 데이터(본문) 스타일                       | 객체             |
-
-### header/body 스타일 속성
-| 속성명      | 위치         | 설명                                      | 예시값           |
-|-------------|--------------|--------------------------------------------|------------------|
-| font        | header/body  | 폰트 스타일 (name, size, color, bold)      | {"name":"맑은 고딕", "size":12, "color":"FFFFFF", "bold":true} |
-| fill        | header/body  | 배경색 (color: 16진 ARGB)                  | {"color":"4F81BD"} |
-| colwidths   | header       | 컬럼너비 자동계산 범위 (min/max)           | {"min":10, "max":30} |
-| alignment   | header/body  | 셀 정렬 (horizontal, vertical)             | {"horizontal":"center", "vertical":"middle"} |
-| border      | header/body  | 테두리 스타일 (all/top/left/right/bottom)  | {"all":{"style":"thin","color":"000000"}} |
-
-#### font 속성 상세
-| 하위속성 | 설명           | 예시값         |
-|----------|----------------|---------------|
-| name     | 폰트명         | "맑은 고딕"   |
-| size     | 폰트 크기      | 12            |
-| color    | 폰트 색상(ARGB)| "FFFFFF"      |
-| bold     | 굵게           | true/false    |
-
-#### fill 속성 상세
-| 하위속성 | 설명           | 예시값         |
-|----------|----------------|---------------|
-| color    | 배경색(ARGB)   | "FFFFCC"      |
-
-#### colwidths 속성 상세
-| 하위속성 | 설명           | 예시값         |
-|----------|----------------|---------------|
-| min      | 최소 너비      | 10            |
-| max      | 최대 너비      | 30            |
-
-#### alignment 속성 상세
-| 하위속성   | 설명           | 예시값         |
-|------------|----------------|---------------|
-| horizontal | 가로 정렬      | "center", "left", "right" |
-| vertical   | 세로 정렬      | "top", "middle", "bottom" |
-
-#### border 속성 상세
-| 하위속성   | 설명           | 예시값         |
-|------------|----------------|---------------|
-| all        | 4방향 모두     | {"style":"thin","color":"000000"} |
-| top/left/right/bottom | 각 방향별 | {"style":"thin","color":"000000"} |
-
-### 시트 속성
-| 속성명 | 위치   | 설명                | 예시값 |
-|--------|--------|---------------------|--------|
-| name   | sheet  | 시트명(변수 사용 가능)| "매출_${startDate}_~_${endDate}" |
-| use    | sheet  | 사용여부            | true/false |
-| aggregateColumn | sheet | 집계할 컬럼명 (목차 시트에 표시) | "주문상태", "지역" |
-| maxRows | sheet | 최대 조회 건수 제한 | 1000, 5000 |
-| db     | sheet  | 접속할 데이터베이스 ID (config의 dbs 키) | "sampleDB", "erpDB" |
-
----
-
-## 5. 목차 시트 및 집계 기능
-
-### 자동 목차 시트
-- 모든 엑셀 파일에 자동으로 **'목차'** 시트가 첫 번째 시트로 생성됩니다
-- 목차 시트는 파란색 탭으로 구분되며, 다음 정보를 포함합니다:
-
-| 컬럼 | 설명 | 하이퍼링크 |
-|------|------|------------|
-| No | 시트 순번 | ❌ |
-| Sheet Name | 실제 시트명 (변수 치환됨) | ✅ 클릭 시 해당 시트로 이동 |
-| Records | 데이터 건수 (천 단위 구분자) | ✅ 클릭 시 해당 시트로 이동 |
-| Aggregate Info | 집계 정보 | ✅ 클릭 시 해당 시트로 이동 |
-| Note | 비고 (시트명 잘림 등) | ❌ |
-
-### 컬럼별 집계 기능
-각 시트에서 특정 컬럼의 값별 건수를 자동으로 집계하여 목차에 표시합니다.
-
-#### XML에서 집계 컬럼 및 조회 제한 지정
-```xml
-<sheet name="주문_목록" use="true" aggregateColumn="주문상태" maxRows="1000">
-  <![CDATA[
-    SELECT OrderID, OrderStatus, CustomerName, OrderDate 
-    FROM Orders 
-    WHERE OrderDate >= '${startDate}'
-  ]]>
-</sheet>
-```
-
-#### JSON에서 집계 컬럼 및 조회 제한 지정
-```json
-{
-  "name": "주문_목록",
-  "use": true,
-  "aggregateColumn": "주문상태",
-  "maxRows": 1000,
-  "query": "SELECT OrderID, OrderStatus, CustomerName, OrderDate FROM Orders WHERE OrderDate >= '${startDate}'"
-}
-```
-
-#### 집계 결과 표시 예시
-```
-[주문상태] Shipped:15, Processing:8, Cancelled:3 외 2개
-[지역] 서울:25, 부산:12, 대구:8
-[카테고리] 전자제품:45, 의류:32, 도서:18 외 5개
-```
-
-### 조회 건수 제한 기능 (maxRows)
-대용량 데이터 처리 시 시스템 부하를 줄이고 안전하게 작업할 수 있도록 조회 건수를 제한합니다.
-
-#### 작동 원리
-- SQL 쿼리에 `TOP N` 절을 자동으로 추가하여 조회 건수를 제한
-- 쿼리에 이미 `TOP` 절이 있는 경우 maxRows 설정을 무시하고 경고 메시지 출력
-- 제한이 적용되면 콘솔에 `[제한] 최대 N건으로 제한됨` 메시지 표시
-
-#### 사용 예시
-```xml
-<!-- 최대 5000건까지만 조회 -->
-<sheet name="대용량_주문데이터" maxRows="5000">
-  <![CDATA[
-    SELECT * FROM Orders WHERE OrderDate >= '2024-01-01'
-  ]]>
-</sheet>
-```
-
-#### 주의사항
-- **제한 없음**: maxRows 미설정 또는 0 이하의 값
-- **기존 TOP 절**: 쿼리에 이미 TOP이 있으면 maxRows 무시됨
-- **대용량 처리**: 수십만 건 이상의 데이터는 적절한 제한 권장
-
-### 시트별 다중 DB 연결 기능
-여러 데이터베이스의 데이터를 하나의 엑셀 파일로 통합할 수 있습니다.
-
-#### 작동 원리
-- 각 시트마다 개별 데이터베이스 연결 설정 가능
-- DB 연결 풀을 효율적으로 관리하여 동일 DB는 재사용
-- 시트별 DB 설정이 없으면 기본 DB 사용
-- 모든 작업 완료 후 자동으로 모든 DB 연결 정리
-- **각 시트 상단에 데이터 출처 DB명 자동 표시** (연한 파란색 배경)
-
-#### XML에서 시트별 DB 지정
-```xml
-<excel db="mainDB" maxRows="2000">
-  <!-- 기본 DB 설정 -->
-</excel>
-
-<sheet name="주문_데이터" db="orderDB" maxRows="1000">
-  <![CDATA[
-    SELECT * FROM Orders WHERE OrderDate >= '2024-01-01'
-  ]]>
-</sheet>
-
-<sheet name="고객_데이터" db="customerDB">
-  <![CDATA[
-    SELECT * FROM Customers WHERE Status = 'ACTIVE'
-  ]]>
-</sheet>
-
-<sheet name="통계_데이터">
-  <!-- db 속성 없음 -> 기본 DB(mainDB) 사용 -->
-  <![CDATA[
-    SELECT * FROM Statistics
-  ]]>
-</sheet>
-```
-
-#### JSON에서 시트별 DB 지정
-```json
-{
-  "excel": {
-    "db": "mainDB",
-    "maxRows": 2000
-  },
-  "sheets": [
-    {
-      "name": "주문_데이터",
-      "db": "orderDB",
-      "maxRows": 1000,
-      "query": "SELECT * FROM Orders WHERE OrderDate >= '2024-01-01'"
-    },
-    {
-      "name": "고객_데이터", 
-      "db": "customerDB",
-      "query": "SELECT * FROM Customers WHERE Status = 'ACTIVE'"
-    },
-    {
-      "name": "통계_데이터",
-      "query": "SELECT * FROM Statistics"
-    }
-  ]
-}
-```
-
-#### DB 연결 로그 예시
-```
-[DB] mainDB 데이터베이스에 연결 중...
-[DB] mainDB 데이터베이스 연결 완료
-[INFO] Executing for sheet '주문_데이터' on DB 'orderDB'
-[DB] orderDB 데이터베이스에 연결 중...
-[DB] orderDB 데이터베이스 연결 완료
-[INFO] Executing for sheet '고객_데이터' on DB 'customerDB'
-[DB] customerDB 데이터베이스에 연결 중...
-[DB] customerDB 데이터베이스 연결 완료
-[INFO] Executing for sheet '통계_데이터' on DB 'mainDB'
-[DB] mainDB 데이터베이스 연결 종료
-[DB] orderDB 데이터베이스 연결 종료
-[DB] customerDB 데이터베이스 연결 종료
-```
-
-#### 사용 시나리오
-- **시스템 통합**: 여러 시스템의 데이터를 하나의 보고서로
-- **부서별 데이터**: 각 부서의 DB에서 데이터를 가져와 통합 분석
-- **환경별 비교**: 개발/스테이징/운영 DB의 동일 테이블 비교
-- **데이터 마이그레이션**: 구버전과 신버전 DB 데이터 비교
-
-### DB 출처 표시 기능
-각 데이터 시트의 맨 위에 해당 데이터가 어떤 데이터베이스에서 가져온 것인지 자동으로 표시됩니다.
-
-#### 표시 형태
-```
-📊 데이터 출처: sampleDB 데이터베이스
-[빈 행]
-[헤더 행]
-[데이터 행들...]
-```
-
-#### 스타일링
-- **배경색**: 연한 파란색 (`#E7F3FF`)
-- **글꼴**: 굵게, 11pt, 파란색 (`#2F5597`)
-- **아이콘**: 📊 차트 이모지로 시각적 구분
-- **구분**: 빈 행으로 DB 정보와 데이터 구분
-
-#### 데이터 없는 경우
-```
-📊 데이터 출처: orderDB 데이터베이스
-[빈 행]
-데이터가 없습니다.
-```
-
-#### 장점
-- **데이터 추적성**: 각 시트의 데이터 출처를 명확하게 파악
-- **신뢰성**: 여러 DB 통합 시 데이터 혼동 방지
-- **문서화**: 별도 설명 없이도 데이터 출처 자동 기록
-- **시각적 구분**: 연한 파란색 배경으로 쉽게 식별 가능
-
-### 목차 시트 특징
-- **하이퍼링크**: 시트명, 데이터 건수, 집계 정보 클릭 시 해당 시트로 즉시 이동
-- **시트명 자동 처리**: 31자 초과 시 자동 잘림 및 원본명 주석 표시
-- **집계 정보**: 상위 3개 항목 표시, 나머지는 "외 N개"로 요약
-- **정렬**: 집계 항목은 건수가 많은 순으로 정렬
-- **스타일**: 파란색 링크, 천 단위 구분자, 적절한 컬럼 너비 자동 설정
-
----
-
-## 6. 기타 참고
-- 쿼리문 내 `${변수명}` 형태로 변수 사용 가능
-- 시트별로 `use="false"` 또는 `"use": false`로 비활성화 가능
-- 쿼리파일 구조/옵션은 필요에 따라 확장 가능
-
----
-
-## 7. 모듈 구조
-
-### 핵심 파일 구조
-```
-src/
-├── index.js                  # 메인 실행 파일
-├── excel-style-helper.js     # 엑셀 스타일 관련 유틸리티
-test/
-├── test-exceljs-style.js     # ExcelJS 기본 테스트
-└── test-excel-style-helper.js # 스타일 헬퍼 모듈 테스트
-```
-
-### 스타일 헬퍼 모듈 (`excel-style-helper.js`)
-
-엑셀 셀 속성 관련 로직을 별도로 분리한 유틸리티 모듈입니다.
-
-#### 주요 함수
-
-| 함수명 | 설명 | 용도 |
-|--------|------|------|
-| `parseBorder(border)` | 테두리 객체를 ExcelJS 형식으로 변환 | 테두리 스타일 적용 |
-| `parseFont(fontStyle)` | 폰트 객체를 ExcelJS 형식으로 변환 | 폰트 스타일 적용 |
-| `parseFill(fillStyle)` | 채우기 객체를 ExcelJS 형식으로 변환 | 배경색 적용 |
-| `parseAlignment(alignmentStyle)` | 정렬 객체를 ExcelJS 형식으로 변환 | 텍스트 정렬 적용 |
-| `applyCellStyle(cell, style)` | 단일 셀에 종합 스타일 적용 | 개별 셀 스타일링 |
-| `applyHeaderStyle(sheet, columns, headerStyle)` | 헤더 행에 스타일 적용 | 헤더 스타일링 |
-| `applyBodyStyle(sheet, columns, dataRowCount, bodyStyle)` | 데이터 행들에 스타일 적용 | 데이터 스타일링 |
-| `calculateColumnWidths(columns, data, colwidths)` | 컬럼 너비 자동 계산 | 자동 너비 조정 |
-| `applySheetStyle(sheet, data, excelStyle)` | 시트 전체에 데이터와 스타일 적용 | 통합 시트 처리 |
-| `createTableOfContents(workbook, sheetNames)` | 새로운 목차 시트 생성 | 별도 파일용 목차 생성 |
-| `populateTableOfContents(tocSheet, sheetNames)` | 기존 목차 시트에 내용 채우기 | 메인 파일 목차 업데이트 |
-
-#### 사용 예시
-```javascript
-const excelStyleHelper = require('./excel-style-helper');
-
-// 시트에 데이터와 스타일을 한 번에 적용
-excelStyleHelper.applySheetStyle(sheet, data, {
-  header: { font: { bold: true }, fill: { color: '4F81BD' } },
-  body: { font: { size: 11 }, fill: { color: 'FFFFCC' } }
-});
-
-// 기존 목차 시트에 내용 채우기 (집계 정보 및 하이퍼링크 포함)
-const sheetInfo = [
-  { 
-    displayName: '주문_목록', 
-    tabName: '주문_목록', 
-    recordCount: 150,
-    aggregateColumn: '주문상태',
-    aggregateData: [
-      { key: 'Shipped', count: 89 },
-      { key: 'Processing', count: 45 },
-      { key: 'Cancelled', count: 16 }
-    ]
-  }
-];
-excelStyleHelper.populateTableOfContents(tocSheet, sheetInfo);
-```
-
-### 테스트 실행
-```bash
-# 스타일 헬퍼 모듈 테스트
-node test/test-excel-style-helper.js
-
-# ExcelJS 기본 테스트
-node test/test-exceljs-style.js
-```
-
-### 샘플 데이터베이스 설정
-
-프로젝트에는 테스트용 샘플 데이터베이스 스크립트가 포함되어 있습니다.
-
-#### 1단계: 테이블 생성
-```sql
--- SQL Server Management Studio에서 실행
--- 파일: resources/create_sample_tables.sql
--- 생성되는 테이블: Customers, Orders, OrderDetails + vw_OrderSummary 뷰
-```
-
-#### 2단계: 샘플 데이터 입력
-```sql
--- 파일: resources/insert_sample_data.sql
--- 입력되는 데이터:
--- - 고객 13개 (국내 + 해외)
--- - 주문 13개 (완료/처리중/취소)
--- - 주문상세 18개
-```
-
-#### 3단계: 샘플 쿼리 실행
-```bash
-# JSON 설정파일 - 주문관리 보고서 생성 (10개 시트)
-node src/index.js -q resources/queries-sample-orders.json
-# 또는
-test-sample-orders.bat
-
-# XML 설정파일 - 매출집계 보고서 생성 (3개 시트)
-node src/index.js -x resources/queries-sample.xml
-# 또는
-test-sample-xml.bat
-```
-
-#### JSON vs XML 설정파일 비교
-| 항목 | JSON | XML |
-|------|------|-----|
-| 설정 방식 | 객체 기반 | 태그 기반 |
-| 스타일 지원 | ✅ 완전 지원 | ✅ 완전 지원 |
-| 테두리 설정 | `"border": {"all": {"style": "thin"}}` | `<border><all style="thin"/></border>` |
-| 정렬 설정 | `"alignment": {"horizontal": "center"}` | `<alignment horizontal="center"/>` |
-| 폰트 설정 | `"font": {"bold": true}` | `<font bold="true"/>` |
-| 중첩 구조 | 직관적 | 더 구조적 |
-
-#### 스타일 적용 확인
-XML과 JSON 모두 다음 스타일이 동일하게 적용됩니다:
-- **헤더**: 중앙정렬, 파란배경, 흰글자, 검은테두리, 굵은글씨
-- **데이터**: 좌측정렬, 노란배경, 검은글자, 회색테두리, 일반글씨
-- **컬럼너비**: 자동조정 (최소 10, 최대 30)
-
-#### 포함된 샘플 데이터
-- **고객**: 삼성전자, LG전자, 현대자동차, 신세계백화점, 부산항만공사, 롯데백화점, 대구은행, 인천공항, 기아자동차, KAIST, Sony, Apple 등
-- **주문**: 2024년 1월~4월 주문 데이터 (배송완료/처리중/취소 상태 포함)
-- **상품**: 갤럭시 S24, LG OLED TV, 현대차 부품, 명품 핸드백, 항만시스템, 보안솔루션 등
-
----
-
-## 7. 배포
-
-### 배포본 생성
-```bash
-# 자동 배포본 생성 스크립트 실행
-build-release.bat
-```
-
-### 배포본 구조
-- 실행 파일들 (*.bat)
-- 소스 코드 (src/)
-- 설정 파일들 (resources/)
-- 자동 설치 스크립트 (install.bat)
-- 사용자 가이드 (QUICK_START.md)
-- 버전 정보 (VERSION.txt)
-
----
-
-## 8. CLI 명령어 참조
-
-### 1. 데이터베이스 연결 테스트
-
-```bash
-# 모든 설정된 데이터베이스 연결 테스트
-node src/excel-cli.js list-dbs
-
-# 또는 NPM 스크립트 사용
-npm run list-dbs
-```
-
-**출력 예시:**
-```
-📋 데이터베이스 연결 테스트 시작
-
-총 2개 데이터베이스 연결 테스트:
-
-  sampleDB: ✅ 연결 성공
-  erpDB: ❌ 연결 실패 - ConnectionError: Failed to connect to localhost:1433
-
-================================================================================
-📊 연결 테스트 결과 요약
-================================================================================
-총 데이터베이스: 2개
-연결 성공: 1개
-연결 실패: 1개
-
-❌ 연결 실패한 데이터베이스:
-  - erpDB: ConnectionError: Failed to connect to localhost:1433
-
-✅ 연결 성공한 데이터베이스:
-  - sampleDB: localhost/SampleDB:1433
-```
-
-### 2. 쿼리 파일 검증
-
-```bash
-# XML 쿼리 파일 검증
-node src/excel-cli.js validate --xml ./queries/sample-queries.xml
-
-# JSON 쿼리 파일 검증
-node src/excel-cli.js validate --query ./queries/sample-queries.json
-
-# NPM 스크립트 사용
-npm run validate -- --xml ./queries/sample-queries.xml
-```
-
-**출력 예시:**
-```
-📋 쿼리 파일 검증 시작
-
-파일 경로: ./queries/sample-queries.xml
-파일 형식: XML
-✅ 파일 존재 확인
-✅ XML 형식 검증
-   시트 개수: 3개
-✅ 데이터베이스 설정 로드
-   설정된 DB 개수: 2개
-
-✅ 모든 검증이 완료되었습니다.
-```
-
-### 3. 엑셀 파일 생성
-
-```bash
-# XML 파일로 엑셀 생성
-node src/excel-cli.js export --xml ./queries/sample-queries.xml
-
-# JSON 파일로 엑셀 생성
-node src/excel-cli.js export --query ./queries/sample-queries.json
-
-# 변수 지정하여 실행
-node src/excel-cli.js export --xml ./queries/sample-queries.xml --var "year=2024" --var "dept=IT"
-
-# 사용자 정의 DB 설정 파일 사용
-node src/excel-cli.js export --xml ./queries/sample-queries.xml --config ./config/custom-db.json
-
-# NPM 스크립트 사용
-npm run export -- --xml ./queries/sample-queries.xml --var "year=2024"
-```
-
-### 4. 모든 옵션
-
-| 옵션 | 단축형 | 설명 | 예시 |
-|------|--------|------|------|
-| `--xml` | `-x` | XML 쿼리 정의 파일 경로 | `--xml ./queries/sample.xml` |
-| `--query` | `-q` | JSON 쿼리 정의 파일 경로 | `--query ./queries/sample.json` |
-| `--config` | `-c` | DB 설정 파일 경로 (기본: config/dbinfo.json) | `--config ./config/custom.json` |
-| `--var` | `-v` | 쿼리 변수 설정 (여러 개 가능) | `--var "year=2024" --var "dept=IT"` |
-
-### 5. 기존 호환성
-
-기존 방식도 계속 지원됩니다:
-
-```bash
-# 기존 방식 (여전히 동작)
-node src/index.js --xml ./queries/sample-queries.xml
-node src/index.js --query ./queries/sample-queries.json
-```
-
----
-
-## 9. 문의/기여
-- 개선 요청, 버그 제보, 추가 기능 문의는 언제든 환영합니다!
-- site : sql2excel.com
-- Contact to sql2excel.nodejs@gmail.com
+**버전**: v1.2.1 | **최종 업데이트**: 2025-01-15
