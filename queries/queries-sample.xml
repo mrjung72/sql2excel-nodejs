@@ -1,22 +1,8 @@
 <queries>
   <excel db="sampleDB" output="d:/temp/매출집계_2024.xlsx" separateToc="false" maxRows="20">
-    <header>
-      <font name="맑은 고딕" size="12" color="FFFFFF" bold="true"/>
-      <fill color="4F81BD"/>
-      <colwidths min="20" max="50"/>
-      <alignment horizontal="center" vertical="middle"/>
-      <border>
-        <all style="thin" color="000000"/>
-      </border>
-    </header>
-    <body>
-      <font name="맑은 고딕" size="11" color="000000" bold="false"/>
-      <fill color="FFFFCC"/>
-      <alignment horizontal="left" vertical="middle"/>
-      <border>
-        <all style="thin" color="CCCCCC"/>
-      </border>
-    </body>
+    <!-- 스타일 템플릿 ID 지정 (기본값: default) -->
+    <!-- 사용 가능한 템플릿: default, modern, dark, colorful, minimal, business, premium -->
+    <!-- 필요시 개별 스타일 속성으로 덮어쓰기 가능 -->
   </excel>
   <vars>
     <var name="envType">운영</var>

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<excelStyles>
+  <!-- 기본 스타일 -->
+  <style id="default" name="기본 스타일" description="기본 엑셀 스타일">
+    <header>
+      <font name="맑은 고딕" size="12" color="FFFFFF" bold="true"/>
+      <fill color="4F81BD"/>
+      <colwidths min="20" max="50"/>
+      <alignment horizontal="center" vertical="middle"/>
+      <border>
+        <all style="thin" color="000000"/>
+      </border>
+    </header>
+    <body>
+      <font name="맑은 고딕" size="11" color="000000" bold="false"/>
+      <fill color="FFFFCC"/>
+      <alignment horizontal="left" vertical="middle"/>
+      <border>
+        <all style="thin" color="CCCCCC"/>
+      </border>
+    </body>
+  </style>
+
+  <!-- 모던 스타일 -->
+  <style id="modern" name="모던 스타일" description="현대적인 디자인">
+    <header>
+      <font name="맑은 고딕" size="11" color="FFFFFF" bold="true"/>
+      <fill color="2E75B6"/>
+      <colwidths min="15" max="40"/>
+      <alignment horizontal="center" vertical="middle"/>
+      <border>
+        <all style="thin" color="1F4E79"/>
+      </border>
+    </header>
+    <body>
+      <font name="맑은 고딕" size="10" color="2F2F2F" bold="false"/>
+      <fill color="F8F9FA"/>
+      <alignment horizontal="left" vertical="middle"/>
+      <border>
+        <all style="thin" color="E9ECEF"/>
+      </border>
+    </body>
+  </style>
+
+  <!-- 다크 스타일 -->
+  <style id="dark" name="다크 스타일" description="어두운 테마">
+    <header>
+      <font name="맑은 고딕" size="12" color="FFFFFF" bold="true"/>
+      <fill color="343A40"/>
+      <colwidths min="20" max="50"/>
+      <alignment horizontal="center" vertical="middle"/>
+      <border>
+        <all style="thin" color="495057"/>
+      </border>
+    </header>
+    <body>
+      <font name="맑은 고딕" size="11" color="FFFFFF" bold="false"/>
+      <fill color="495057"/>
+      <alignment horizontal="left" vertical="middle"/>
+      <border>
+        <all style="thin" color="6C757D"/>
+      </border>
+    </body>
+  </style>
+
+  <!-- 컬러풀 스타일 -->
+  <style id="colorful" name="컬러풀 스타일" description="다채로운 색상">
+    <header>
+      <font name="맑은 고딕" size="12" color="FFFFFF" bold="true"/>
+      <fill color="FF6B6B"/>
+      <colwidths min="18" max="45"/>
+      <alignment horizontal="center" vertical="middle"/>
+      <border>
+        <all style="thin" color="E74C3C"/>
+      </border>
+    </header>
+    <body>
+      <font name="맑은 고딕" size="11" color="2C3E50" bold="false"/>
+      <fill color="FFF8DC"/>
+      <alignment horizontal="left" vertical="middle"/>
+      <border>
+        <all style="thin" color="F39C12"/>
+      </border>
+    </body>
+  </style>
+
+  <!-- 미니멀 스타일 -->
+  <style id="minimal" name="미니멀 스타일" description="간결한 디자인">
+    <header>
+      <font name="맑은 고딕" size="11" color="333333" bold="true"/>
+      <fill color="F5F5F5"/>
+      <colwidths min="15" max="35"/>
+      <alignment horizontal="left" vertical="middle"/>
+      <border>
+        <all style="thin" color="DDDDDD"/>
+      </border>
+    </header>
+    <body>
+      <font name="맑은 고딕" size="10" color="666666" bold="false"/>
+      <fill color="FFFFFF"/>
+      <alignment horizontal="left" vertical="middle"/>
+      <border>
+        <all style="thin" color="EEEEEE"/>
+      </border>
+    </body>
+  </style>
+
+  <!-- 비즈니스 스타일 -->
+  <style id="business" name="비즈니스 스타일" description="업무용 스타일">
+    <header>
+      <font name="맑은 고딕" size="12" color="FFFFFF" bold="true"/>
+      <fill color="1E3A8A"/>
+      <colwidths min="20" max="50"/>
+      <alignment horizontal="center" vertical="middle"/>
+      <border>
+        <all style="thin" color="1E40AF"/>
+      </border>
+    </header>
+    <body>
+      <font name="맑은 고딕" size="11" color="1F2937" bold="false"/>
+      <fill color="F9FAFB"/>
+      <alignment horizontal="left" vertical="middle"/>
+      <border>
+        <all style="thin" color="E5E7EB"/>
+      </border>
+    </body>
+  </style>
+
+  <!-- 프리미엄 스타일 -->
+  <style id="premium" name="프리미엄 스타일" description="고급스러운 디자인">
+    <header>
+      <font name="맑은 고딕" size="12" color="FFFFFF" bold="true"/>
+      <fill color="8B4513"/>
+      <colwidths min="22" max="55"/>
+      <alignment horizontal="center" vertical="middle"/>
+      <border>
+        <all style="thin" color="654321"/>
+      </border>
+    </header>
+    <body>
+      <font name="맑은 고딕" size="11" color="2F2F2F" bold="false"/>
+      <fill color="FFF8DC"/>
+      <alignment horizontal="left" vertical="middle"/>
+      <border>
+        <all style="thin" color="DEB887"/>
+      </border>
+    </body>
+  </style>
+</excelStyles>

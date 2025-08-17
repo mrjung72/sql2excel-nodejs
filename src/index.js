@@ -25,6 +25,91 @@ function validateFilename(filepath) {
   return true;
 }
 
+// 엑셀 스타일 템플릿 로더
+let styleTemplates = null;
+
+async function loadStyleTemplates() {
+  if (styleTemplates) return styleTemplates;
+  
+  const templatePath = path.join(__dirname, '..', 'templates', 'excel-styles.xml');
+  
+  try {
+    const xml = fs.readFileSync(templatePath, 'utf8');
+    const parsed = await xml2js.parseStringPromise(xml, { trim: true });
+    
+    styleTemplates = {};
+    if (parsed.excelStyles && parsed.excelStyles.style) {
+      for (const style of parsed.excelStyles.style) {
+        if (style.$ && style.$.id) {
+          const styleId = style.$.id;
+          const styleName = style.$.name || styleId;
+          const description = style.$.description || '';
+          
+          styleTemplates[styleId] = {
+            id: styleId,
+            name: styleName,
+            description: description,
+            header: parseStyleSection(style.header && style.header[0]),
+            body: parseStyleSection(style.body && style.body[0])
+          };
+        }
+      }
+    }
+    
+    console.log(`📋 로드된 스타일 템플릿: ${Object.keys(styleTemplates).length}개`);
+    return styleTemplates;
+  } catch (error) {
+    console.warn(`⚠️  스타일 템플릿 로드 실패: ${templatePath}`);
+    console.warn(`   오류: ${error.message}`);
+    console.warn(`   💡 기본 스타일을 사용합니다.`);
+    return {};
+  }
+}
+
+// 스타일 섹션 파싱
+function parseStyleSection(section) {
+  if (!section) return {};
+  
+  const result = {};
+  
+  if (section.font && section.font[0] && section.font[0].$) {
+    result.font = section.font[0].$;
+  }
+  if (section.fill && section.fill[0] && section.fill[0].$) {
+    result.fill = section.fill[0].$;
+  }
+  if (section.colwidths && section.colwidths[0] && section.colwidths[0].$) {
+    result.colwidths = section.colwidths[0].$;
+  }
+  if (section.alignment && section.alignment[0] && section.alignment[0].$) {
+    result.alignment = section.alignment[0].$;
+  }
+  if (section.border && section.border[0]) {
+    result.border = parseXmlBorder(section.border[0]);
+  }
+  
+  return result;
+}
+
+// 스타일 ID로 스타일 가져오기
+async function getStyleById(styleId) {
+  const templates = await loadStyleTemplates();
+  return templates[styleId] || templates['default'] || null;
+}
+
+// 사용 가능한 스타일 목록 출력
+async function listAvailableStyles() {
+  const templates = await loadStyleTemplates();
+  
+  console.log('\n📋 사용 가능한 엑셀 스타일 템플릿:');
+  console.log('─'.repeat(60));
+  
+  for (const [id, style] of Object.entries(templates)) {
+    console.log(`  ${id.padEnd(12)} | ${style.name.padEnd(15)} | ${style.description}`);
+  }
+  console.log('─'.repeat(60));
+}
+
 function substituteVars(str, vars) {
   return str.replace(/\$\{(\w+)\}/g, (_, v) => {
     const value = vars[v];
@@ -268,14 +353,22 @@ function isSheetEnabled(sheetDef) {
 }
 
 async function main() {
-  printAvailableXmlFiles();
-
   const argv = yargs
     .option('query', { alias: 'q', describe: '쿼리 정의 파일 경로 (JSON)', default: '' })
     .option('xml', { alias: 'x', describe: '쿼리 정의 파일 경로 (XML)', default: '' })
     .option('config', { alias: 'c', describe: 'DB 접속 정보 파일', default: 'config/dbinfo.json' })
     .option('var', { alias: 'v', describe: '쿼리 변수 (key=value)', array: true, default: [] })
+    .option('style', { alias: 's', describe: '엑셀 스타일 템플릿 ID', default: 'default' })
+    .option('list-styles', { describe: '사용 가능한 스타일 템플릿 목록 출력', boolean: true })
     .help().argv;
+
+  printAvailableXmlFiles();
+
+  // 스타일 목록 출력 옵션 처리
+  if (argv['list-styles']) {
+    await listAvailableStyles();
+    return;
+  }
 
   // CLI 변수 파싱
   const cliVars = {};
@@ -348,6 +441,19 @@ async function main() {
   let createSeparateToc = false; // 별도 목차 파일 생성 여부
   let globalMaxRows = null; // 전역 최대 조회 건수
   
+  // 스타일 템플릿 적용
+  const selectedStyle = await getStyleById(argv.style);
+  if (selectedStyle) {
+    console.log(`🎨 적용된 스타일: ${selectedStyle.name} (${selectedStyle.description})`);
+    excelStyle = {
+      header: selectedStyle.header || {},
+      body: selectedStyle.body || {}
+    };
+  } else {
+    console.warn(`⚠️  스타일 템플릿을 찾을 수 없습니다: ${argv.style}`);
+    console.warn(`   💡 기본 스타일을 사용합니다.`);
+  }
+  
   if (argv.xml && fs.existsSync(resolvePath(argv.xml))) {
     let xml;
     try {
@@ -374,29 +480,28 @@ async function main() {
       // excel 엘리먼트의 maxRows 읽기
       if (excel.$ && excel.$.maxRows) globalMaxRows = parseInt(excel.$.maxRows);
       
-      excelStyle.header = {};
-      excelStyle.body = {};
+      // XML에서 스타일 속성이 있으면 템플릿 스타일을 덮어씀
       if (excel.header && excel.header[0]) {
         const h = excel.header[0];
-        if (h.font && h.font[0] && h.font[0].$) excelStyle.header.font = h.font[0].$;
-        if (h.fill && h.fill[0] && h.fill[0].$) excelStyle.header.fill = h.fill[0].$;
-        if (h.colwidths && h.colwidths[0] && h.colwidths[0].$) excelStyle.header.colwidths = h.colwidths[0].$;
+        if (h.font && h.font[0] && h.font[0].$) excelStyle.header.font = { ...excelStyle.header.font, ...h.font[0].$ };
+        if (h.fill && h.fill[0] && h.fill[0].$) excelStyle.header.fill = { ...excelStyle.header.fill, ...h.fill[0].$ };
+        if (h.colwidths && h.colwidths[0] && h.colwidths[0].$) excelStyle.header.colwidths = { ...excelStyle.header.colwidths, ...h.colwidths[0].$ };
         if (h.alignment && h.alignment[0] && h.alignment[0].$) {
-          excelStyle.header.alignment = h.alignment[0].$;
+          excelStyle.header.alignment = { ...excelStyle.header.alignment, ...h.alignment[0].$ };
         }
         if (h.border && h.border[0]) {
-          excelStyle.header.border = parseXmlBorder(h.border[0]);
+          excelStyle.header.border = { ...excelStyle.header.border, ...parseXmlBorder(h.border[0]) };
         }
       }
       if (excel.body && excel.body[0]) {
         const b = excel.body[0];
-        if (b.font && b.font[0] && b.font[0].$) excelStyle.body.font = b.font[0].$;
-        if (b.fill && b.fill[0] && b.fill[0].$) excelStyle.body.fill = b.fill[0].$;
+        if (b.font && b.font[0] && b.font[0].$) excelStyle.body.font = { ...excelStyle.body.font, ...b.font[0].$ };
+        if (b.fill && b.fill[0] && b.fill[0].$) excelStyle.body.fill = { ...excelStyle.body.fill, ...b.fill[0].$ };
         if (b.alignment && b.alignment[0] && b.alignment[0].$) {
-          excelStyle.body.alignment = b.alignment[0].$;
+          excelStyle.body.alignment = { ...excelStyle.body.alignment, ...b.alignment[0].$ };
         }
         if (b.border && b.border[0]) {
-          excelStyle.body.border = parseXmlBorder(b.border[0]);
+          excelStyle.body.border = { ...excelStyle.body.border, ...parseXmlBorder(b.border[0]) };
         }
       }
     }

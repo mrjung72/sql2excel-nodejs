@@ -1,0 +1,45 @@
+<queries>
+  <excel db="sampleDB" output="d:/temp/매출집계_템플릿_2024.xlsx" separateToc="false" maxRows="20">
+    <!-- 스타일 템플릿 ID 지정 (기본값: default) -->
+    <!-- 사용 가능한 템플릿: default, modern, dark, colorful, minimal, business, premium -->
+    <!-- 필요시 개별 스타일 속성으로 덮어쓰기 가능 -->
+  </excel>
+  <vars>
+    <var name="envType">운영</var>
+    <var name="startDate">2024-01-01</var>
+    <var name="endDate">2024-06-30</var>
+    <var name="regionList">["서울", "부산"]</var>
+    <var name="statusList">["ACTIVE", "PENDING", "COMPLETED"]</var>
+    <var name="categoryIds">[1, 2, 3, 5]</var>
+    <var name="maxRows">1000</var>
+  </vars>
+  <sheet name="${envType}_주문_목록" use="true" aggregateColumn="결제방법" maxRows="10" db="sampleDB">
+    <![CDATA[
+      SELECT 
+        OrderNumber as 주문번호,
+        FORMAT(OrderDate, 'yyyy-MM-dd') as 주문일,
+        OrderStatus as 주문상태,
+        PaymentStatus as 결제상태,
+        FORMAT(TotalAmount, 'N0') as 총금액,
+        PaymentMethod as 결제방법
+      FROM SampleDB.dbo.Orders
+      WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
+      ORDER BY OrderDate DESC
+    ]]>
+  </sheet>
+  <sheet name="고객_목록" use="true" aggregateColumn="지역">
+    <![CDATA[
+      SELECT 
+        CustomerCode as 고객코드,
+        CustomerName as 고객명,
+        ContactName as 담당자명,
+        City as 도시,
+        Region as 지역,
+        CustomerType as 고객유형,
+        FORMAT(CreditLimit, 'N0') as 신용한도
+      FROM SampleDB.dbo.Customers
+      WHERE Region IN (${regionList}) AND IsActive = 1
+      ORDER BY CreditLimit DESC
+    ]]>
+  </sheet>
+</queries>
