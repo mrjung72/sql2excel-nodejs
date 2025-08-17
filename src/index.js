@@ -7,6 +7,24 @@ const JSON5 = require('json5');
 const xml2js = require('xml2js');
 const excelStyleHelper = require('./excel-style-helper');
 
+// 파일명에 한글이 포함되어 있는지 확인하는 함수
+function hasKoreanInFilename(filepath) {
+  const filename = path.basename(filepath);
+  const koreanRegex = /[가-힣]/;
+  return koreanRegex.test(filename);
+}
+
+// 파일명 검증 및 경고 함수
+function validateFilename(filepath) {
+  if (hasKoreanInFilename(filepath)) {
+    console.warn(`⚠️  경고: 파일명에 한글이 포함되어 있습니다: ${path.basename(filepath)}`);
+    console.warn(`   💡 권장사항: 파일명을 영문으로 변경하세요.`);
+    console.warn(`   💡 예시: "${path.basename(filepath)}" → "${path.basename(filepath).replace(/[가-힣]/g, '')}"`);
+    return false;
+  }
+  return true;
+}
+
 function substituteVars(str, vars) {
   return str.replace(/\$\{(\w+)\}/g, (_, v) => {
     const value = vars[v];
@@ -30,7 +48,18 @@ function substituteVars(str, vars) {
 }
 
 async function loadQueriesFromXML(xmlPath) {
-  const xml = fs.readFileSync(xmlPath, 'utf8');
+  // 파일명 인코딩 문제 해결을 위한 안전한 파일 읽기
+  let xml;
+  try {
+    xml = fs.readFileSync(xmlPath, 'utf8');
+  } catch (error) {
+    // 파일명 인코딩 문제일 가능성이 높음
+    console.warn(`⚠️  파일 읽기 실패: ${xmlPath}`);
+    console.warn(`   오류: ${error.message}`);
+    console.warn(`   💡 해결방법: 파일명에 한글이 포함되어 있다면 영문으로 변경해주세요.`);
+    console.warn(`   💡 예시: "queries-sample - 복사본.xml" → "queries-sample-copy.xml"`);
+    throw new Error(`파일을 읽을 수 없습니다: ${xmlPath}\n파일명에 한글이 포함되어 있으면 영문으로 변경해주세요.`);
+  }
   const parsed = await xml2js.parseStringPromise(xml, { trim: true });
   if (!parsed.queries || !parsed.queries.sheet) throw new Error('Invalid XML format');
   
@@ -257,6 +286,8 @@ async function main() {
 
   let sheets, globalVars = {}, dbId, outputPath, queryDefs = {};
   if (argv.xml && fs.existsSync(resolvePath(argv.xml))) {
+    // 파일명 검증
+    validateFilename(argv.xml);
     const xmlResult = await loadQueriesFromXML(resolvePath(argv.xml));
     globalVars = xmlResult.globalVars;
     sheets = xmlResult.sheets;
@@ -264,7 +295,18 @@ async function main() {
     outputPath = xmlResult.outputPath;
     queryDefs = xmlResult.queryDefs || {};
   } else if (argv.query && fs.existsSync(resolvePath(argv.query))) {
-    const queries = JSON5.parse(fs.readFileSync(resolvePath(argv.query), 'utf8'));
+    // 파일명 검증
+    validateFilename(argv.query);
+    let queryContent;
+    try {
+      queryContent = fs.readFileSync(resolvePath(argv.query), 'utf8');
+    } catch (error) {
+      console.warn(`⚠️  쿼리 파일 읽기 실패: ${argv.query}`);
+      console.warn(`   오류: ${error.message}`);
+      console.warn(`   💡 해결방법: 파일명에 한글이 포함되어 있다면 영문으로 변경해주세요.`);
+      throw new Error(`쿼리 파일을 읽을 수 없습니다: ${argv.query}\n파일명에 한글이 포함되어 있으면 영문으로 변경해주세요.`);
+    }
+    const queries = JSON5.parse(queryContent);
     globalVars = queries.vars || {};
     
     // JSON에서 쿼리 정의 파싱
@@ -307,7 +349,15 @@ async function main() {
   let globalMaxRows = null; // 전역 최대 조회 건수
   
   if (argv.xml && fs.existsSync(resolvePath(argv.xml))) {
-    const xml = fs.readFileSync(resolvePath(argv.xml), 'utf8');
+    let xml;
+    try {
+      xml = fs.readFileSync(resolvePath(argv.xml), 'utf8');
+    } catch (error) {
+      console.warn(`⚠️  XML 파일 읽기 실패: ${argv.xml}`);
+      console.warn(`   오류: ${error.message}`);
+      console.warn(`   💡 해결방법: 파일명에 한글이 포함되어 있다면 영문으로 변경해주세요.`);
+      throw new Error(`XML 파일을 읽을 수 없습니다: ${argv.xml}\n파일명에 한글이 포함되어 있으면 영문으로 변경해주세요.`);
+    }
     const parsed = await xml2js.parseStringPromise(xml, { trim: true });
     
     // queries 루트 엘리먼트에서 separateToc 속성 확인
