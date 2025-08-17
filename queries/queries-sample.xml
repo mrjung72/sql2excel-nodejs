@@ -1,5 +1,5 @@
 <queries>
-  <excel db="sampleDB" output="d:/temp/매출집계_2024.xlsx" separateToc="false" maxRows="20">
+  <excel db="sampleDB" output="d:/temp/매출집계_2024.xlsx" separateToc="false" maxRows="20" style="modern">
     <!-- 스타일 템플릿 ID 지정 (기본값: default) -->
     <!-- 사용 가능한 템플릿: default, modern, dark, colorful, minimal, business, premium -->
     <!-- 필요시 개별 스타일 속성으로 덮어쓰기 가능 -->
@@ -27,7 +27,7 @@
       ORDER BY OrderDate DESC
     ]]>
   </sheet>
-  <sheet name="고객_목록" use="true" aggregateColumn="지역">
+  <sheet name="고객_목록" use="true" aggregateColumn="지역" style="dark">
     <![CDATA[
       SELECT 
         CustomerCode as 고객코드,

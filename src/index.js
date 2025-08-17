@@ -236,6 +236,7 @@ async function loadQueriesFromXML(xmlPath) {
       maxRows: s.$.maxRows ? parseInt(s.$.maxRows) : null,
       db: s.$.db || null,
       queryRef: s.$.queryRef || null,
+      style: s.$.style || null, // 시트별 스타일 추가
       query: query
     };
   });
@@ -441,16 +442,16 @@ async function main() {
   let createSeparateToc = false; // 별도 목차 파일 생성 여부
   let globalMaxRows = null; // 전역 최대 조회 건수
   
-  // 스타일 템플릿 적용
+  // 기본 스타일 템플릿 적용 (CLI 옵션)
   const selectedStyle = await getStyleById(argv.style);
   if (selectedStyle) {
-    console.log(`🎨 적용된 스타일: ${selectedStyle.name} (${selectedStyle.description})`);
+    console.log(`🎨 CLI에서 지정된 스타일: ${selectedStyle.name} (${selectedStyle.description})`);
     excelStyle = {
       header: selectedStyle.header || {},
       body: selectedStyle.body || {}
     };
   } else {
-    console.warn(`⚠️  스타일 템플릿을 찾을 수 없습니다: ${argv.style}`);
+    console.warn(`⚠️  CLI에서 지정된 스타일 템플릿을 찾을 수 없습니다: ${argv.style}`);
     console.warn(`   💡 기본 스타일을 사용합니다.`);
   }
   
@@ -479,6 +480,20 @@ async function main() {
       if (excel.$ && excel.$.separateToc) createSeparateToc = excel.$.separateToc === 'true';
       // excel 엘리먼트의 maxRows 읽기
       if (excel.$ && excel.$.maxRows) globalMaxRows = parseInt(excel.$.maxRows);
+      // XML에서 스타일 템플릿 ID 읽기 (CLI 옵션보다 우선)
+      if (excel.$ && excel.$.style) {
+        const xmlStyleId = excel.$.style;
+        const xmlStyle = await getStyleById(xmlStyleId);
+        if (xmlStyle) {
+          console.log(`🎨 XML에서 지정된 스타일: ${xmlStyle.name} (${xmlStyle.description})`);
+          excelStyle = {
+            header: xmlStyle.header || {},
+            body: xmlStyle.body || {}
+          };
+        } else {
+          console.warn(`⚠️  XML에서 지정된 스타일을 찾을 수 없습니다: ${xmlStyleId}`);
+        }
+      }
       
       // XML에서 스타일 속성이 있으면 템플릿 스타일을 덮어씀
       if (excel.header && excel.header[0]) {
@@ -650,8 +665,27 @@ async function main() {
       }
       
       if (recordCount > 0) {
+        // 시트별 스타일 적용 (우선순위: 시트별 > XML 전역 > CLI > 기본)
+        let sheetStyle = excelStyle; // 기본값은 전역 스타일
+        
+        if (sheetDef.style) {
+          const sheetStyleTemplate = await getStyleById(sheetDef.style);
+          if (sheetStyleTemplate) {
+            console.log(`\t🎨 시트별 스타일 적용: ${sheetStyleTemplate.name} (${sheetStyleTemplate.description})`);
+            sheetStyle = {
+              header: sheetStyleTemplate.header || {},
+              body: sheetStyleTemplate.body || {}
+            };
+          } else {
+            console.warn(`\t⚠️  시트별 스타일을 찾을 수 없습니다: ${sheetDef.style}`);
+            console.warn(`\t   💡 전역 스타일을 사용합니다.`);
+          }
+        } else {
+          console.log(`\t🎨 전역 스타일 적용: ${excelStyle.header?.font?.name || '기본'} 스타일`);
+        }
+        
         // 데이터와 스타일 적용 (1행부터 시작)
-        excelStyleHelper.applySheetStyle(sheet, result.recordset, excelStyle, 1);
+        excelStyleHelper.applySheetStyle(sheet, result.recordset, sheetStyle, 1);
         
         // 데이터 추가 후 맨 앞에 DB 정보 행 삽입
         sheet.spliceRows(1, 0, [`📊 출처: ${sheetDbKey} DB`]);

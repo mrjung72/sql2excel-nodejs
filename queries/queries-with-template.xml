@@ -1,8 +1,8 @@
 <queries>
-  <excel db="sampleDB" output="d:/temp/매출집계_템플릿_2024.xlsx" separateToc="false" maxRows="20">
-    <!-- 스타일 템플릿 ID 지정 (기본값: default) -->
+  <excel db="sampleDB" output="d:/temp/매출집계_템플릿_2024.xlsx" separateToc="false" maxRows="20" style="business">
+    <!-- 전역 스타일 템플릿 ID (기본값: default) -->
+    <!-- 시트별로 개별 스타일을 지정할 수 있음 -->
     <!-- 사용 가능한 템플릿: default, modern, dark, colorful, minimal, business, premium -->
-    <!-- 필요시 개별 스타일 속성으로 덮어쓰기 가능 -->
   </excel>
   <vars>
     <var name="envType">운영</var>
@@ -13,7 +13,8 @@
     <var name="categoryIds">[1, 2, 3, 5]</var>
     <var name="maxRows">1000</var>
   </vars>
-  <sheet name="${envType}_주문_목록" use="true" aggregateColumn="결제방법" maxRows="10" db="sampleDB">
+  <sheet name="${envType}_주문_목록" use="true" aggregateColumn="결제방법" maxRows="10" db="sampleDB" style="modern">
+    <!-- 시트별 개별 스타일: modern -->
     <![CDATA[
       SELECT 
         OrderNumber as 주문번호,
@@ -28,6 +29,7 @@
     ]]>
   </sheet>
   <sheet name="고객_목록" use="true" aggregateColumn="지역">
+    <!-- 시트별 스타일 미지정: 전역 스타일(business) 사용 -->
     <![CDATA[
       SELECT 
         CustomerCode as 고객코드,
@@ -40,6 +42,22 @@
       FROM SampleDB.dbo.Customers
       WHERE Region IN (${regionList}) AND IsActive = 1
       ORDER BY CreditLimit DESC
+    ]]>
+  </sheet>
+  <sheet name="상품_목록" use="true" aggregateColumn="카테고리" style="colorful">
+    <!-- 시트별 개별 스타일: colorful -->
+    <![CDATA[
+      SELECT 
+        ProductID as 상품ID,
+        ProductName as 상품명,
+        CategoryName as 카테고리,
+        FORMAT(UnitPrice, 'N0') as 단가,
+        UnitsInStock as 재고수량,
+        Discontinued as 단종여부
+      FROM SampleDB.dbo.Products p
+      INNER JOIN SampleDB.dbo.Categories c ON p.CategoryID = c.CategoryID
+      WHERE p.CategoryID IN (${categoryIds})
+      ORDER BY c.CategoryName, p.ProductName
     ]]>
   </sheet>
 </queries>
