@@ -13,7 +13,7 @@
     <var name="categoryIds">[1, 2, 3, 5]</var>
     <var name="maxRows">1000</var>
   </vars>
-  <sheet name="${envType}_주문_목록" use="true" aggregateColumn="결제방법" maxRows="10" db="sampleDB">
+  <sheet name="${envType}_주문_목록" use="true" aggregateColumn="결제방법" maxRows="100" db="sampleDB">
     <![CDATA[
       SELECT 
         OrderNumber as 주문번호,
@@ -42,7 +42,7 @@
       ORDER BY CreditLimit DESC
     ]]>
   </sheet>
-  <sheet name="고객_목록_상세정보_지역별_통계_분석결과_요약테이블_최종버전" use="false">
+  <sheet name="고객_목록_상세정보_지역별_통계_분석결과_요약테이블_최종버전" use="true">
     <![CDATA[
       SELECT 
         o.OrderNumber as 주문번호,
@@ -58,7 +58,7 @@
       ORDER BY o.OrderDate DESC
     ]]>
   </sheet>
-  <sheet name="와일드카드기호사용_Customer" use="false">
+  <sheet name="와일드카드기호사용_Customer" use="true">
     <![CDATA[
       SELECT c.*
       FROM SampleDB.dbo.Orders o
@@ -68,7 +68,7 @@
       ORDER BY o.OrderDate DESC
     ]]>
   </sheet>
-  <sheet name="와일드카드기호사용_Order" use="false">
+  <sheet name="와일드카드기호사용_Order" use="true">
     <![CDATA[
       SELECT o.*
       FROM SampleDB.dbo.Orders o
@@ -78,7 +78,7 @@
       ORDER BY o.OrderDate DESC
     ]]>
   </sheet>
-  <sheet name="배열변수_주문상태별_조회" use="false" aggregateColumn="주문상태">
+  <sheet name="배열변수_주문상태별_조회" use="true" aggregateColumn="주문상태">
     <![CDATA[
       SELECT 
         OrderNumber as 주문번호,
@@ -94,7 +94,7 @@
       ORDER BY OrderDate DESC
     ]]>
   </sheet>
-  <sheet name="배열변수_카테고리별_상품" use="false" aggregateColumn="카테고리명">
+  <sheet name="배열변수_카테고리별_상품" use="true" aggregateColumn="카테고리명">
     <![CDATA[
       SELECT 
         p.ProductID as 상품ID,
