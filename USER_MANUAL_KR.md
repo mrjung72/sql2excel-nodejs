@@ -589,9 +589,3 @@ node src/excel-cli.js help
 ## 📞 지원
 - Site Url: sql2excel.com 
 - Contact: sql2excel.nodejs@gmail.com
-
----
-
-**📝 버전**: v1.2.2
-**📅 최종 업데이트**: 2025-08-20
-**🔧 주요 기능**: 멀티시트 엑셀 생성, 스타일링, 다중 DB 연결, 쿼리 재사용, 자동 목차
