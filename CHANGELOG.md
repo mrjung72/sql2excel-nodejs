@@ -1,52 +1,52 @@
-# SQL2Excel 버전 히스토리
+# SQL2Excel Version History
 
-## v1.2.2 - 동적 변수 시스템 추가 (2025-08-20)
+## v1.2.2 - Dynamic Variables System Enhancement (2025-08-20)
 
- ### ✨ 새로운 기능
- - **🔄 동적 변수 시스템**: 데이터베이스에서 실시간으로 값을 조회하여 동적 쿼리 생성
- - **📊 2가지 동적 변수 타입**: 기본 타입(`column_identified` 동작), `key_value_pairs` 타입 지원
- - **🎯 기본 타입 개선**: `type` 속성 생략 시 자동으로 `column_identified` 타입으로 처리
- - **🔗 시각 함수 통합**: 동적 변수에서 `CURRENT_TIMESTAMP`, `CURRENT_DATE` 등 시각 함수 사용 가능
- - **🌐 환경 변수 지원**: 동적 변수에서 환경 변수 사용 가능
- - **🐛 디버그 모드**: `DEBUG_VARIABLES=true` 환경 변수로 변수 치환 과정 상세 로깅
+### ✨ New Features
+- **🔄 Dynamic Variables System**: Extract values from database in real-time for dynamic query generation
+- **📊 2 Dynamic Variable Types**: Default type (`column_identified` behavior), `key_value_pairs` type support
+- **🎯 Default Type Improvement**: Automatically processes as `column_identified` type when `type` attribute is omitted
+- **🔗 Time Function Integration**: Use time functions like `CURRENT_TIMESTAMP`, `CURRENT_DATE` in dynamic variables
+- **🌐 Environment Variable Support**: Use environment variables in dynamic variables
+- **🐛 Debug Mode**: Detailed variable substitution logging with `DEBUG_VARIABLES=true` environment variable
 
- ### 🔄 동적 변수 타입별 기능
- 
- #### 1. 기본 타입 (column_identified 동작)
- - `type` 속성 생략 시 기본값
- - 각 컬럼별로 배열 생성
- - `${변수명.컬럼명}` 형태로 특정 컬럼의 값들만 사용
- - 예시: `${customerData.CustomerID}`, `${customerData.Region}`
- 
- #### 2. key_value_pairs 타입
- - 명시적으로 `type="key_value_pairs"` 지정 필요
- - 첫 번째 컬럼을 키로, 두 번째 컬럼을 값으로 생성
- - `${변수명.키명}` 형태로 키 값들만 사용
- - 예시: `${productPrices.ProductID}`
+### 🔄 Dynamic Variable Type Features
 
-### 📝 사용 예시
+#### 1. Default Type (column_identified behavior)
+- Default when `type` attribute is omitted
+- Creates arrays for each column
+- Access specific column values using `${variableName.columnName}` format
+- Example: `${customerData.CustomerID}`, `${customerData.Region}`
+
+#### 2. key_value_pairs Type
+- Requires explicit `type="key_value_pairs"` specification
+- Creates key-value pairs from first two columns
+- Access key values using `${variableName.keyName}` format
+- Example: `${productPrices.ProductID}`
+
+### 📝 Usage Examples
 ```xml
- <!-- 동적 변수 정의 -->
- <dynamicVars>
-   <!-- 기본 타입: type 속성 생략 -->
-   <dynamicVar name="customerData" description="고객 데이터 컬럼별 분류">
-     <![CDATA[
-       SELECT CustomerID, CustomerName, City, Region
-       FROM Customers WHERE IsActive = 1
-     ]]>
-   </dynamicVar>
-   
-   <!-- key_value_pairs 타입: 명시적 지정 -->
-   <dynamicVar name="productPrices" type="key_value_pairs" description="상품별 가격 정보">
-     <![CDATA[
-       SELECT ProductID, UnitPrice
-       FROM Products WHERE Discontinued = 0
-     ]]>
-   </dynamicVar>
- </dynamicVars>
+<!-- Dynamic variable definitions -->
+<dynamicVars>
+  <!-- Default type: type attribute omitted -->
+  <dynamicVar name="customerData" description="Customer data by column">
+    <![CDATA[
+      SELECT CustomerID, CustomerName, City, Region
+      FROM Customers WHERE IsActive = 1
+    ]]>
+  </dynamicVar>
+  
+  <!-- key_value_pairs type: explicit specification -->
+  <dynamicVar name="productPrices" type="key_value_pairs" description="Product price information">
+    <![CDATA[
+      SELECT ProductID, UnitPrice
+      FROM Products WHERE Discontinued = 0
+    ]]>
+  </dynamicVar>
+</dynamicVars>
 
-<!-- 동적 변수 사용 -->
-<sheet name="고객주문분석">
+<!-- Using dynamic variables -->
+<sheet name="CustomerOrderAnalysis">
   <![CDATA[
     SELECT * FROM Orders 
     WHERE CustomerID IN (${customerData.CustomerID})
@@ -56,273 +56,364 @@
 </sheet>
 ```
 
- ### 🔧 개선사항
- - **기본 타입 간소화**: `type` 속성 생략 시 자동으로 `column_identified` 타입으로 처리하여 사용 편의성 향상
- - **변수 치환 우선순위**: 동적 변수 > 일반 변수 > 시각 함수 > 환경 변수 순서로 처리
- - **SQL 인젝션 방지**: 모든 변수 값에 대해 적절한 이스케이핑 처리
- - **오류 처리 강화**: 동적 변수 처리 중 오류 발생 시 빈 배열로 대체하여 안전성 확보
- - **성능 최적화**: 동적 변수는 DB 연결 후, 시트 처리 전에 한 번만 실행
+### 🔧 Improvements
+- **Default Type Simplification**: Automatically processes as `column_identified` type when `type` attribute is omitted, improving usability
+- **Variable Substitution Priority**: Processes in order: dynamic variables > regular variables > time functions > environment variables
+- **SQL Injection Prevention**: Proper escaping for all variable values
+- **Enhanced Error Handling**: Replaces dynamic variables with empty arrays for safety when processing errors occur
+- **Performance Optimization**: Dynamic variables executed once and cached for entire export
 
-### 📚 문서화
-- **README.md 업데이트**: 동적 변수 기능 소개 및 예시 추가
-- **USER_MANUAL.md 확장**: 동적 변수 상세 사용법 및 타입별 설명 추가
-- **예제 파일 추가**: `queries-with-dynamic-variables.xml`, `queries-with-dynamic-variables.json` 생성
-
----
-
-## v1.2.1 - 문서화 개선 (2025-08-11)
-
-### 📚 문서화
-- **📖 사용자 매뉴얼**: 상세한 `USER_MANUAL.md` 추가
-- **📋 버전 히스토리**: 체계적인 `CHANGELOG.md` 추가
-- **🔧 설정 가이드**: 데이터베이스 연결 및 설정 방법 상세 설명
-- **💡 예시 확장**: 다양한 사용 사례 및 예제 코드 추가
-
-### 🔧 개선사항
-- **문서 구조화**: 목차 기반 체계적 문서 구성
-- **예제 강화**: 실제 사용 시나리오별 상세 예시 제공
-- **문제 해결 가이드**: 일반적인 문제 및 해결책 정리
-- **버전 히스토리**: 모든 버전의 변경사항 체계적 정리
+### 📚 Documentation
+- **README.md Update**: Added dynamic variables feature introduction and examples
+- **USER_MANUAL.md Expansion**: Added detailed dynamic variables usage and type descriptions
+- **Example Files Added**: Created `queries-with-dynamic-variables.xml`, `queries-with-dynamic-variables.json`
 
 ---
 
-## v1.2.0 - 쿼리 재사용 및 CLI 개선 (2024-08-07)
+## v1.2.1 - Documentation Improvements (2025-08-11)
 
-### ✨ 새로운 기능
-- **🔄 쿼리 정의 재사용 기능**: `queryDefs`를 통한 공통 쿼리 정의 및 재사용
-- **🖥️ 새로운 CLI 인터페이스**: `excel-cli.js`를 통한 명령줄 도구 제공
-- **🪟 윈도우 배치 파일**: 윈도우 사용자를 위한 편리한 실행 배치 파일들
-- **✅ 파일 검증 기능**: 쿼리 파일 형식 및 구조 검증 도구
-- **🔗 DB 연결 테스트**: 모든 설정된 데이터베이스 연결 상태 확인
+### 📚 Documentation
+- **📖 User Manual**: Added comprehensive `USER_MANUAL.md`
+- **📋 Version History**: Added systematic `CHANGELOG.md`
+- **🔧 Configuration Guide**: Detailed database connection and setup instructions
+- **💡 Example Expansion**: Added various usage scenarios and example code
 
-### 📊 쿼리 재사용 시스템
-- **XML/JSON 지원**: 두 형식 모두에서 `queryDefs` 기능 지원
-- **코드 재사용**: 동일한 쿼리를 여러 시트에서 `queryRef`로 참조
-- **유지보수 효율성**: 한 곳에서 쿼리 수정 시 모든 참조 시트에 자동 적용
-- **가독성 향상**: 복잡한 쿼리를 의미있는 이름으로 명명
+### 🔧 Improvements
+- **Documentation Structure**: Systematic document organization with table of contents
+- **Example Enhancement**: Detailed examples for actual usage scenarios
+- **Troubleshooting Guide**: Common issues and solutions
+- **Version History**: Systematic organization of all version changes
 
-### 🖥️ CLI 명령어 추가
-```bash
-# 엑셀 파일 생성
-node src/excel-cli.js export --xml ./queries/sample.xml
+---
 
-# 쿼리 파일 검증  
-node src/excel-cli.js validate --xml ./queries/sample.xml
+## v1.2.0 - Query Reuse and CLI Improvements (2024-08-07)
 
-# DB 연결 테스트
-node src/excel-cli.js list-dbs
+### ✨ New Features
+- **🔄 Query Definition Reuse**: Define common queries with `queryDefs` and reuse across multiple sheets
+- **🖥️ New CLI Interface**: Command-line tool via `excel-cli.js`
+- **🪟 Windows Batch Files**: Convenient execution batch files for Windows users
+- **✅ File Validation**: Query file format and structure validation tool
+- **🔗 DB Connection Test**: Check connection status for all configured databases
 
-# 도움말
-node src/excel-cli.js help
-```
-
-### 🪟 윈도우 배치 파일
-- `실행하기.bat`: 메인 인터랙티브 메뉴
-- `sql2excel.bat`: 통합 실행 메뉴
-- `export-xml.bat`: XML 파일 빠른 실행
-- `export-json.bat`: JSON 파일 빠른 실행
-- `validate.bat`: 파일 검증 빠른 실행
-- `db-test.bat`: DB 연결 테스트
-
-### 🔧 개선사항
-- **NPM 스크립트**: 편리한 NPM 명령어 추가
-- **오류 처리 강화**: 더 친화적인 오류 메시지
-- **파일 자동 감지**: XML/JSON 파일 자동 인식
-- **결과 확인**: 생성된 파일 폴더 자동 열기 옵션
-
-### 📝 사용 예시
+### 📊 Query Reuse System
+- **XML/JSON Support**: `queryDefs` functionality supported in both formats
+- **Code Reuse**: Reference same query across multiple sheets using `queryRef`
 ```xml
-<!-- 쿼리 정의 -->
 <queryDefs>
-  <queryDef name="common_orders" description="공통 주문 조회">
+  <queryDef id="customer_base" description="Base customer query">
     <![CDATA[
-      SELECT OrderID, CustomerID, OrderDate, TotalAmount
-      FROM Orders WHERE OrderDate >= '${startDate}'
+      SELECT CustomerID, CustomerName, Email, Phone
+      FROM Customers WHERE IsActive = 1
     ]]>
   </queryDef>
 </queryDefs>
 
-<!-- 쿼리 참조 -->
-<sheet name="Orders" queryRef="common_orders" use="true"/>
+<sheets>
+  <sheet name="CustomerList" use="true">
+    <queryRef ref="customer_base"/>
+  </sheet>
+  
+  <sheet name="CustomerOrders" use="true">
+    <![CDATA[
+      SELECT o.*, c.CustomerName
+      FROM Orders o
+      INNER JOIN (${customer_base}) c ON o.CustomerID = c.CustomerID
+    ]]>
+  </sheet>
+</sheets>
 ```
+
+### 🖥️ CLI Commands
+```bash
+# Generate Excel file
+node src/excel-cli.js export --xml ./queries/sample.xml
+
+# Validate query file
+node src/excel-cli.js validate --xml ./queries/sample.xml
+
+# List databases
+node src/excel-cli.js list-dbs
+
+# Help
+node src/excel-cli.js help
+```
+
+### 🪟 Windows Batch Files
+- `실행하기.bat`: Interactive execution
+- `export-xml.bat`: Direct XML export
+- `export-json.bat`: Direct JSON export
+- `validate.bat`: File validation
+- `db-test.bat`: Database connection test
 
 ---
 
-## v1.1.0 - 고급 기능 확장 (2024-07-22)
+## v1.1.5 - Excel Styling Enhancements (2024-08-06)
 
-### ✨ 새로운 기능
-- **📋 자동 목차 시트**: 모든 엑셀 파일에 목차 시트 자동 생성
-- **📊 컬럼별 집계**: 지정 컬럼의 값별 건수 자동 집계 및 표시
-- **🚦 조회 건수 제한**: `maxRows` 속성으로 대용량 데이터 안전 처리
-- **🔗 시트별 다중 DB 연결**: 각 시트마다 다른 데이터베이스 연결 가능
-- **📊 DB 출처 표시**: 각 시트 상단에 데이터 출처 DB명 자동 표시
+### ✨ New Features
+- **🎨 Advanced Excel Styling**: Comprehensive styling for headers and data areas
+- **📊 Font Control**: Font name, size, color, bold, italic settings
+- **🎨 Fill Control**: Background color and pattern settings
+- **📏 Border Control**: Border style, color, and position settings
+- **📐 Alignment Control**: Horizontal/vertical alignment and text wrapping
 
-### 📋 자동 목차 시트 기능
-- **하이퍼링크**: 시트명, 데이터 건수 클릭 시 해당 시트로 이동
-- **집계 정보**: `aggregateColumn` 지정 시 값별 건수 표시
-- **데이터 건수**: 천 단위 구분자로 표시
-- **파란색 탭**: 목차 시트를 쉽게 구분
-
-### 📊 집계 기능 상세
+### 📝 Styling Examples
 ```xml
-<sheet name="주문목록" aggregateColumn="주문상태" maxRows="1000">
-  <!-- 결과: [주문상태] Shipped:89, Processing:45, Cancelled:16 외 2개 -->
-</sheet>
-```
-
-### 🔗 다중 DB 연결
-```xml
-<excel db="mainDB">
-  <sheet name="주문데이터" db="orderDB">
-    <!-- orderDB에서 데이터 조회 -->
-  </sheet>
-  <sheet name="고객데이터" db="customerDB">
-    <!-- customerDB에서 데이터 조회 -->
-  </sheet>
+<excel db="sampleDB" output="output/StyledReport.xlsx">
+  <header>
+    <font name="Arial" size="12" color="FFFFFF" bold="true"/>
+    <fill color="4F81BD" patternType="solid"/>
+    <border>
+      <top style="thin" color="000000"/>
+      <bottom style="thin" color="000000"/>
+    </border>
+    <alignment horizontal="center" vertical="center"/>
+  </header>
+  
+  <data>
+    <font name="Arial" size="10"/>
+    <border>
+      <top style="thin" color="CCCCCC"/>
+      <bottom style="thin" color="CCCCCC"/>
+    </border>
+  </data>
 </excel>
 ```
 
-### 🚦 조회 건수 제한
-- SQL 쿼리에 `TOP N` 절 자동 추가
-- 기존 `TOP` 절 있을 경우 무시 및 경고
-- 콘솔에 제한 적용 메시지 표시
-
-### 🔧 개선사항
-- **DB 연결 풀 관리**: 동일 DB 연결 재사용으로 성능 향상
-- **오류 처리 강화**: DB 연결 실패 시 상세한 오류 정보 제공
-- **메모리 최적화**: 대용량 데이터 처리 시 메모리 사용량 개선
-
 ---
 
-## v1.0.0 - 초기 릴리즈 (2024-01-15)
+## v1.1.4 - Aggregation and Table of Contents (2024-08-05)
 
-### ✨ 핵심 기능
-- **📊 멀티 시트 엑셀 생성**: 여러 SQL 쿼리 결과를 하나의 엑셀 파일에 시트별로 저장
-- **🎨 엑셀 스타일링**: 헤더/데이터 영역 각각 폰트, 색상, 테두리, 정렬 등 세부 스타일 설정
-- **📝 변수 시스템**: 쿼리 내 `${변수명}` 형태로 동적 쿼리 생성
-- **📄 XML/JSON 지원**: 유연한 설정 파일 형식 지원
-- **🔧 CLI 실행**: 명령줄 인터페이스로 간편한 실행
+### ✨ New Features
+- **📊 Aggregation Features**: Automatic aggregation and display of counts by specified column values
+- **📋 Auto Table of Contents**: Automatically generate table of contents sheet with hyperlinks
+- **🔗 Hyperlink Support**: Clickable links between sheets
+- **📈 Statistics Display**: Row counts and creation information
 
-### 📊 엑셀 스타일 기능
-- **헤더 스타일**: 폰트, 색상, 배경, 정렬, 테두리 개별 설정
-- **데이터 스타일**: 본문 데이터 영역 별도 스타일 적용
-- **컬럼 너비**: 데이터 길이에 따른 자동 조정 (최소/최대값 설정)
-- **색상 지원**: ARGB 16진수 형식으로 세밀한 색상 제어
-
-### 📝 변수 시스템
+### 📝 Aggregation Example
 ```xml
-<vars>
-  <var name="startDate">2024-01-01</var>
-  <var name="endDate">2024-12-31</var>
-</vars>
-
-<sheet name="매출_${startDate}_${endDate}">
+<sheet name="SalesByRegion" use="true" aggregateColumn="Region">
   <![CDATA[
-    SELECT * FROM Sales 
-    WHERE SaleDate >= '${startDate}' AND SaleDate <= '${endDate}'
+    SELECT Region, SUM(TotalAmount) as TotalSales, COUNT(*) as OrderCount
+    FROM Orders o
+    INNER JOIN Customers c ON o.CustomerID = c.CustomerID
+    GROUP BY Region
   ]]>
 </sheet>
 ```
 
-### 📄 설정 파일 형식
-- **XML 형식**: 태그 기반 구조적 설정
-- **JSON 형식**: 객체 기반 직관적 설정
-- **CDATA 지원**: XML에서 복잡한 SQL 쿼리 안전하게 포함
-
-### 🔧 기본 실행 방법
-```bash
-# XML 설정 파일 사용
-node src/index.js --xml ./queries/sample.xml
-
-# JSON 설정 파일 사용  
-node src/index.js --query ./queries/sample.json
-
-# 변수 덮어쓰기
-node src/index.js --xml ./queries/sample.xml --var "year=2024"
-```
-
-### 🗄️ 데이터베이스 지원
-- **SQL Server**: MSSQL 전용 지원
-- **연결 관리**: config/dbinfo.json을 통한 연결 정보 관리
-- **보안**: 암호화 연결 및 인증서 검증 옵션
-
-### 📁 파일 구조
-```
-src/
-├── index.js                    # 메인 실행 파일
-├── excel-style-helper.js       # 엑셀 스타일 유틸리티
-config/
-├── dbinfo.json                 # 데이터베이스 연결 설정
-queries/
-├── queries-sample.xml          # XML 샘플 설정
-├── queries-sample.json         # JSON 샘플 설정
-resources/
-├── create_sample_tables.sql    # 샘플 테이블 생성 스크립트
-├── insert_sample_data.sql      # 샘플 데이터 입력 스크립트
-```
-
-### 🧪 테스트 환경
-- **샘플 데이터베이스**: 테스트용 테이블 및 데이터 제공
-- **샘플 쿼리**: 즉시 실행 가능한 예제 설정 파일
-- **테스트 스크립트**: 기능 검증용 테스트 파일들
+### 📋 Table of Contents Features
+- Sheet names as hyperlinks
+- Row counts for each sheet
+- Creation timestamp
+- File information
 
 ---
 
-## 📋 버전별 주요 변경사항 요약
+## v1.1.3 - Multi-Database Support (2024-08-04)
 
-| 버전 | 주요 기능 | 릴리즈 일자 |
-|------|-----------|-------------|
-| **v1.2.1** | 문서화 개선, 사용자 매뉴얼 추가 | 2025-08-11 |
-| **v1.2.0** | 쿼리 재사용, CLI 개선, 윈도우 배치 파일 | 2025-08-07 |
-| **v1.1.0** | 자동 목차, 집계 기능, 다중 DB, 조회 제한 | 2025-07-22 |
-| **v1.0.0** | 초기 릴리즈, 기본 엑셀 생성 기능 | 2025-01-15 |
+### ✨ New Features
+- **🔗 Multiple DB Connections**: Use different database connections for each sheet
+- **📊 Database Selection**: Specify database per sheet
+- **🔧 Connection Management**: Efficient connection pool management
+- **📋 Connection Validation**: Validate all database connections
 
-## 🔄 업그레이드 가이드
+### 📝 Multi-DB Example
+```xml
+<excel db="defaultDB" output="output/MultiDBReport.xlsx">
+  <!-- Default database settings -->
+</excel>
 
-### v1.1.0에서 v1.2.0으로
-1. **새로운 CLI 도구 사용 권장**:
-   ```bash
-   # 기존 방식 (여전히 지원)
-   node src/index.js --xml queries.xml
-   
-   # 새로운 방식 (권장)
-   node src/excel-cli.js export --xml queries.xml
-   ```
-
-2. **쿼리 재사용 기능 활용**:
-   - 중복되는 쿼리를 `queryDefs`로 정의
-   - `queryRef` 속성으로 참조하여 사용
-
-3. **윈도우 배치 파일 활용**:
-   - `실행하기.bat` 또는 `sql2excel.bat`로 편리한 실행
-
-### v1.0.0에서 v1.1.0으로
-1. **기존 설정 파일 호환**: 모든 기존 XML/JSON 파일 그대로 사용 가능
-2. **새로운 기능 추가 활용**:
-   ```xml
-   <sheet name="주문목록" aggregateColumn="주문상태" maxRows="1000" db="orderDB">
-   ```
-3. **목차 시트 자동 생성**: 별도 설정 없이 자동으로 목차 시트 생성됨
-
-## 🐛 알려진 이슈
-
-### v1.2.0
-- Windows 배치 파일이 일부 특수 문자 포함 경로에서 오동작할 수 있음
-- 매우 긴 쿼리 정의명(100자 이상)에서 오류 발생 가능
-
-### v1.1.0  
-- 매우 대용량 데이터(100만 건 이상) 처리 시 메모리 부족 가능
-- 일부 복잡한 SQL 쿼리에서 TOP 절 자동 삽입 위치 오류 가능
-
-### v1.0.0
-- 테이블명에 공백이 포함된 경우 컬럼 너비 계산 오류
-- 일부 특수문자가 포함된 데이터에서 엑셀 포맷 오류
+<sheets>
+  <sheet name="CustomerData" db="customerDB" use="true">
+    <![CDATA[SELECT * FROM Customers]]>
+  </sheet>
+  
+  <sheet name="OrderData" db="orderDB" use="true">
+    <![CDATA[SELECT * FROM Orders]]>
+  </sheet>
+</sheets>
+```
 
 ---
 
-## 📞 지원 정보
-- **웹사이트**: sql2excel.com
-- **이메일**: sql2excel.nodejs@gmail.com
-- **GitHub**: [Repository URL]
+## v1.1.2 - Variable System Enhancement (2024-08-03)
 
-각 버전의 상세한 기능 설명은 `USER_MANUAL.md`를 참조하세요.
+### ✨ New Features
+- **📝 Enhanced Variable System**: Improved variable substitution and validation
+- **🔗 Time Functions**: Support for `CURRENT_TIMESTAMP`, `CURRENT_DATE`, `CURRENT_TIME`
+- **🌐 Environment Variables**: Use system environment variables
+- **✅ Variable Validation**: Validate variable definitions and usage
+
+### 📝 Variable Examples
+```xml
+<vars>
+  <var name="startDate">2024-01-01</var>
+  <var name="endDate">2024-12-31</var>
+  <var name="currentTime">${CURRENT_TIMESTAMP}</var>
+  <var name="dbName">${DATABASE_NAME}</var>
+</vars>
+
+<sheet name="TimeBasedReport" use="true">
+  <![CDATA[
+    SELECT * FROM Orders 
+    WHERE OrderDate BETWEEN '${startDate}' AND '${endDate}'
+      AND CreatedAt <= '${currentTime}'
+  ]]>
+</sheet>
+```
+
+---
+
+## v1.1.1 - Performance and Stability (2024-08-02)
+
+### ✨ New Features
+- **🚦 Query Limits**: Row count limiting for large data processing
+- **📊 Memory Optimization**: Improved memory usage for large datasets
+- **🔧 Error Handling**: Enhanced error handling and recovery
+- **📋 Progress Reporting**: Real-time progress reporting for long operations
+
+### 🔧 Improvements
+- **Performance**: Optimized data processing for large result sets
+- **Stability**: Improved error handling and recovery mechanisms
+- **Memory**: Better memory management for large exports
+- **Logging**: Enhanced logging and progress reporting
+
+---
+
+## v1.1.0 - Multi-Sheet Support (2024-08-01)
+
+### ✨ New Features
+- **📊 Multi-Sheet Support**: Save multiple SQL query results in separate sheets within one Excel file
+- **📋 Sheet Management**: Individual sheet configuration and control
+- **🎨 Sheet Styling**: Individual styling per sheet
+- **📊 Data Organization**: Organized data presentation across multiple sheets
+
+### 📝 Multi-Sheet Example
+```xml
+<sheets>
+  <sheet name="CustomerList" use="true">
+    <![CDATA[SELECT * FROM Customers]]>
+  </sheet>
+  
+  <sheet name="OrderSummary" use="true">
+    <![CDATA[
+      SELECT CustomerID, COUNT(*) as OrderCount, SUM(TotalAmount) as TotalSales
+      FROM Orders GROUP BY CustomerID
+    ]]>
+  </sheet>
+  
+  <sheet name="ProductCatalog" use="true">
+    <![CDATA[SELECT * FROM Products WHERE Discontinued = 0]]>
+  </sheet>
+</sheets>
+```
+
+---
+
+## v1.0.5 - Configuration Enhancements (2024-07-31)
+
+### ✨ New Features
+- **📄 JSON Support**: Full JSON configuration file support
+- **🔧 Configuration Validation**: Comprehensive configuration validation
+- **📋 Default Values**: Sensible default values for all settings
+- **🔍 Error Reporting**: Detailed error reporting and suggestions
+
+### 📝 JSON Configuration Example
+```json
+{
+  "excel": {
+    "db": "sampleDB",
+    "output": "output/Report.xlsx"
+  },
+  "sheets": [
+    {
+      "name": "CustomerData",
+      "use": true,
+      "query": "SELECT * FROM Customers"
+    }
+  ]
+}
+```
+
+---
+
+## v1.0.4 - Database Connectivity (2024-07-30)
+
+### ✨ New Features
+- **🔗 SQL Server Support**: Full SQL Server database connectivity
+- **🔧 Connection Configuration**: Flexible database connection configuration
+- **📋 Connection Pooling**: Efficient connection pool management
+- **🔍 Connection Validation**: Database connection validation and testing
+
+### 📝 Database Configuration
+```json
+{
+  "dbs": {
+    "sampleDB": {
+      "server": "localhost",
+      "port": 1433,
+      "database": "SampleDB",
+      "user": "sa",
+      "password": "password",
+      "options": {
+        "encrypt": false,
+        "trustServerCertificate": true
+      }
+    }
+  }
+}
+```
+
+---
+
+## v1.0.3 - Core Excel Generation (2024-07-29)
+
+### ✨ New Features
+- **📊 Excel File Generation**: Core Excel file creation functionality
+- **📋 Data Export**: SQL query results to Excel format
+- **🎨 Basic Styling**: Basic Excel styling and formatting
+- **📄 Multiple Formats**: Support for .xlsx format
+
+### 🔧 Core Features
+- SQL query execution
+- Data extraction and formatting
+- Excel file creation
+- Basic styling application
+
+---
+
+## v1.0.2 - Project Foundation (2024-07-28)
+
+### ✨ New Features
+- **🏗️ Project Structure**: Initial project structure and organization
+- **📦 Dependencies**: Core Node.js dependencies and packages
+- **🔧 Configuration**: Basic configuration system
+- **📚 Documentation**: Initial project documentation
+
+### 📋 Foundation
+- Node.js project setup
+- Package.json configuration
+- Basic file structure
+- Initial documentation
+
+---
+
+## v1.0.1 - Initial Release (2024-07-27)
+
+### ✨ New Features
+- **🎯 Core Functionality**: Basic SQL to Excel conversion functionality
+- **🔗 Database Support**: SQL Server database connectivity
+- **📊 Data Export**: Export SQL query results to Excel
+- **🖥️ Command Line**: Basic command-line interface
+
+### 📋 Initial Features
+- Basic SQL query execution
+- Excel file generation
+- Simple data export
+- Command-line interface
+
+---
+
+**Contact**: sql2excel.nodejs@gmail.com  
+**Website**: sql2excel.com  
+**License**: MIT License
