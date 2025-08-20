@@ -18,8 +18,8 @@
   
   <!-- 동적 변수 정의 -->
   <dynamicVars>
-    <!-- column_identified 타입: 각 컬럼별로 배열 생성 -->
-    <dynamicVar name="customerData" type="column_identified" description="고객 데이터 컬럼별 분류">
+         <!-- 기본 타입 (column_identified): 각 컬럼별로 배열 생성 -->
+     <dynamicVar name="customerData" description="고객 데이터 컬럼별 분류">
       <![CDATA[
         SELECT CustomerID, CustomerName, City, Region, CustomerType
         FROM SampleDB.dbo.Customers
@@ -37,27 +37,27 @@
       ]]>
     </dynamicVar>
     
-    <!-- 기본 타입: 첫 번째 컬럼의 값들을 배열로 -->
-    <dynamicVar name="activeOrders" description="활성 주문 목록">
-      <![CDATA[
-        SELECT OrderID
-        FROM SampleDB.dbo.Orders
-        WHERE OrderStatus = 'Pending'
-        ORDER BY OrderID
-      ]]>
-    </dynamicVar>
-    
-    <!-- 시각 함수와 일반 변수를 조합한 동적 변수 -->
-    <dynamicVar name="recentOrders" description="최근 주문 정보">
-      <![CDATA[
-        SELECT OrderID, OrderNumber, OrderDate
-        FROM SampleDB.dbo.Orders
-        WHERE OrderDate >= '${startDate}' 
-          AND OrderDate <= '${endDate}'
-          AND OrderDate >= DATEADD(day, -30, '${CURRENT_DATE}')
-        ORDER BY OrderDate DESC
-      ]]>
-    </dynamicVar>
+                   <!-- 기본 타입 (column_identified): 각 컬럼별로 배열 생성 -->
+      <dynamicVar name="activeOrders" description="활성 주문 목록">
+       <![CDATA[
+         SELECT OrderID
+         FROM SampleDB.dbo.Orders
+         WHERE OrderStatus = 'Pending'
+         ORDER BY OrderID
+       ]]>
+     </dynamicVar>
+     
+           <!-- 기본 타입 (column_identified): 시각 함수와 일반 변수를 조합한 동적 변수 -->
+      <dynamicVar name="recentOrders" description="최근 주문 정보">
+       <![CDATA[
+         SELECT OrderID, OrderNumber, OrderDate
+         FROM SampleDB.dbo.Orders
+         WHERE OrderDate >= '${startDate}' 
+           AND OrderDate <= '${endDate}'
+           AND OrderDate >= DATEADD(day, -30, '${CURRENT_DATE}')
+         ORDER BY OrderDate DESC
+       ]]>
+     </dynamicVar>
   </dynamicVars>
   
   <!-- 시트 정의 -->
@@ -86,9 +86,9 @@
         FORMAT(o.TotalAmount, 'N0') as 총금액
       FROM SampleDB.dbo.Orders o
       INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID
-      WHERE o.OrderID IN (${orderDetails.OrderID})
-        AND o.OrderID IN (${activeOrders})
-      ORDER BY o.OrderID DESC
+             WHERE o.OrderID IN (${orderDetails.OrderID})
+         AND o.OrderID IN (${activeOrders.OrderID})
+       ORDER BY o.OrderID DESC
     ]]>
   </sheet>
   
@@ -119,8 +119,8 @@
       INNER JOIN SampleDB.dbo.Orders o ON c.CustomerID = o.CustomerID
       WHERE c.CustomerID IN (${customerData.CustomerID})
         AND c.Region IN (${customerData.Region})
-        AND o.OrderID IN (${activeOrders})
-        AND o.OrderDate >= '${startDate}'
+                 AND o.OrderID IN (${activeOrders.OrderID})
+         AND o.OrderDate >= '${startDate}'
         AND o.OrderDate <= '${endDate}'
       GROUP BY c.CustomerName, c.Region
       ORDER BY 총주문금액 DESC

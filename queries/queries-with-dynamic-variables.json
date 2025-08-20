@@ -16,28 +16,27 @@
     "maxRows": 1000
   },
   "dynamicVars": [
-    {
-      "name": "customerData",
-      "type": "column_identified",
-      "description": "고객 데이터 컬럼별 분류",
-      "query": "SELECT CustomerID, CustomerName, City, Region, CustomerType FROM SampleDB.dbo.Customers WHERE IsActive = 1 ORDER BY CustomerID"
-    },
+         {
+       "name": "customerData",
+       "description": "고객 데이터 컬럼별 분류",
+       "query": "SELECT CustomerID, CustomerName, City, Region, CustomerType FROM SampleDB.dbo.Customers WHERE IsActive = 1 ORDER BY CustomerID"
+     },
     {
       "name": "orderDetails",
       "type": "key_value_pairs",
       "description": "주문상세 정보",
       "query": "SELECT OrderID, OrderDetailID FROM SampleDB.dbo.OrderDetails ORDER BY OrderID"
     },
-    {
-      "name": "activeOrders",
-      "description": "활성 주문 목록",
-      "query": "SELECT OrderID FROM SampleDB.dbo.Orders WHERE OrderStatus = 'Pending' ORDER BY OrderID"
-    },
-    {
-      "name": "recentOrders",
-      "description": "최근 주문 정보",
-      "query": "SELECT OrderID, OrderNumber, OrderDate FROM SampleDB.dbo.Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}' AND OrderDate >= DATEADD(day, -30, '${CURRENT_DATE}') ORDER BY OrderDate DESC"
-    }
+                   {
+        "name": "activeOrders",
+        "description": "활성 주문 목록",
+        "query": "SELECT OrderID FROM SampleDB.dbo.Orders WHERE OrderStatus = 'Pending' ORDER BY OrderID"
+      },
+           {
+        "name": "recentOrders",
+        "description": "최근 주문 정보",
+        "query": "SELECT OrderID, OrderNumber, OrderDate FROM SampleDB.dbo.Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}' AND OrderDate >= DATEADD(day, -30, '${CURRENT_DATE}') ORDER BY OrderDate DESC"
+      }
   ],
   "sheets": [
     {
@@ -52,7 +51,7 @@
       "name": "주문상세_동적변수_테스트2",
       "use": true,
       "aggregateColumn": "주문상태",
-      "query": "SELECT o.OrderID as 주문ID, o.OrderNumber as 주문번호, o.OrderStatus as 주문상태, od.OrderDetailID as 상세ID, FORMAT(o.TotalAmount, 'N0') as 총금액 FROM SampleDB.dbo.Orders o INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID WHERE o.OrderID IN (${orderDetails.OrderID}) AND o.OrderID IN (${activeOrders}) ORDER BY o.OrderID DESC"
+             "query": "SELECT o.OrderID as 주문ID, o.OrderNumber as 주문번호, o.OrderStatus as 주문상태, od.OrderDetailID as 상세ID, FORMAT(o.TotalAmount, 'N0') as 총금액 FROM SampleDB.dbo.Orders o INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID WHERE o.OrderID IN (${orderDetails.OrderID}) AND o.OrderID IN (${activeOrders.OrderID}) ORDER BY o.OrderID DESC"
     },
     {
       "name": "주문상세_동적변수_테스트",
@@ -63,7 +62,7 @@
     {
       "name": "복합_동적변수_테스트",
       "use": true,
-      "query": "SELECT c.CustomerName as 고객명, c.Region as 지역, COUNT(o.OrderID) as 주문건수, FORMAT(SUM(o.TotalAmount), 'N0') as 총주문금액 FROM SampleDB.dbo.Customers c INNER JOIN SampleDB.dbo.Orders o ON c.CustomerID = o.CustomerID WHERE c.CustomerID IN (${customerData.CustomerID}) AND c.Region IN (${customerData.Region}) AND o.OrderID IN (${activeOrders}) AND o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}' GROUP BY c.CustomerName, c.Region ORDER BY 총주문금액 DESC"
+             "query": "SELECT c.CustomerName as 고객명, c.Region as 지역, COUNT(o.OrderID) as 주문건수, FORMAT(SUM(o.TotalAmount), 'N0') as 총주문금액 FROM SampleDB.dbo.Customers c INNER JOIN SampleDB.dbo.Orders o ON c.CustomerID = o.CustomerID WHERE c.CustomerID IN (${customerData.CustomerID}) AND c.Region IN (${customerData.Region}) AND o.OrderID IN (${activeOrders.OrderID}) AND o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}' GROUP BY c.CustomerName, c.Region ORDER BY 총주문금액 DESC"
     },
     {
       "name": "시각함수_동적변수_테스트",

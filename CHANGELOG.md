@@ -2,48 +2,48 @@
 
 ## v1.2.2 - 동적 변수 시스템 추가 (2025-08-20)
 
-### ✨ 새로운 기능
-- **🔄 동적 변수 시스템**: 데이터베이스에서 실시간으로 값을 조회하여 동적 쿼리 생성
-- **📊 3가지 동적 변수 타입**: `column_identified`, `key_value_pairs`, 기본 타입 지원
-- **🔗 시각 함수 통합**: 동적 변수에서 `CURRENT_TIMESTAMP`, `CURRENT_DATE` 등 시각 함수 사용 가능
-- **🌐 환경 변수 지원**: 동적 변수에서 환경 변수 사용 가능
-- **🐛 디버그 모드**: `DEBUG_VARIABLES=true` 환경 변수로 변수 치환 과정 상세 로깅
+ ### ✨ 새로운 기능
+ - **🔄 동적 변수 시스템**: 데이터베이스에서 실시간으로 값을 조회하여 동적 쿼리 생성
+ - **📊 2가지 동적 변수 타입**: 기본 타입(`column_identified` 동작), `key_value_pairs` 타입 지원
+ - **🎯 기본 타입 개선**: `type` 속성 생략 시 자동으로 `column_identified` 타입으로 처리
+ - **🔗 시각 함수 통합**: 동적 변수에서 `CURRENT_TIMESTAMP`, `CURRENT_DATE` 등 시각 함수 사용 가능
+ - **🌐 환경 변수 지원**: 동적 변수에서 환경 변수 사용 가능
+ - **🐛 디버그 모드**: `DEBUG_VARIABLES=true` 환경 변수로 변수 치환 과정 상세 로깅
 
-### 🔄 동적 변수 타입별 기능
-
-#### 1. column_identified 타입
-- 각 컬럼별로 배열 생성
-- `${변수명.컬럼명}` 형태로 특정 컬럼의 값들만 사용
-- 예시: `${customerData.CustomerID}`, `${customerData.Region}`
-
-#### 2. key_value_pairs 타입
-- 첫 번째 컬럼을 키로, 두 번째 컬럼을 값으로 생성
-- `${변수명.키명}` 형태로 키 값들만 사용
-- 예시: `${productPrices.ProductID}`
-
-#### 3. 기본 타입
-- 첫 번째 컬럼의 값들을 배열로 생성
-- `${변수명}` 형태로 전체 배열 사용
-- 예시: `${activeCategories}`
+ ### 🔄 동적 변수 타입별 기능
+ 
+ #### 1. 기본 타입 (column_identified 동작)
+ - `type` 속성 생략 시 기본값
+ - 각 컬럼별로 배열 생성
+ - `${변수명.컬럼명}` 형태로 특정 컬럼의 값들만 사용
+ - 예시: `${customerData.CustomerID}`, `${customerData.Region}`
+ 
+ #### 2. key_value_pairs 타입
+ - 명시적으로 `type="key_value_pairs"` 지정 필요
+ - 첫 번째 컬럼을 키로, 두 번째 컬럼을 값으로 생성
+ - `${변수명.키명}` 형태로 키 값들만 사용
+ - 예시: `${productPrices.ProductID}`
 
 ### 📝 사용 예시
 ```xml
-<!-- 동적 변수 정의 -->
-<dynamicVars>
-  <dynamicVar name="customerData" type="column_identified" description="고객 데이터 컬럼별 분류">
-    <![CDATA[
-      SELECT CustomerID, CustomerName, City, Region
-      FROM Customers WHERE IsActive = 1
-    ]]>
-  </dynamicVar>
-  
-  <dynamicVar name="productPrices" type="key_value_pairs" description="상품별 가격 정보">
-    <![CDATA[
-      SELECT ProductID, UnitPrice
-      FROM Products WHERE Discontinued = 0
-    ]]>
-  </dynamicVar>
-</dynamicVars>
+ <!-- 동적 변수 정의 -->
+ <dynamicVars>
+   <!-- 기본 타입: type 속성 생략 -->
+   <dynamicVar name="customerData" description="고객 데이터 컬럼별 분류">
+     <![CDATA[
+       SELECT CustomerID, CustomerName, City, Region
+       FROM Customers WHERE IsActive = 1
+     ]]>
+   </dynamicVar>
+   
+   <!-- key_value_pairs 타입: 명시적 지정 -->
+   <dynamicVar name="productPrices" type="key_value_pairs" description="상품별 가격 정보">
+     <![CDATA[
+       SELECT ProductID, UnitPrice
+       FROM Products WHERE Discontinued = 0
+     ]]>
+   </dynamicVar>
+ </dynamicVars>
 
 <!-- 동적 변수 사용 -->
 <sheet name="고객주문분석">
@@ -56,11 +56,12 @@
 </sheet>
 ```
 
-### 🔧 개선사항
-- **변수 치환 우선순위**: 동적 변수 > 일반 변수 > 시각 함수 > 환경 변수 순서로 처리
-- **SQL 인젝션 방지**: 모든 변수 값에 대해 적절한 이스케이핑 처리
-- **오류 처리 강화**: 동적 변수 처리 중 오류 발생 시 빈 배열로 대체하여 안전성 확보
-- **성능 최적화**: 동적 변수는 DB 연결 후, 시트 처리 전에 한 번만 실행
+ ### 🔧 개선사항
+ - **기본 타입 간소화**: `type` 속성 생략 시 자동으로 `column_identified` 타입으로 처리하여 사용 편의성 향상
+ - **변수 치환 우선순위**: 동적 변수 > 일반 변수 > 시각 함수 > 환경 변수 순서로 처리
+ - **SQL 인젝션 방지**: 모든 변수 값에 대해 적절한 이스케이핑 처리
+ - **오류 처리 강화**: 동적 변수 처리 중 오류 발생 시 빈 배열로 대체하여 안전성 확보
+ - **성능 최적화**: 동적 변수는 DB 연결 후, 시트 처리 전에 한 번만 실행
 
 ### 📚 문서화
 - **README.md 업데이트**: 동적 변수 기능 소개 및 예시 추가

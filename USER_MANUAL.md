@@ -385,81 +385,89 @@ node src/excel-cli.js export --xml queries.xml --var "startDate=2024-06-01" --va
 
 ### 7. 동적 변수 시스템
 
-#### 동적 변수 정의
-동적 변수는 데이터베이스에서 실시간으로 값을 조회하여 쿼리에 사용할 수 있는 고급 변수 시스템입니다.
-
-```xml
-<!-- 동적 변수 정의 -->
-<dynamicVars>
-  <!-- column_identified 타입: 각 컬럼별로 배열 생성 -->
-  <dynamicVar name="customerData" type="column_identified" description="고객 데이터 컬럼별 분류">
-    <![CDATA[
-      SELECT CustomerID, CustomerName, City, Region
-      FROM Customers WHERE IsActive = 1
-    ]]>
-  </dynamicVar>
-  
-  <!-- key_value_pairs 타입: 첫 번째 컬럼을 키로, 두 번째 컬럼을 값으로 -->
-  <dynamicVar name="productPrices" type="key_value_pairs" description="상품별 가격 정보">
-    <![CDATA[
-      SELECT ProductID, UnitPrice
-      FROM Products WHERE Discontinued = 0
-    ]]>
-  </dynamicVar>
-  
-  <!-- 기본 타입: 첫 번째 컬럼의 값들을 배열로 -->
-  <dynamicVar name="activeCategories" description="활성 카테고리 목록">
-    <![CDATA[
-      SELECT CategoryID FROM Categories WHERE IsActive = 1
-    ]]>
-  </dynamicVar>
-</dynamicVars>
-```
+ #### 동적 변수 정의
+ 동적 변수는 데이터베이스에서 실시간으로 값을 조회하여 쿼리에 사용할 수 있는 고급 변수 시스템입니다.
+ 
+ ```xml
+ <!-- 동적 변수 정의 -->
+ <dynamicVars>
+   <!-- 기본 타입 (column_identified): type 속성 생략 시 기본값 -->
+   <dynamicVar name="customerData" description="고객 데이터 컬럼별 분류">
+     <![CDATA[
+       SELECT CustomerID, CustomerName, City, Region
+       FROM Customers WHERE IsActive = 1
+     ]]>
+   </dynamicVar>
+   
+   <!-- key_value_pairs 타입: 명시적으로 지정 필요 -->
+   <dynamicVar name="productPrices" type="key_value_pairs" description="상품별 가격 정보">
+     <![CDATA[
+       SELECT ProductID, UnitPrice
+       FROM Products WHERE Discontinued = 0
+     ]]>
+   </dynamicVar>
+   
+   <!-- 기본 타입 (column_identified): 각 컬럼별로 배열 생성 -->
+   <dynamicVar name="activeCategories" description="활성 카테고리 목록">
+     <![CDATA[
+       SELECT CategoryID, CategoryName FROM Categories WHERE IsActive = 1
+     ]]>
+   </dynamicVar>
+ </dynamicVars>
+ ```
 
 #### 동적 변수 사용 방법
 
-**1. column_identified 타입 사용**
-```sql
--- ${customerData.CustomerID} 형태로 특정 컬럼의 값들만 사용
-SELECT * FROM Orders 
-WHERE CustomerID IN (${customerData.CustomerID})
-  AND Region IN (${customerData.Region})
-```
-
-**2. key_value_pairs 타입 사용**
-```sql
--- ${productPrices.ProductID} 형태로 키 값들만 사용
-SELECT * FROM OrderDetails 
-WHERE ProductID IN (${productPrices.ProductID})
-```
-
-**3. 기본 타입 사용**
-```sql
--- ${activeCategories} 형태로 전체 배열 사용
-SELECT * FROM Products 
-WHERE CategoryID IN (${activeCategories})
-```
+ **1. 기본 타입 (column_identified) 사용**
+ ```sql
+ -- ${customerData.CustomerID} 형태로 특정 컬럼의 값들만 사용
+ SELECT * FROM Orders 
+ WHERE CustomerID IN (${customerData.CustomerID})
+   AND Region IN (${customerData.Region})
+ 
+ -- ${activeCategories.CategoryID} 형태로 특정 컬럼 사용
+ SELECT * FROM Products 
+ WHERE CategoryID IN (${activeCategories.CategoryID})
+ ```
+ 
+ **2. key_value_pairs 타입 사용**
+ ```sql
+ -- ${productPrices.ProductID} 형태로 키 값들만 사용
+ SELECT * FROM OrderDetails 
+ WHERE ProductID IN (${productPrices.ProductID})
+ ```
 
 #### 동적 변수 타입별 특징
 
-| 타입 | 설명 | 사용법 | 예시 |
-|------|------|--------|------|
-| `column_identified` | 각 컬럼별로 배열 생성 | `${변수명.컬럼명}` | `${customerData.CustomerID}` |
-| `key_value_pairs` | 키-값 쌍으로 생성 | `${변수명.키명}` | `${productPrices.ProductID}` |
-| 기본 (없음) | 첫 번째 컬럼의 값들을 배열로 | `${변수명}` | `${activeCategories}` |
+ | 타입 | 설명 | 사용법 | 예시 |
+ |------|------|--------|------|
+ | 기본 (없음) | 각 컬럼별로 배열 생성 (column_identified 동작) | `${변수명.컬럼명}` | `${customerData.CustomerID}` |
+ | `key_value_pairs` | 키-값 쌍으로 생성 (명시적 지정 필요) | `${변수명.키명}` | `${productPrices.ProductID}` |
 
-#### 시각 함수와 조합 사용
-```xml
-<dynamicVar name="recentOrders" description="최근 주문 정보">
-  <![CDATA[
-    SELECT OrderID, OrderNumber
-    FROM Orders 
-    WHERE OrderDate >= '${startDate}' 
-      AND OrderDate <= '${endDate}'
-      AND OrderDate >= DATEADD(day, -30, '${CURRENT_DATE}')
-  ]]>
-</dynamicVar>
-```
+ #### 시각 함수와 조합 사용
+ ```xml
+ <!-- 기본 타입으로 다중 컬럼 동적 변수 -->
+ <dynamicVar name="recentOrders" description="최근 주문 정보">
+   <![CDATA[
+     SELECT OrderID, OrderNumber, OrderDate
+     FROM Orders 
+     WHERE OrderDate >= '${startDate}' 
+       AND OrderDate <= '${endDate}'
+       AND OrderDate >= DATEADD(day, -30, '${CURRENT_DATE}')
+   ]]>
+ </dynamicVar>
+ ```
+ 
+ **사용 예시:**
+ ```sql
+ -- 최근 주문 ID들로 필터링
+ SELECT * FROM OrderDetails 
+ WHERE OrderID IN (${recentOrders.OrderID})
+ 
+ -- 최근 주문 번호들로 검색
+ SELECT * FROM Shipments 
+ WHERE OrderNumber IN (${recentOrders.OrderNumber})
+ ```
 
 ## 📋 CLI 명령어 참조
 

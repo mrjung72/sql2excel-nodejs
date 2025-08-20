@@ -56,19 +56,7 @@ async function processDynamicVariables(dynamicVars, dbPool, globalVars) {
           if (result.recordset && result.recordset.length > 0) {
             const data = result.recordset;
             
-            if (dynamicVar.type === 'column_identified') {
-              // column_identified 타입: 각 컬럼별로 배열 생성
-              const columnData = {};
-              const columns = Object.keys(data[0]);
-              
-              columns.forEach(column => {
-                columnData[column] = data.map(row => row[column]).filter(val => val !== null && val !== undefined);
-              });
-              
-              setDynamicVariable(dynamicVar.name, columnData);
-              console.log(`   ✅ ${dynamicVar.name}: ${columns.length}개 컬럼, ${data.length}개 행`);
-              
-            } else if (dynamicVar.type === 'key_value_pairs') {
+            if (dynamicVar.type === 'key_value_pairs') {
               // key_value_pairs 타입: 첫 번째 컬럼을 키로, 두 번째 컬럼을 값으로
               const keyValueData = {};
               const columns = Object.keys(data[0]);
@@ -77,6 +65,15 @@ async function processDynamicVariables(dynamicVars, dbPool, globalVars) {
                 const keyColumn = columns[0];
                 const valueColumn = columns[1];
                 
+                // 키 값들을 배열로 저장 (IN절용)
+                const keyValues = data.map(row => row[keyColumn]).filter(val => val !== null && val !== undefined);
+                keyValueData[keyColumn] = keyValues;
+                
+                // 값들도 저장
+                const values = data.map(row => row[valueColumn]).filter(val => val !== null && val !== undefined);
+                keyValueData[valueColumn] = values;
+                
+                // 키-값 쌍도 저장
                 data.forEach(row => {
                   const key = row[keyColumn];
                   const value = row[valueColumn];
@@ -92,12 +89,16 @@ async function processDynamicVariables(dynamicVars, dbPool, globalVars) {
               }
               
             } else {
-              // 기본 타입: 첫 번째 컬럼의 값들을 배열로
-              const firstColumn = Object.keys(data[0])[0];
-              const values = data.map(row => row[firstColumn]).filter(val => val !== null && val !== undefined);
+              // 기본 타입 (column_identified): 각 컬럼별로 배열 생성
+              const columnData = {};
+              const columns = Object.keys(data[0]);
               
-              setDynamicVariable(dynamicVar.name, values);
-              console.log(`   ✅ ${dynamicVar.name}: ${values.length}개 값 (${firstColumn} 컬럼)`);
+              columns.forEach(column => {
+                columnData[column] = data.map(row => row[column]).filter(val => val !== null && val !== undefined);
+              });
+              
+              setDynamicVariable(dynamicVar.name, columnData);
+              console.log(`   ✅ ${dynamicVar.name}: ${columns.length}개 컬럼, ${data.length}개 행`);
             }
           } else {
             console.warn(`   ⚠️ ${dynamicVar.name}: 조회 결과가 없습니다`);
@@ -252,9 +253,20 @@ function substituteVars(str, vars) {
             }).join(', ');
             result = result.replace(keyPattern, inClause);
           } else {
-            // key_value_pairs: 단일 값을 그대로 치환
-            const replacementValue = typeof keyValue === 'string' ? `'${keyValue.replace(/'/g, "''")}'` : keyValue;
-            result = result.replace(keyPattern, replacementValue);
+            // key_value_pairs: 키 값들을 배열로 반환 (IN절용)
+            if (Array.isArray(keyValue)) {
+              const inClause = keyValue.map(v => {
+                if (typeof v === 'string') {
+                  return `'${v.replace(/'/g, "''")}'`;
+                }
+                return v;
+              }).join(', ');
+              result = result.replace(keyPattern, inClause);
+            } else {
+              // 단일 값인 경우
+              const replacementValue = typeof keyValue === 'string' ? `'${keyValue.replace(/'/g, "''")}'` : keyValue;
+              result = result.replace(keyPattern, replacementValue);
+            }
           }
           
           if (debugVariables && beforeKeyReplace !== result) {

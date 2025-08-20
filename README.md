@@ -96,15 +96,15 @@ node src/excel-cli.js help
     <var name="endDate">2024-12-31</var>
   </vars>
   
-  <!-- 동적 변수 -->
-  <dynamicVars>
-    <dynamicVar name="activeCustomers" type="column_identified" description="활성 고객 목록">
-      <![CDATA[
-        SELECT CustomerID, CustomerName, Region
-        FROM Customers WHERE IsActive = 1
-      ]]>
-    </dynamicVar>
-  </dynamicVars>
+     <!-- 동적 변수 -->
+   <dynamicVars>
+     <dynamicVar name="activeCustomers" description="활성 고객 목록">
+       <![CDATA[
+         SELECT CustomerID, CustomerName, Region
+         FROM Customers WHERE IsActive = 1
+       ]]>
+     </dynamicVar>
+   </dynamicVars>
   
   <sheet name="월별매출" use="true" aggregateColumn="Month">
     <![CDATA[
