@@ -1,5 +1,74 @@
 # SQL2Excel 버전 히스토리
 
+## v1.2.2 - 동적 변수 시스템 추가 (2025-08-20)
+
+### ✨ 새로운 기능
+- **🔄 동적 변수 시스템**: 데이터베이스에서 실시간으로 값을 조회하여 동적 쿼리 생성
+- **📊 3가지 동적 변수 타입**: `column_identified`, `key_value_pairs`, 기본 타입 지원
+- **🔗 시각 함수 통합**: 동적 변수에서 `CURRENT_TIMESTAMP`, `CURRENT_DATE` 등 시각 함수 사용 가능
+- **🌐 환경 변수 지원**: 동적 변수에서 환경 변수 사용 가능
+- **🐛 디버그 모드**: `DEBUG_VARIABLES=true` 환경 변수로 변수 치환 과정 상세 로깅
+
+### 🔄 동적 변수 타입별 기능
+
+#### 1. column_identified 타입
+- 각 컬럼별로 배열 생성
+- `${변수명.컬럼명}` 형태로 특정 컬럼의 값들만 사용
+- 예시: `${customerData.CustomerID}`, `${customerData.Region}`
+
+#### 2. key_value_pairs 타입
+- 첫 번째 컬럼을 키로, 두 번째 컬럼을 값으로 생성
+- `${변수명.키명}` 형태로 키 값들만 사용
+- 예시: `${productPrices.ProductID}`
+
+#### 3. 기본 타입
+- 첫 번째 컬럼의 값들을 배열로 생성
+- `${변수명}` 형태로 전체 배열 사용
+- 예시: `${activeCategories}`
+
+### 📝 사용 예시
+```xml
+<!-- 동적 변수 정의 -->
+<dynamicVars>
+  <dynamicVar name="customerData" type="column_identified" description="고객 데이터 컬럼별 분류">
+    <![CDATA[
+      SELECT CustomerID, CustomerName, City, Region
+      FROM Customers WHERE IsActive = 1
+    ]]>
+  </dynamicVar>
+  
+  <dynamicVar name="productPrices" type="key_value_pairs" description="상품별 가격 정보">
+    <![CDATA[
+      SELECT ProductID, UnitPrice
+      FROM Products WHERE Discontinued = 0
+    ]]>
+  </dynamicVar>
+</dynamicVars>
+
+<!-- 동적 변수 사용 -->
+<sheet name="고객주문분석">
+  <![CDATA[
+    SELECT * FROM Orders 
+    WHERE CustomerID IN (${customerData.CustomerID})
+      AND Region IN (${customerData.Region})
+      AND ProductID IN (${productPrices.ProductID})
+  ]]>
+</sheet>
+```
+
+### 🔧 개선사항
+- **변수 치환 우선순위**: 동적 변수 > 일반 변수 > 시각 함수 > 환경 변수 순서로 처리
+- **SQL 인젝션 방지**: 모든 변수 값에 대해 적절한 이스케이핑 처리
+- **오류 처리 강화**: 동적 변수 처리 중 오류 발생 시 빈 배열로 대체하여 안전성 확보
+- **성능 최적화**: 동적 변수는 DB 연결 후, 시트 처리 전에 한 번만 실행
+
+### 📚 문서화
+- **README.md 업데이트**: 동적 변수 기능 소개 및 예시 추가
+- **USER_MANUAL.md 확장**: 동적 변수 상세 사용법 및 타입별 설명 추가
+- **예제 파일 추가**: `queries-with-dynamic-variables.xml`, `queries-with-dynamic-variables.json` 생성
+
+---
+
 ## v1.2.1 - 문서화 개선 (2025-08-11)
 
 ### 📚 문서화

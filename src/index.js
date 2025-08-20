@@ -7,6 +7,9 @@ const JSON5 = require('json5');
 const xml2js = require('xml2js');
 const excelStyleHelper = require('./excel-style-helper');
 
+// 동적 변수 저장소
+let dynamicVariables = {};
+
 // 파일명에 한글이 포함되어 있는지 확인하는 함수
 function hasKoreanInFilename(filepath) {
   const filename = path.basename(filepath);
@@ -23,6 +26,93 @@ function validateFilename(filepath) {
     return false;
   }
   return true;
+}
+
+// 동적 변수 설정 함수
+function setDynamicVariable(key, value) {
+  dynamicVariables[key] = value;
+  console.log(`동적 변수 설정: ${key} = ${Array.isArray(value) ? `[${value.join(', ')}]` : value}`);
+}
+
+// 동적 변수 처리 함수
+async function processDynamicVariables(dynamicVars, dbPool, globalVars) {
+  // 동적 변수 초기화
+  dynamicVariables = {};
+  
+  if (dynamicVars && Array.isArray(dynamicVars) && dynamicVars.length > 0) {
+    console.log(`\n🔄 동적 변수 처리 시작 (${dynamicVars.length}개)`);
+    
+    for (const dynamicVar of dynamicVars) {
+      if (dynamicVar.name && dynamicVar.query) {
+        try {
+          console.log(`\n📊 동적 변수 처리 중: ${dynamicVar.name} (${dynamicVar.description || '설명 없음'})`);
+          
+          // 쿼리에서 변수 치환 (기존 변수들로)
+          const processedQuery = substituteVars(dynamicVar.query, globalVars);
+          
+          // DB에서 데이터 조회
+          const result = await dbPool.request().query(processedQuery);
+          
+          if (result.recordset && result.recordset.length > 0) {
+            const data = result.recordset;
+            
+            if (dynamicVar.type === 'column_identified') {
+              // column_identified 타입: 각 컬럼별로 배열 생성
+              const columnData = {};
+              const columns = Object.keys(data[0]);
+              
+              columns.forEach(column => {
+                columnData[column] = data.map(row => row[column]).filter(val => val !== null && val !== undefined);
+              });
+              
+              setDynamicVariable(dynamicVar.name, columnData);
+              console.log(`   ✅ ${dynamicVar.name}: ${columns.length}개 컬럼, ${data.length}개 행`);
+              
+            } else if (dynamicVar.type === 'key_value_pairs') {
+              // key_value_pairs 타입: 첫 번째 컬럼을 키로, 두 번째 컬럼을 값으로
+              const keyValueData = {};
+              const columns = Object.keys(data[0]);
+              
+              if (columns.length >= 2) {
+                const keyColumn = columns[0];
+                const valueColumn = columns[1];
+                
+                data.forEach(row => {
+                  const key = row[keyColumn];
+                  const value = row[valueColumn];
+                  if (key !== null && key !== undefined) {
+                    keyValueData[key] = value;
+                  }
+                });
+                
+                setDynamicVariable(dynamicVar.name, keyValueData);
+                console.log(`   ✅ ${dynamicVar.name}: ${Object.keys(keyValueData).length}개 키-값 쌍`);
+              } else {
+                console.warn(`   ⚠️ ${dynamicVar.name}: key_value_pairs 타입은 최소 2개 컬럼이 필요합니다`);
+              }
+              
+            } else {
+              // 기본 타입: 첫 번째 컬럼의 값들을 배열로
+              const firstColumn = Object.keys(data[0])[0];
+              const values = data.map(row => row[firstColumn]).filter(val => val !== null && val !== undefined);
+              
+              setDynamicVariable(dynamicVar.name, values);
+              console.log(`   ✅ ${dynamicVar.name}: ${values.length}개 값 (${firstColumn} 컬럼)`);
+            }
+          } else {
+            console.warn(`   ⚠️ ${dynamicVar.name}: 조회 결과가 없습니다`);
+            setDynamicVariable(dynamicVar.name, []);
+          }
+          
+        } catch (error) {
+          console.error(`   ❌ ${dynamicVar.name} 처리 중 오류: ${error.message}`);
+          setDynamicVariable(dynamicVar.name, []);
+        }
+      }
+    }
+    
+    console.log(`\n✅ 동적 변수 처리 완료`);
+  }
 }
 
 // 엑셀 스타일 템플릿 로더
@@ -110,8 +200,110 @@ async function listAvailableStyles() {
   console.log('─'.repeat(60));
 }
 
+// 향상된 변수 치환 함수 (동적 변수 지원)
 function substituteVars(str, vars) {
-  return str.replace(/\$\{(\w+)\}/g, (_, v) => {
+  let result = str;
+  const debugVariables = process.env.DEBUG_VARIABLES === 'true';
+  
+  if (debugVariables) {
+    console.log(`변수 치환 시작: ${str.substring(0, 200)}${str.length > 200 ? '...' : ''}`);
+  }
+  
+  // 동적 변수 치환 (우선순위 높음)
+  Object.entries(dynamicVariables).forEach(([key, value]) => {
+    const pattern = new RegExp(`\\$\\{${key}\\}`, 'g');
+    const beforeReplace = result;
+    
+    try {
+      // 배열 타입인 경우 IN절 처리
+      if (Array.isArray(value)) {
+        if (value.length === 0) {
+          // 빈 배열을 존재하지 않을 것 같은 값으로 치환
+          result = result.replace(pattern, "'^-_'");
+        } else {
+          const inClause = value.map(v => {
+            if (typeof v === 'string') {
+              return `'${v.replace(/'/g, "''")}'`;
+            }
+            return v;
+          }).join(', ');
+          result = result.replace(pattern, inClause);
+        }
+        
+        if (debugVariables && beforeReplace !== result) {
+          console.log(`동적 변수 [${key}] 치환: 배열 ${value.length}개 → IN절`);
+        }
+      } 
+      // 객체 타입인 경우 (column_identified 또는 key_value_pairs)
+      else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        // ${변수명.키} 패턴 처리
+        Object.keys(value).forEach(keyName => {
+          const keyPattern = new RegExp(`\\$\\{${key}\\.${keyName}\\}`, 'g');
+          const keyValue = value[keyName];
+          const beforeKeyReplace = result;
+          
+          if (Array.isArray(keyValue)) {
+            // column_identified: 배열 값을 IN절로 변환
+            const inClause = keyValue.map(v => {
+              if (typeof v === 'string') {
+                return `'${v.replace(/'/g, "''")}'`;
+              }
+              return v;
+            }).join(', ');
+            result = result.replace(keyPattern, inClause);
+          } else {
+            // key_value_pairs: 단일 값을 그대로 치환
+            const replacementValue = typeof keyValue === 'string' ? `'${keyValue.replace(/'/g, "''")}'` : keyValue;
+            result = result.replace(keyPattern, replacementValue);
+          }
+          
+          if (debugVariables && beforeKeyReplace !== result) {
+            console.log(`동적 변수 [${key}.${keyName}] 치환: ${Array.isArray(keyValue) ? `배열 ${keyValue.length}개` : keyValue}`);
+          }
+        });
+        
+        // ${변수명} 패턴 처리
+        const allValues = Object.values(value);
+        if (allValues.every(v => Array.isArray(v))) {
+          // column_identified: 모든 배열 값을 통합하여 IN절로
+          const flatValues = allValues.flat();
+          const inClause = flatValues.map(v => {
+            if (typeof v === 'string') {
+              return `'${v.replace(/'/g, "''")}'`;
+            }
+            return v;
+          }).join(', ');
+          result = result.replace(pattern, inClause);
+        } else {
+          // key_value_pairs: 모든 값들을 IN절로
+          const inClause = allValues.map(v => {
+            if (typeof v === 'string') {
+              return `'${v.replace(/'/g, "''")}'`;
+            }
+            return v;
+          }).join(', ');
+          result = result.replace(pattern, inClause);
+        }
+        
+        if (debugVariables && beforeReplace !== result) {
+          console.log(`동적 변수 [${key}] 치환: 객체 타입`);
+        }
+      } 
+      else {
+        result = result.replace(pattern, value);
+        
+        if (debugVariables && beforeReplace !== result) {
+          console.log(`동적 변수 [${key}] 치환: ${value}`);
+        }
+      }
+    } catch (error) {
+      console.log(`동적 변수 [${key}] 치환 중 오류: ${error.message}`);
+      // 오류 발생 시 원본 유지
+    }
+  });
+  
+  // 일반 변수 치환 (기존 방식)
+  result = result.replace(/\$\{(\w+)\}/g, (_, v) => {
     const value = vars[v];
     if (value === undefined || value === null) return '';
     
@@ -124,12 +316,131 @@ function substituteVars(str, vars) {
         }
         return val;
       }).join(', ');
+      
+      if (debugVariables) {
+        console.log(`일반 변수 [${v}] 치환: 배열 ${value.length}개 → IN절`);
+      }
       return inClause;
     } else {
       // 기존 방식: 단일 값 치환
+      if (debugVariables) {
+        console.log(`일반 변수 [${v}] 치환: ${value}`);
+      }
       return value;
     }
   });
+  
+  // 현재 시각 함수 치환
+  const timestampFunctions = {
+    'CURRENT_TIMESTAMP': () => new Date().toISOString().slice(0, 19).replace('T', ' '), // YYYY-MM-DD HH:mm:ss
+    'CURRENT_DATETIME': () => new Date().toISOString().slice(0, 19).replace('T', ' '), // YYYY-MM-DD HH:mm:ss
+    'NOW': () => new Date().toISOString().slice(0, 19).replace('T', ' '), // YYYY-MM-DD HH:mm:ss
+    'CURRENT_DATE': () => new Date().toISOString().slice(0, 10), // YYYY-MM-DD
+    'CURRENT_TIME': () => new Date().toTimeString().slice(0, 8), // HH:mm:ss
+    'UNIX_TIMESTAMP': () => Math.floor(Date.now() / 1000), // Unix timestamp
+    'TIMESTAMP_MS': () => Date.now(), // Milliseconds timestamp
+    'ISO_TIMESTAMP': () => new Date().toISOString(), // ISO 8601 format
+    'GETDATE': () => new Date().toISOString().slice(0, 19).replace('T', ' ') // SQL Server GETDATE() equivalent
+  };
+  
+  // 현재 시각 함수 패턴 매칭 및 치환
+  Object.entries(timestampFunctions).forEach(([funcName, funcImpl]) => {
+    const pattern = new RegExp(`\\$\\{${funcName}\\}`, 'g');
+    const beforeReplace = result;
+    
+    try {
+      result = result.replace(pattern, funcImpl());
+      
+      if (debugVariables && beforeReplace !== result) {
+        console.log(`시각 함수 [${funcName}] 치환: ${funcImpl()}`);
+      }
+    } catch (error) {
+      console.log(`시각 함수 [${funcName}] 치환 중 오류: ${error.message}`);
+      // 오류 발생 시 원본 유지
+    }
+  });
+  
+  // 환경 변수 치환
+  const envPattern = /\$\{(\w+)\}/g;
+  const remainingMatches = [...result.matchAll(envPattern)];
+  
+  remainingMatches.forEach(match => {
+    const fullMatch = match[0];
+    const varName = match[1];
+    
+    // 이미 처리된 변수들과 중복되지 않는 경우만 환경 변수로 치환
+    const isAlreadyProcessed = 
+      dynamicVariables.hasOwnProperty(varName) ||
+      vars.hasOwnProperty(varName) ||
+      timestampFunctions.hasOwnProperty(varName);
+      
+    if (!isAlreadyProcessed && process.env[varName]) {
+      const envValue = process.env[varName];
+      
+      try {
+        // 환경 변수가 배열 형태인지 확인 (JSON 형태로 저장된 경우)
+        const parsed = JSON.parse(envValue);
+        if (Array.isArray(parsed)) {
+          const inClause = parsed.map(v => {
+            if (typeof v === 'string') {
+              return `'${v.replace(/'/g, "''")}'`;
+            }
+            return v;
+          }).join(', ');
+          result = result.replace(fullMatch, inClause);
+          
+          if (debugVariables) {
+            console.log(`환경 변수 [${varName}] 치환: 배열 ${parsed.length}개 → IN절`);
+          }
+        } else {
+          result = result.replace(fullMatch, envValue);
+          
+          if (debugVariables) {
+            console.log(`환경 변수 [${varName}] 치환: ${envValue}`);
+          }
+        }
+      } catch (e) {
+        // JSON 파싱 실패 시 원본 값 사용
+        result = result.replace(fullMatch, envValue);
+        
+        if (debugVariables) {
+          console.log(`환경 변수 [${varName}] 치환: ${envValue} (단순 문자열)`);
+        }
+      }
+    } else if (debugVariables && process.env[varName]) {
+      console.log(`환경 변수 [${varName}] 건너뜀: 이미 처리된 변수`);
+    }
+  });
+  
+  // 치환되지 않은 변수 확인 및 처리
+  const unresolvedVariables = [...result.matchAll(/\$\{(\w+(?:\.\w+)?)\}/g)];
+  if (unresolvedVariables.length > 0) {
+    if (debugVariables) {
+      console.log(`치환되지 않은 변수들: ${unresolvedVariables.map(m => m[1]).join(', ')}`);
+    }
+    
+    // 치환되지 않은 변수를 빈 문자열로 대체하여 SQL 오류 방지
+    unresolvedVariables.forEach(match => {
+      const fullMatch = match[0];
+      const varName = match[1];
+      
+      // 동적 변수의 경우 빈 배열로 대체
+      if (dynamicVariables.hasOwnProperty(varName.split('.')[0])) {
+        result = result.replace(fullMatch, "'^-_'");
+        if (debugVariables) {
+          console.log(`치환되지 않은 동적 변수 [${varName}] → '^-_'로 대체`);
+        }
+      } else {
+        // 일반 변수의 경우 빈 문자열로 대체
+        result = result.replace(fullMatch, "''");
+        if (debugVariables) {
+          console.log(`치환되지 않은 변수 [${varName}] → 빈 문자열로 대체`);
+        }
+      }
+    });
+  }
+  
+  return result;
 }
 
 async function loadQueriesFromXML(xmlPath) {
@@ -203,6 +514,31 @@ async function loadQueriesFromXML(xmlPath) {
       }
     }
   }
+  
+  // 동적 변수 파싱
+  let dynamicVars = [];
+  if (parsed.queries.dynamicVars && parsed.queries.dynamicVars[0] && parsed.queries.dynamicVars[0].dynamicVar) {
+    const dynamicVarElements = Array.isArray(parsed.queries.dynamicVars[0].dynamicVar) 
+      ? parsed.queries.dynamicVars[0].dynamicVar 
+      : [parsed.queries.dynamicVars[0].dynamicVar];
+    
+    for (const dv of dynamicVarElements) {
+      if (dv.$ && dv.$.name && dv._) {
+        const query = dv._.toString().trim();
+        const type = dv.$.type || 'column_identified';
+        const description = dv.$.description || '';
+        
+        dynamicVars.push({
+          name: dv.$.name,
+          query: query,
+          type: type,
+          description: description
+        });
+        
+        console.log(`동적 변수 정의 발견: ${dv.$.name} (타입: ${type}, 설명: ${description})`);
+      }
+    }
+  }
   // DB ID, output 경로 파싱
   let dbId = undefined;
   if (parsed.queries.db && parsed.queries.db[0] && parsed.queries.db[0].$ && parsed.queries.db[0].$.id) {
@@ -241,7 +577,7 @@ async function loadQueriesFromXML(xmlPath) {
     };
   });
   
-  return { globalVars, sheets, dbId, outputPath, queryDefs };
+  return { globalVars, sheets, dbId, outputPath, queryDefs, dynamicVars };
 }
 
 function resolvePath(p) {
@@ -378,7 +714,7 @@ async function main() {
     cliVars[key] = value;
   }
 
-  let sheets, globalVars = {}, dbId, outputPath, queryDefs = {};
+  let sheets, globalVars = {}, dbId, outputPath, queryDefs = {}, dynamicVars = [];
   if (argv.xml && fs.existsSync(resolvePath(argv.xml))) {
     // 파일명 검증
     validateFilename(argv.xml);
@@ -388,6 +724,7 @@ async function main() {
     dbId = xmlResult.dbId;
     outputPath = xmlResult.outputPath;
     queryDefs = xmlResult.queryDefs || {};
+    dynamicVars = xmlResult.dynamicVars || [];
   } else if (argv.query && fs.existsSync(resolvePath(argv.query))) {
     // 파일명 검증
     validateFilename(argv.query);
@@ -405,6 +742,9 @@ async function main() {
     
     // JSON에서 쿼리 정의 파싱
     queryDefs = queries.queryDefs || {};
+    
+    // JSON에서 동적 변수 파싱
+    dynamicVars = queries.dynamicVars || [];
     
     // JSON 시트에서 queryRef 처리
     sheets = (queries.sheets || []).map(sheet => {
@@ -564,6 +904,11 @@ async function main() {
   
   // 기본 DB 연결
   const defaultPool = await getDbPool(defaultDbKey);
+
+  // 동적 변수 처리 (DB 연결 후, 시트 처리 전)
+  if (dynamicVars && dynamicVars.length > 0) {
+    await processDynamicVariables(dynamicVars, defaultPool, mergedVars);
+  }
 
   // 엑셀 파일 경로 결정 (CLI > excel > 쿼리파일 > 기본값)
   let outFile = argv.out || excelOutput || outputPath || 'output.xlsx';

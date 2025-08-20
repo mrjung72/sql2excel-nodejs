@@ -1,0 +1,149 @@
+<queries>
+  <excel db="sampleDB" output="d:/temp/동적변수_테스트_2024.xlsx" separateToc="false" maxRows="20" style="modern">
+    <!-- 스타일 템플릿 ID 지정 (기본값: default) -->
+    <!-- 사용 가능한 템플릿: default, modern, dark, colorful, minimal, business, premium -->
+    <!-- 필요시 개별 스타일 속성으로 덮어쓰기 가능 -->
+  </excel>
+  
+  <!-- 일반 변수 정의 -->
+  <vars>
+    <var name="envType">운영</var>
+    <var name="startDate">2024-01-01</var>
+    <var name="endDate">2024-06-30</var>
+    <var name="regionList">["서울", "부산"]</var>
+    <var name="statusList">["ACTIVE", "PENDING", "COMPLETED"]</var>
+    <var name="categoryIds">[1, 2, 3, 5]</var>
+    <var name="maxRows">1000</var>
+  </vars>
+  
+  <!-- 동적 변수 정의 -->
+  <dynamicVars>
+    <!-- column_identified 타입: 각 컬럼별로 배열 생성 -->
+    <dynamicVar name="customerData" type="column_identified" description="고객 데이터 컬럼별 분류">
+      <![CDATA[
+        SELECT CustomerID, CustomerName, City, Region, CustomerType
+        FROM SampleDB.dbo.Customers
+        WHERE IsActive = 1
+        ORDER BY CustomerID
+      ]]>
+    </dynamicVar>
+    
+    <!-- key_value_pairs 타입: 첫 번째 컬럼을 키로, 두 번째 컬럼을 값으로 -->
+    <dynamicVar name="orderDetails" type="key_value_pairs" description="주문상세 정보">
+      <![CDATA[
+        SELECT OrderID, OrderDetailID
+        FROM SampleDB.dbo.OrderDetails
+        ORDER BY OrderID
+      ]]>
+    </dynamicVar>
+    
+    <!-- 기본 타입: 첫 번째 컬럼의 값들을 배열로 -->
+    <dynamicVar name="activeOrders" description="활성 주문 목록">
+      <![CDATA[
+        SELECT OrderID
+        FROM SampleDB.dbo.Orders
+        WHERE OrderStatus = 'Pending'
+        ORDER BY OrderID
+      ]]>
+    </dynamicVar>
+    
+    <!-- 시각 함수와 일반 변수를 조합한 동적 변수 -->
+    <dynamicVar name="recentOrders" description="최근 주문 정보">
+      <![CDATA[
+        SELECT OrderID, OrderNumber, OrderDate
+        FROM SampleDB.dbo.Orders
+        WHERE OrderDate >= '${startDate}' 
+          AND OrderDate <= '${endDate}'
+          AND OrderDate >= DATEADD(day, -30, '${CURRENT_DATE}')
+        ORDER BY OrderDate DESC
+      ]]>
+    </dynamicVar>
+  </dynamicVars>
+  
+  <!-- 시트 정의 -->
+  <sheet name="${envType}_동적변수_테스트" use="true" aggregateColumn="지역" maxRows="100" db="sampleDB">
+    <![CDATA[
+      SELECT 
+        c.CustomerID as 고객ID,
+        c.CustomerName as 고객명,
+        c.City as 도시,
+        c.Region as 지역,
+        c.CustomerType as 고객유형
+      FROM SampleDB.dbo.Customers c
+      WHERE c.CustomerID IN (${customerData.CustomerID})
+        AND c.Region IN (${regionList})
+      ORDER BY c.CustomerID
+    ]]>
+  </sheet>
+  
+  <sheet name="주문상세_동적변수_테스트2" use="true" aggregateColumn="주문상태">
+    <![CDATA[
+      SELECT 
+        o.OrderID as 주문ID,
+        o.OrderNumber as 주문번호,
+        o.OrderStatus as 주문상태,
+        od.OrderDetailID as 상세ID,
+        FORMAT(o.TotalAmount, 'N0') as 총금액
+      FROM SampleDB.dbo.Orders o
+      INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID
+      WHERE o.OrderID IN (${orderDetails.OrderID})
+        AND o.OrderID IN (${activeOrders})
+      ORDER BY o.OrderID DESC
+    ]]>
+  </sheet>
+  
+  <sheet name="주문상세_동적변수_테스트" use="true" aggregateColumn="주문상태">
+    <![CDATA[
+      SELECT 
+        o.OrderNumber as 주문번호,
+        FORMAT(o.OrderDate, 'yyyy-MM-dd') as 주문일,
+        o.OrderStatus as 주문상태,
+        c.CustomerName as 고객명,
+        FORMAT(o.TotalAmount, 'N0') as 총금액
+      FROM SampleDB.dbo.Orders o
+      INNER JOIN SampleDB.dbo.Customers c ON o.CustomerID = c.CustomerID
+      WHERE o.OrderID IN (${recentOrders.OrderID})
+        AND o.OrderStatus IN (${statusList})
+      ORDER BY o.OrderDate DESC
+    ]]>
+  </sheet>
+  
+  <sheet name="복합_동적변수_테스트" use="true">
+    <![CDATA[
+      SELECT 
+        c.CustomerName as 고객명,
+        c.Region as 지역,
+        COUNT(o.OrderID) as 주문건수,
+        FORMAT(SUM(o.TotalAmount), 'N0') as 총주문금액
+      FROM SampleDB.dbo.Customers c
+      INNER JOIN SampleDB.dbo.Orders o ON c.CustomerID = o.CustomerID
+      WHERE c.CustomerID IN (${customerData.CustomerID})
+        AND c.Region IN (${customerData.Region})
+        AND o.OrderID IN (${activeOrders})
+        AND o.OrderDate >= '${startDate}'
+        AND o.OrderDate <= '${endDate}'
+      GROUP BY c.CustomerName, c.Region
+      ORDER BY 총주문금액 DESC
+    ]]>
+  </sheet>
+  
+  <sheet name="시각함수_동적변수_테스트" use="true">
+    <![CDATA[
+      SELECT 
+        '현재시각' as 구분,
+        '${CURRENT_TIMESTAMP}' as 현재시각,
+        '${CURRENT_DATE}' as 현재날짜,
+        '${CURRENT_TIME}' as 현재시간,
+        '${UNIX_TIMESTAMP}' as 유닉스타임스탬프,
+        '${GETDATE}' as SQL서버_GETDATE
+      UNION ALL
+      SELECT 
+        '동적변수_테스트' as 구분,
+        CONVERT(VARCHAR, GETDATE(), 120) as 현재시각,
+        CONVERT(VARCHAR, GETDATE(), 23) as 현재날짜,
+        CONVERT(VARCHAR, GETDATE(), 108) as 현재시간,
+        DATEDIFF(SECOND, '1970-01-01', GETDATE()) as 유닉스타임스탬프,
+        GETDATE() as SQL서버_GETDATE
+    ]]>
+  </sheet>
+</queries>

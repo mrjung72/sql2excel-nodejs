@@ -8,6 +8,7 @@ SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니�
 - 🎨 **엑셀 스타일링**: 헤더/데이터 영역 각각 폰트, 색상, 테두리, 정렬 등 세부 스타일 설정
 - 🔗 **다중 DB 연결**: 시트별로 다른 데이터베이스 연결 가능
 - 📝 **변수 시스템**: 쿼리 내 변수 사용으로 동적 쿼리 생성
+- 🔄 **동적 변수**: 데이터베이스에서 실시간으로 값을 조회하여 동적 쿼리 생성
 - 🔄 **쿼리 재사용**: 공통 쿼리 정의 후 여러 시트에서 재사용
 - 📋 **자동 목차**: 목차 시트 자동 생성 및 하이퍼링크 제공
 - 📊 **집계 기능**: 지정 컬럼의 값별 건수 자동 집계 및 표시
@@ -79,7 +80,7 @@ node src/excel-cli.js help
 
 ## 💡 사용 예시
 
-### XML 설정 파일 예시
+### XML 설정 파일 예시 (동적 변수 포함)
 ```xml
 <queries>
   <excel db="sampleDB" output="output/매출보고서.xlsx">
@@ -89,10 +90,28 @@ node src/excel-cli.js help
     </header>
   </excel>
   
+  <!-- 일반 변수 -->
+  <vars>
+    <var name="startDate">2024-01-01</var>
+    <var name="endDate">2024-12-31</var>
+  </vars>
+  
+  <!-- 동적 변수 -->
+  <dynamicVars>
+    <dynamicVar name="activeCustomers" type="column_identified" description="활성 고객 목록">
+      <![CDATA[
+        SELECT CustomerID, CustomerName, Region
+        FROM Customers WHERE IsActive = 1
+      ]]>
+    </dynamicVar>
+  </dynamicVars>
+  
   <sheet name="월별매출" use="true" aggregateColumn="Month">
     <![CDATA[
       SELECT MONTH(OrderDate) as Month, SUM(TotalAmount) as Sales
-      FROM Orders WHERE YEAR(OrderDate) = 2024
+      FROM Orders 
+      WHERE YEAR(OrderDate) = 2024
+        AND CustomerID IN (${activeCustomers.CustomerID})
       GROUP BY MONTH(OrderDate)
     ]]>
   </sheet>
@@ -119,4 +138,4 @@ node src/excel-cli.js export --xml ./queries/sales-report.xml \
 
 ---
 
-**버전**: v1.2.1 | **최종 업데이트**: 2025-01-15
+**버전**: v1.2.2 | **최종 업데이트**: 2025-08-20
