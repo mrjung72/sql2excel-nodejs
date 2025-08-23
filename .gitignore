@@ -20,3 +20,4 @@ test-*.xlsx
 # 로그 파일
 logs/
 .env
+*.log
