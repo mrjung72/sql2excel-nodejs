@@ -6,27 +6,31 @@
 - [Basic Usage](#basic-usage)
 - [Query Definition File Structure](#query-definition-file-structure)
 - [Advanced Features](#advanced-features)
+- [Template Style System](#template-style-system)
 - [CLI Command Reference](#cli-command-reference)
 - [Examples](#examples)
 - [Troubleshooting](#troubleshooting)
 
 ## 🎯 Overview
 
-SQL2Excel is a Node.js-based tool for generating Excel files from SQL query results.
+SQL2Excel is a Node.js-based tool for generating Excel files from SQL query results with advanced styling and template support.
 
 ### Key Features
 - 📊 **Multi-Sheet Support**: Save multiple SQL query results in separate sheets within one Excel file
-- 🎨 **Excel Styling**: Detailed styling for header/data areas including fonts, colors, borders, alignment
+- 🎨 **Template Style System**: Pre-defined Excel styling templates for consistent design
 - 🔗 **Multiple DB Connections**: Use different database connections for each sheet
 - 📝 **Variable System**: Use variables in queries for dynamic query generation
-- 🔄 **Dynamic Variables**: Extract values from database in real-time for dynamic query generation
+- 🔄 **Enhanced Dynamic Variables**: Extract values from database in real-time with advanced processing
 - 🔄 **Query Reuse**: Define common queries and reuse them across multiple sheets
 - 📋 **Auto Table of Contents**: Automatically generate table of contents sheet with hyperlinks
+- 📋 **Separate TOC Generation**: Generate standalone table of contents Excel file
 - 📊 **Aggregation Features**: Automatic aggregation and display of counts by specified column values
 - 🚦 **Query Limits**: Row count limiting for large data processing
 - 🖥️ **CLI Interface**: Simple command-line tool execution
 - 🪟 **Windows Batch Files**: Batch files for Windows users
 - 📄 **XML/JSON Support**: Flexible configuration file format support
+- 🔍 **File Validation**: Automatic filename validation and Korean character warnings
+- 🎯 **Sheet-specific Styling**: Apply different styles to individual sheets
 
 ## 🛠️ Installation and Setup
 
@@ -85,6 +89,12 @@ node src/excel-cli.js export --query ./queries/sample-queries.json
 
 # Execute with variables
 node src/excel-cli.js export --xml ./queries/sample-queries.xml --var "year=2024" --var "dept=IT"
+
+# Using template style
+node src/excel-cli.js export --xml ./queries/sample-queries.xml --style modern
+
+# Generate separate TOC file
+node src/excel-cli.js export --xml ./queries/sample-queries.xml --separate-toc
 ```
 
 #### 2. Validate Query File
@@ -97,122 +107,113 @@ node src/excel-cli.js validate --xml ./queries/sample-queries.xml
 node src/excel-cli.js list-dbs
 ```
 
-### NPM Script Usage
+#### 4. List Available Template Styles
 ```bash
-# Generate Excel file
-npm run export -- --xml ./queries/sample-queries.xml
-
-# Validate query file
-npm run validate -- --xml ./queries/sample-queries.xml
+node src/excel-cli.js list-styles
 ```
 
-### Windows Batch File Usage
+### NPM Script Usage
 ```bash
-# Interactive execution
-실행하기.bat
+# Export to Excel
+npm run export -- --xml ./queries/sample-queries.xml
 
-# Direct execution
-export-xml.bat
-export-json.bat
+# Validate configuration
+npm run validate -- --xml ./queries/sample-queries.xml
+
+# Test database connection
+npm run test-db
+```
+
+### Windows Batch Files
+```bash
+# Export to Excel
+export-xml.bat queries\sample-queries.xml
+
+# Export with JSON
+export-json.bat queries\sample-queries.json
+
+# Validate configuration
+validate.bat queries\sample-queries.xml
+
+# Test database connection
+db-test.bat
 ```
 
 ## 📋 Query Definition File Structure
 
-### XML Format (Recommended)
+### XML Format
 
 #### Basic Structure
 ```xml
-<queries>
-  <excel db="database_name" output="output/file.xlsx">
+<?xml version="1.0" encoding="UTF-8"?>
+<queries separateToc="true" maxRows="10000">
+  <excel db="sampleDB" output="output/SalesReport.xlsx" style="modern" separateToc="true">
     <header>
-      <!-- Header styling -->
+      <font name="Arial" size="12" color="FFFFFF" bold="true"/>
+      <fill color="4F81BD"/>
+      <colwidths min="20" max="50"/>
+      <alignment horizontal="center" vertical="middle"/>
+      <border>
+        <all style="thin" color="000000"/>
+      </border>
     </header>
-    <data>
-      <!-- Data styling -->
-    </data>
+    <body>
+      <font name="Arial" size="11" color="000000" bold="false"/>
+      <fill color="FFFFCC"/>
+      <alignment horizontal="left" vertical="middle"/>
+      <border>
+        <all style="thin" color="CCCCCC"/>
+      </border>
+    </body>
   </excel>
   
   <vars>
-    <!-- Static variables -->
+    <var name="startDate">2024-01-01</var>
+    <var name="endDate">2024-12-31</var>
+    <var name="year">2024</var>
   </vars>
   
   <dynamicVars>
-    <!-- Dynamic variables -->
+    <dynamicVar name="activeCustomers" description="Active customer list">
+      <![CDATA[
+        SELECT CustomerID, CustomerName, Region FROM Customers WHERE IsActive = 1
+      ]]>
+    </dynamicVar>
+    <dynamicVar name="productPrices" type="key_value_pairs" description="Product prices">
+      <![CDATA[
+        SELECT ProductID, UnitPrice FROM Products WHERE Discontinued = 0
+      ]]>
+    </dynamicVar>
   </dynamicVars>
   
+  <queryDefs>
+    <queryDef id="customer_base" description="Base customer query">
+      <![CDATA[
+        SELECT CustomerID, CustomerName, Email, Phone
+        FROM Customers WHERE IsActive = 1
+      ]]>
+    </queryDef>
+  </queryDefs>
+  
   <sheets>
-    <!-- Sheet definitions -->
+    <sheet name="MonthlySales" use="true" aggregateColumn="Month" limit="1000" style="business">
+      <![CDATA[
+        SELECT MONTH(OrderDate) as Month, 
+               SUM(TotalAmount) as Sales,
+               COUNT(*) as OrderCount
+        FROM Orders 
+        WHERE YEAR(OrderDate) = ${year}
+          AND CustomerID IN (${activeCustomers.CustomerID})
+        GROUP BY MONTH(OrderDate)
+        ORDER BY Month
+      ]]>
+    </sheet>
+    
+    <sheet name="CustomerList" use="true" db="erpDB">
+      <queryRef ref="customer_base"/>
+    </sheet>
   </sheets>
 </queries>
-```
-
-#### Excel Configuration
-```xml
-<excel db="sampleDB" output="output/SalesReport.xlsx">
-  <header>
-    <font name="Arial" size="12" color="FFFFFF" bold="true"/>
-    <fill color="4F81BD"/>
-    <border>
-      <top style="thin" color="000000"/>
-      <bottom style="thin" color="000000"/>
-    </border>
-    <alignment horizontal="center" vertical="center"/>
-  </header>
-  
-  <data>
-    <font name="Arial" size="10"/>
-    <border>
-      <top style="thin" color="CCCCCC"/>
-      <bottom style="thin" color="CCCCCC"/>
-    </border>
-  </data>
-</excel>
-```
-
-#### Variable Definition
-```xml
-<vars>
-  <var name="startDate">2024-01-01</var>
-  <var name="endDate">2024-12-31</var>
-  <var name="department">IT</var>
-</vars>
-```
-
-#### Dynamic Variables
-```xml
-<dynamicVars>
-  <!-- Using column_identified (default) -->
-  <dynamicVar name="activeCustomers" description="Active customer list">
-    <![CDATA[
-      SELECT CustomerID, CustomerName, Region
-      FROM Customers WHERE IsActive = 1
-    ]]>
-  </dynamicVar>
-  
-  <!-- Using key_value_pairs -->
-  <dynamicVar name="statusMapping" type="key_value_pairs" description="Status mapping">
-    <![CDATA[
-      SELECT StatusCode, StatusName
-      FROM StatusCodes WHERE IsActive = 1
-    ]]>
-  </dynamicVar>
-</dynamicVars>
-```
-
-#### Sheet Definition
-```xml
-<sheet name="MonthlySales" use="true" aggregateColumn="Month" limit="1000">
-  <![CDATA[
-    SELECT MONTH(OrderDate) as Month, 
-           SUM(TotalAmount) as Sales,
-           COUNT(*) as OrderCount
-    FROM Orders 
-    WHERE YEAR(OrderDate) = ${year}
-      AND CustomerID IN (${activeCustomers.CustomerID})
-    GROUP BY MONTH(OrderDate)
-    ORDER BY Month
-  ]]>
-</sheet>
 ```
 
 ### JSON Format
@@ -223,6 +224,9 @@ export-json.bat
   "excel": {
     "db": "sampleDB",
     "output": "output/SalesReport.xlsx",
+    "style": "modern",
+    "separateToc": true,
+    "maxRows": 10000,
     "header": {
       "font": {
         "name": "Arial",
@@ -237,13 +241,20 @@ export-json.bat
   },
   "vars": {
     "startDate": "2024-01-01",
-    "endDate": "2024-12-31"
+    "endDate": "2024-12-31",
+    "year": "2024"
   },
   "dynamicVars": [
     {
       "name": "activeCustomers",
       "description": "Active customer list",
       "query": "SELECT CustomerID, CustomerName FROM Customers WHERE IsActive = 1"
+    },
+    {
+      "name": "productPrices",
+      "type": "key_value_pairs",
+      "description": "Product prices",
+      "query": "SELECT ProductID, UnitPrice FROM Products WHERE Discontinued = 0"
     }
   ],
   "sheets": [
@@ -251,15 +262,82 @@ export-json.bat
       "name": "MonthlySales",
       "use": true,
       "aggregateColumn": "Month",
+      "limit": 1000,
+      "style": "business",
       "query": "SELECT MONTH(OrderDate) as Month, SUM(TotalAmount) as Sales FROM Orders WHERE YEAR(OrderDate) = ${year} GROUP BY MONTH(OrderDate)"
     }
   ]
 }
 ```
 
-## 🔄 Dynamic Variables System
+## 🎨 Template Style System
 
-The tool supports dynamic variables that can extract data at runtime and use it in queries.
+SQL2Excel includes a comprehensive template style system with pre-defined Excel styling templates.
+
+### Available Template Styles
+
+| Style ID | Name | Description |
+|----------|------|-------------|
+| `default` | 기본 스타일 | 기본 엑셀 스타일 |
+| `modern` | 모던 스타일 | 현대적인 디자인 |
+| `dark` | 다크 스타일 | 어두운 테마 |
+| `colorful` | 컬러풀 스타일 | 다채로운 색상 |
+| `minimal` | 미니멀 스타일 | 간결한 디자인 |
+| `business` | 비즈니스 스타일 | 업무용 스타일 |
+| `premium` | 프리미엄 스타일 | 고급스러운 디자인 |
+
+### Using Template Styles
+
+#### 1. Global Style (XML)
+```xml
+<excel db="sampleDB" output="output/Report.xlsx" style="modern">
+```
+
+#### 2. Global Style (JSON)
+```json
+{
+  "excel": {
+    "db": "sampleDB",
+    "output": "output/Report.xlsx",
+    "style": "modern"
+  }
+}
+```
+
+#### 3. CLI Style Option
+```bash
+node src/excel-cli.js export --xml queries.xml --style modern
+```
+
+#### 4. Sheet-specific Style
+```xml
+<sheet name="SalesData" use="true" style="business">
+  <![CDATA[
+    SELECT * FROM Sales
+  ]]>
+</sheet>
+```
+
+### Customizing Template Styles
+
+You can override template styles with custom styling:
+
+```xml
+<excel db="sampleDB" output="output/Report.xlsx" style="modern">
+  <header>
+    <font name="Calibri" size="14" color="FFFFFF" bold="true"/>
+    <fill color="2E75B6"/>
+  </header>
+  <body>
+    <font name="Calibri" size="11" color="000000"/>
+    <fill color="F8F9FA"/>
+  </body>
+</excel>
+```
+
+## 🔄 Enhanced Dynamic Variables System
+
+The tool supports advanced dynamic variables that can extract data at runtime and use it in queries.
 
 ### Variable Types
 
@@ -303,6 +381,7 @@ WHERE CustomerID IN (${customerData.CustomerID})
 2. **Database Connection**: Uses the specified database connection
 3. **Error Handling**: If a variable query fails, it's replaced with an empty result
 4. **Performance**: Variables are executed once and cached for the entire export
+5. **Debug Mode**: Enable with `DEBUG_VARIABLES=true` for detailed variable substitution
 
 ## 🎨 Advanced Features
 
@@ -348,113 +427,115 @@ WHERE CustomerID IN (${customerData.CustomerID})
   <sheet name="CustomerList" use="true">
     <queryRef ref="customer_base"/>
   </sheet>
-  
-  <sheet name="CustomerOrders" use="true">
-    <![CDATA[
-      SELECT o.*, c.CustomerName
-      FROM Orders o
-      INNER JOIN (${customer_base}) c ON o.CustomerID = c.CustomerID
-    ]]>
-  </sheet>
 </sheets>
 ```
 
-### 3. Aggregation Features
+### 3. Separate Table of Contents
+
+Generate a standalone TOC file:
+
+#### XML Configuration
 ```xml
-<sheet name="SalesByRegion" use="true" aggregateColumn="Region">
-  <![CDATA[
-    SELECT Region, SUM(TotalAmount) as TotalSales, COUNT(*) as OrderCount
-    FROM Orders o
-    INNER JOIN Customers c ON o.CustomerID = c.CustomerID
-    GROUP BY Region
-  ]]>
-</sheet>
+<queries separateToc="true">
+  <excel db="sampleDB" output="output/Report.xlsx" separateToc="true">
 ```
 
-### 4. Auto Table of Contents
-The tool automatically generates a table of contents sheet with:
-- Sheet names as hyperlinks
-- Row counts for each sheet
-- Creation timestamp
-- File information
+#### CLI Option
+```bash
+node src/excel-cli.js export --xml queries.xml --separate-toc
+```
 
-## 🖥️ CLI Command Reference
+### 4. File Validation
+
+The tool automatically validates filenames and warns about Korean characters:
+
+```
+⚠️  경고: 파일명에 한글이 포함되어 있습니다: 샘플쿼리.xml
+   💡 권장사항: 파일명을 영문으로 변경하세요.
+   💡 예시: "샘플쿼리.xml" → "sample-query.xml"
+```
+
+### 5. Database Source Information
+
+Each sheet includes database source information:
+
+```
+📊 출처: sampleDB DB
+```
+
+## 🔧 CLI Command Reference
 
 ### Main Commands
 
-#### Export Excel File
-```bash
-node src/excel-cli.js export --xml <file>
-node src/excel-cli.js export --query <file>
-```
+| Command | Description | Options |
+|---------|-------------|---------|
+| `export` | Generate Excel file | `--xml`, `--query`, `--style`, `--separate-toc`, `--var` |
+| `validate` | Validate configuration file | `--xml`, `--query` |
+| `list-dbs` | List available databases | None |
+| `list-styles` | List available template styles | None |
 
-**Options:**
-- `--xml <file>`: XML query definition file
-- `--query <file>`: JSON query definition file
-- `--var <name=value>`: Set variable value (multiple allowed)
-- `--output <file>`: Override output file path
-- `--verbose`: Enable verbose logging
+### Export Options
 
-#### Validate Query File
-```bash
-node src/excel-cli.js validate --xml <file>
-node src/excel-cli.js validate --query <file>
-```
-
-#### List Databases
-```bash
-node src/excel-cli.js list-dbs
-```
-
-#### Help
-```bash
-node src/excel-cli.js help
-node src/excel-cli.js help <command>
-```
+| Option | Description | Example |
+|--------|-------------|---------|
+| `--xml <file>` | XML query definition file | `--xml queries.xml` |
+| `--query <file>` | JSON query definition file | `--query queries.json` |
+| `--style <style>` | Template style to use | `--style modern` |
+| `--separate-toc` | Generate separate TOC file | `--separate-toc` |
+| `--var <key=value>` | Set variable value | `--var "year=2024"` |
+| `--config <file>` | Database config file | `--config config/dbinfo.json` |
+| `--db <dbname>` | Default database | `--db sampleDB` |
 
 ### Examples
+
 ```bash
-# Basic export
-node src/excel-cli.js export --xml ./queries/sales-report.xml
+# Basic export with XML
+node src/excel-cli.js export --xml queries/sales.xml
+
+# Export with template style
+node src/excel-cli.js export --xml queries/sales.xml --style business
 
 # Export with variables
-node src/excel-cli.js export --xml ./queries/sales-report.xml \
-  --var "year=2024" \
-  --var "department=IT"
+node src/excel-cli.js export --xml queries/sales.xml --var "year=2024" --var "region=North"
+
+# Export with separate TOC
+node src/excel-cli.js export --xml queries/sales.xml --separate-toc
 
 # Validate configuration
-node src/excel-cli.js validate --xml ./queries/sales-report.xml
+node src/excel-cli.js validate --xml queries/sales.xml
 
-# List available databases
-node src/excel-cli.js list-dbs
+# List available styles
+node src/excel-cli.js list-styles
 ```
 
-## 📝 Examples
+## 📊 Examples
 
 ### Complete XML Example
 ```xml
-<queries>
-  <excel db="sampleDB" output="output/SalesReport.xlsx">
+<?xml version="1.0" encoding="UTF-8"?>
+<queries separateToc="true" maxRows="5000">
+  <excel db="sampleDB" output="output/SalesReport.xlsx" style="business">
     <header>
       <font name="Arial" size="12" color="FFFFFF" bold="true"/>
-      <fill color="4F81BD"/>
+      <fill color="1E3A8A"/>
+      <colwidths min="20" max="50"/>
+      <alignment horizontal="center" vertical="middle"/>
       <border>
-        <top style="thin" color="000000"/>
-        <bottom style="thin" color="000000"/>
+        <all style="thin" color="1E40AF"/>
       </border>
-      <alignment horizontal="center" vertical="center"/>
     </header>
-    
-    <data>
-      <font name="Arial" size="10"/>
+    <body>
+      <font name="Arial" size="11" color="1F2937" bold="false"/>
+      <fill color="F9FAFB"/>
+      <alignment horizontal="left" vertical="middle"/>
       <border>
-        <top style="thin" color="CCCCCC"/>
-        <bottom style="thin" color="CCCCCC"/>
+        <all style="thin" color="E5E7EB"/>
       </border>
-    </data>
+    </body>
   </excel>
   
   <vars>
+    <var name="year">2024</var>
     <var name="startDate">2024-01-01</var>
     <var name="endDate">2024-12-31</var>
   </vars>
@@ -462,34 +543,70 @@ node src/excel-cli.js list-dbs
   <dynamicVars>
     <dynamicVar name="activeCustomers" description="Active customer list">
       <![CDATA[
-        SELECT CustomerID, CustomerName, Region
-        FROM Customers WHERE IsActive = 1
+        SELECT CustomerID, CustomerName, Region 
+        FROM Customers 
+        WHERE IsActive = 1 AND Region IN ('North', 'South')
+      ]]>
+    </dynamicVar>
+    <dynamicVar name="productCategories" type="key_value_pairs" description="Product categories">
+      <![CDATA[
+        SELECT CategoryID, CategoryName 
+        FROM Categories 
+        WHERE IsActive = 1
       ]]>
     </dynamicVar>
   </dynamicVars>
   
   <sheets>
-    <sheet name="MonthlySales" use="true" aggregateColumn="Month">
+    <sheet name="MonthlySales" use="true" aggregateColumn="Month" limit="1000">
       <![CDATA[
-        SELECT MONTH(OrderDate) as Month, 
-               SUM(TotalAmount) as Sales,
-               COUNT(*) as OrderCount
+        SELECT 
+          MONTH(OrderDate) as Month,
+          SUM(TotalAmount) as Sales,
+          COUNT(*) as OrderCount,
+          AVG(TotalAmount) as AvgOrderValue
         FROM Orders 
-        WHERE YEAR(OrderDate) = 2024
+        WHERE YEAR(OrderDate) = ${year}
           AND CustomerID IN (${activeCustomers.CustomerID})
         GROUP BY MONTH(OrderDate)
         ORDER BY Month
       ]]>
     </sheet>
     
-    <sheet name="CustomerOrders" use="true" limit="1000">
+    <sheet name="CustomerAnalysis" use="true" style="modern">
       <![CDATA[
-        SELECT c.CustomerName, o.OrderDate, o.TotalAmount
-        FROM Orders o
-        INNER JOIN Customers c ON o.CustomerID = c.CustomerID
-        WHERE o.OrderDate BETWEEN '${startDate}' AND '${endDate}'
-          AND c.CustomerID IN (${activeCustomers.CustomerID})
-        ORDER BY o.OrderDate DESC
+        SELECT 
+          c.CustomerID,
+          c.CustomerName,
+          c.Region,
+          COUNT(o.OrderID) as TotalOrders,
+          SUM(o.TotalAmount) as TotalSpent,
+          AVG(o.TotalAmount) as AvgOrderValue
+        FROM Customers c
+        LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
+        WHERE c.CustomerID IN (${activeCustomers.CustomerID})
+          AND (o.OrderDate IS NULL OR YEAR(o.OrderDate) = ${year})
+        GROUP BY c.CustomerID, c.CustomerName, c.Region
+        ORDER BY TotalSpent DESC
+      ]]>
+    </sheet>
+    
+    <sheet name="ProductSummary" use="true" limit="500">
+      <![CDATA[
+        SELECT 
+          p.ProductID,
+          p.ProductName,
+          pc.CategoryName,
+          SUM(od.Quantity) as TotalSold,
+          SUM(od.Quantity * od.UnitPrice) as TotalRevenue
+        FROM Products p
+        JOIN Categories pc ON p.CategoryID = pc.CategoryID
+        LEFT JOIN OrderDetails od ON p.ProductID = od.ProductID
+        LEFT JOIN Orders o ON od.OrderID = o.OrderID
+        WHERE pc.CategoryID IN (${productCategories.CategoryID})
+          AND (o.OrderDate IS NULL OR YEAR(o.OrderDate) = ${year})
+        GROUP BY p.ProductID, p.ProductName, pc.CategoryName
+        ORDER BY TotalRevenue DESC
       ]]>
     </sheet>
   </sheets>
@@ -502,6 +619,9 @@ node src/excel-cli.js list-dbs
   "excel": {
     "db": "sampleDB",
     "output": "output/SalesReport.xlsx",
+    "style": "business",
+    "separateToc": true,
+    "maxRows": 5000,
     "header": {
       "font": {
         "name": "Arial",
@@ -510,11 +630,12 @@ node src/excel-cli.js list-dbs
         "bold": true
       },
       "fill": {
-        "color": "4F81BD"
+        "color": "1E3A8A"
       }
     }
   },
   "vars": {
+    "year": "2024",
     "startDate": "2024-01-01",
     "endDate": "2024-12-31"
   },
@@ -523,6 +644,12 @@ node src/excel-cli.js list-dbs
       "name": "activeCustomers",
       "description": "Active customer list",
       "query": "SELECT CustomerID, CustomerName FROM Customers WHERE IsActive = 1"
+    },
+    {
+      "name": "productCategories",
+      "type": "key_value_pairs",
+      "description": "Product categories",
+      "query": "SELECT CategoryID, CategoryName FROM Categories WHERE IsActive = 1"
     }
   ],
   "sheets": [
@@ -530,7 +657,14 @@ node src/excel-cli.js list-dbs
       "name": "MonthlySales",
       "use": true,
       "aggregateColumn": "Month",
-      "query": "SELECT MONTH(OrderDate) as Month, SUM(TotalAmount) as Sales FROM Orders WHERE YEAR(OrderDate) = 2024 GROUP BY MONTH(OrderDate)"
+      "limit": 1000,
+      "query": "SELECT MONTH(OrderDate) as Month, SUM(TotalAmount) as Sales FROM Orders WHERE YEAR(OrderDate) = ${year} GROUP BY MONTH(OrderDate)"
+    },
+    {
+      "name": "CustomerAnalysis",
+      "use": true,
+      "style": "modern",
+      "query": "SELECT CustomerID, CustomerName, COUNT(OrderID) as TotalOrders FROM Customers c LEFT JOIN Orders o ON c.CustomerID = o.CustomerID WHERE YEAR(o.OrderDate) = ${year} GROUP BY CustomerID, CustomerName"
     }
   ]
 }
@@ -553,6 +687,7 @@ node src/excel-cli.js list-dbs
 - Check variable syntax (${varName})
 - Verify variable names match exactly
 - Check for typos in variable references
+- Enable debug mode: `DEBUG_VARIABLES=true`
 
 #### 3. Dynamic Variable Errors
 **Problem**: Dynamic variable not resolving
@@ -560,6 +695,7 @@ node src/excel-cli.js list-dbs
 - Check variable query syntax
 - Verify variable name in usage
 - Check database permissions for variable queries
+- Review variable type configuration
 
 #### 4. File Permission Errors
 **Problem**: Cannot write output file
@@ -575,6 +711,20 @@ node src/excel-cli.js list-dbs
 - Process data in smaller chunks
 - Increase Node.js memory limit
 
+#### 6. Korean Filename Warnings
+**Problem**: Filename contains Korean characters
+**Solution**:
+- Rename files to use English characters only
+- Use descriptive English names
+- Avoid special characters in filenames
+
+#### 7. Template Style Not Found
+**Problem**: Template style not loading
+**Solution**:
+- Check `templates/excel-styles.xml` file exists
+- Verify style ID spelling
+- Use `list-styles` command to see available styles
+
 ### Debug Mode
 Enable debug mode to see detailed variable substitution:
 ```bash
@@ -586,6 +736,7 @@ DEBUG_VARIABLES=true node src/excel-cli.js export --xml ./queries/sample.xml
 2. **Validate configuration**: Use `validate` command
 3. **Test connections**: Use `list-dbs` command
 4. **Simplify queries**: Test with simple queries first
+5. **Check file permissions**: Ensure proper file access rights
 
 ## 📞 Support
 
@@ -593,3 +744,26 @@ DEBUG_VARIABLES=true node src/excel-cli.js export --xml ./queries/sample.xml
 - **Issues**: Report issues via GitHub
 - **Email**: sql2excel.nodejs@gmail.com
 - **Website**: sql2excel.com
+
+## 📝 Changelog
+
+### Version 2.0.0 (Latest)
+- ✨ Added template style system with 7 pre-defined styles
+- ✨ Enhanced dynamic variables with key-value pairs support
+- ✨ Added separate table of contents generation
+- ✨ Improved file validation with Korean character warnings
+- ✨ Added sheet-specific styling support
+- ✨ Enhanced CLI with style listing and validation
+- ✨ Improved error handling and user feedback
+- 🐛 Fixed various bugs and performance improvements
+
+### Version 1.5.0
+- ✨ Added multi-database support
+- ✨ Enhanced variable system
+- ✨ Improved Excel styling options
+
+### Version 1.0.0
+- 🎉 Initial release
+- ✨ Basic SQL to Excel conversion
+- ✨ Multi-sheet support
+- ✨ Variable system
