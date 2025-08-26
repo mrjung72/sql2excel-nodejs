@@ -240,7 +240,8 @@ async function main() {
         style: sheetStyle,
         recordCount: recordCount,
         dbKey: sheetDbKey,
-        aggregateColumn: sheetDef.aggregateColumn
+        aggregateColumn: sheetDef.aggregateColumn,
+        query: sql
       });
       
       console.log(`\t---> ${recordCount} rows were selected `);

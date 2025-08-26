@@ -418,12 +418,12 @@ function populateTableOfContents(tocSheet, sheetNames) {
     }
     aggregateInfo = `관련데이터 ${obj.recordCount}건 ${aggregateInfo}`
     
-    // 쿼리문 정보 추출 (최대 100자로 제한)
+    // 쿼리문 정보 추출 (최대 10000자로 제한)
     let queryText = '';
     if (obj.query) {
       queryText = obj.query.replace(/\s+/g, ' ').trim(); // 연속 공백 제거
-      if (queryText.length > 100) {
-        queryText = queryText.substring(0, 97) + '...';
+      if (queryText.length > 10000) {
+        queryText = queryText.substring(0, 10000) + '... 이하 생략 (최대 10000자로 제한) .....';
       }
     }
     

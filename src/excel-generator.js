@@ -33,7 +33,7 @@ class ExcelGenerator {
 
     // 목차 시트를 맨 처음에 생성 (내용은 나중에 채움)
     let tocSheet = null;
-    
+
     for (const sheetDef of sheets) {
       // robust use 속성 체크
       if (!this.isSheetEnabled(sheetDef)) {
@@ -141,12 +141,12 @@ class ExcelGenerator {
     tocOnly.addRow(['No', 'Sheet Name', 'Data Count', 'Query']);
     
     createdSheetNames.forEach((obj, idx) => {
-      // 쿼리문 정보 추출 (최대 80자로 제한)
+      // 쿼리문 정보 추출 (최대 10000자로 제한)
       let queryText = '';
       if (obj.query) {
         queryText = obj.query.replace(/\s+/g, ' ').trim(); // 연속 공백 제거
-        if (queryText.length > 80) {
-          queryText = queryText.substring(0, 77) + '...';
+        if (queryText.length > 10000) {
+          queryText = queryText.substring(0, 10000) + '... 이하 생략 (최대 10000자로 제한) .....';
         }
       }
       
