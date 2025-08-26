@@ -130,10 +130,20 @@ const excelStyleHelper = require('../src/excel-style-helper');
 
     console.log('8. 목차 시트 생성 테스트...');
     const sheetNames = [
-      { displayName: '기본 스타일 테스트', tabName: '기본 스타일 테스트' },
-      { displayName: '개별 함수 테스트', tabName: '개별 함수 테스트' }
+      { 
+        displayName: '기본 스타일 테스트', 
+        tabName: '기본 스타일 테스트',
+        recordCount: 5,
+        query: 'SELECT * FROM test_table WHERE status = "active"'
+      },
+      { 
+        displayName: '개별 함수 테스트', 
+        tabName: '개별 함수 테스트',
+        recordCount: 3,
+        query: 'SELECT id, name, email FROM users ORDER BY name'
+      }
     ];
-    excelStyleHelper.createTableOfContents(workbook, sheetNames);
+    excelStyleHelper.populateTableOfContents(workbook.addWorksheet('목차'), sheetNames);
     console.log('✅ 목차 시트 생성 완료');
 
     // 워크시트 순서 조정 (목차를 첫 번째로)

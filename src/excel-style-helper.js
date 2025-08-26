@@ -396,8 +396,8 @@ function populateTableOfContents(tocSheet, sheetNames) {
   // 기존 내용 모두 삭제
   tocSheet.spliceRows(1, tocSheet.rowCount);
   
-  // 헤더 추가
-  tocSheet.addRow(['No', 'Sheet Name', 'Records', 'Aggregate Info', 'Note']);
+  // 헤더 추가 (쿼리문 컬럼 추가)
+  tocSheet.addRow(['No', 'Sheet Name', 'Records', 'Aggregate Info', 'Query', 'Note']);
   
   // 시트 목록 추가
   sheetNames.forEach((obj, idx) => {
@@ -418,7 +418,16 @@ function populateTableOfContents(tocSheet, sheetNames) {
     }
     aggregateInfo = `관련데이터 ${obj.recordCount}건 ${aggregateInfo}`
     
-    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0, aggregateInfo]);
+    // 쿼리문 정보 추출 (최대 100자로 제한)
+    let queryText = '';
+    if (obj.query) {
+      queryText = obj.query.replace(/\s+/g, ' ').trim(); // 연속 공백 제거
+      if (queryText.length > 100) {
+        queryText = queryText.substring(0, 97) + '...';
+      }
+    }
+    
+    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0, aggregateInfo, queryText]);
     
     // 하이퍼링크 설정 - 실제 시트명(tabName) 사용
     const sheetNameForLink = obj.tabName.replace(/'/g, "''"); // 작은따옴표 이스케이프
@@ -534,9 +543,26 @@ function populateTableOfContents(tocSheet, sheetNames) {
       aggregateCell.font = { color: { argb: '999999' } };
     }
     
-    // 비고 컬럼 스타일링 (5번째 컬럼)
+    // 쿼리문 컬럼 스타일링 (5번째 컬럼)
+    const queryCell = row.getCell(5);
+    if (queryText) {
+      queryCell.font = { 
+        size: 9,
+        color: { argb: '2F5597' }
+      };
+      queryCell.alignment = { 
+        horizontal: 'left', 
+        vertical: 'middle',
+        wrapText: true 
+      };
+    } else {
+      queryCell.value = '';
+      queryCell.font = { color: { argb: '999999' } };
+    }
+    
+    // 비고 컬럼 스타일링 (6번째 컬럼)
     if (isTruncated) {
-      row.getCell(5).font = { 
+      row.getCell(6).font = { 
         italic: true,
         color: { argb: 'D2691E' } // 주황색으로 경고 표시
       };
@@ -554,11 +580,13 @@ function populateTableOfContents(tocSheet, sheetNames) {
     }
   });
 
-  // 컬럼 설정
+  // 컬럼 설정 (쿼리문 컬럼 추가)
   tocSheet.columns = [
     { header: 'No', key: 'no', width: 6 },
     { header: 'Sheet Name', key: 'name', width: 25 },
     { header: 'Records', key: 'records', width: 12 },
+    { header: 'Aggregate Info', key: 'aggregate', width: 20 },
+    { header: 'Query', key: 'query', width: 40 },
     { header: 'Note', key: 'note', width: 18 }
   ];
 

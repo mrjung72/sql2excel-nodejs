@@ -66,7 +66,8 @@ class ExcelGenerator {
         tabName: actualSheetName, 
         recordCount: recordCount,
         aggregateColumn: sheetDef.aggregateColumn,
-        aggregateData: aggregateData
+        aggregateData: aggregateData,
+        query: sheetDef.query || '' // 쿼리문 정보 추가
       });
       
       // 시트명이 잘렸는지 확인하고 로그 출력
@@ -137,19 +138,43 @@ class ExcelGenerator {
   async createSeparateTocFile(outputPath, createdSheetNames, createdSheetCounts) {
     const tocWb = new ExcelJS.Workbook();
     const tocOnly = tocWb.addWorksheet('목차');
-    tocOnly.addRow(['No', 'Sheet Name', 'Data Count']);
+    tocOnly.addRow(['No', 'Sheet Name', 'Data Count', 'Query']);
     
     createdSheetNames.forEach((obj, idx) => {
-      const row = tocOnly.addRow([idx + 1, obj.displayName, createdSheetCounts[idx]]);
+      // 쿼리문 정보 추출 (최대 80자로 제한)
+      let queryText = '';
+      if (obj.query) {
+        queryText = obj.query.replace(/\s+/g, ' ').trim(); // 연속 공백 제거
+        if (queryText.length > 80) {
+          queryText = queryText.substring(0, 77) + '...';
+        }
+      }
+      
+      const row = tocOnly.addRow([idx + 1, obj.displayName, createdSheetCounts[idx], queryText]);
       row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
       row.getCell(3).font = { color: { argb: '0563C1' }, underline: true };
+      
+      // 쿼리문 셀 스타일링
+      const queryCell = row.getCell(4);
+      if (queryText) {
+        queryCell.font = { 
+          size: 9,
+          color: { argb: '2F5597' }
+        };
+        queryCell.alignment = { 
+          horizontal: 'left', 
+          vertical: 'middle',
+          wrapText: true 
+        };
+      }
     });
     
     tocOnly.getRow(1).font = { bold: true };
     tocOnly.columns = [
       { header: 'No', key: 'no', width: 6 },
       { header: 'Sheet Name', key: 'name', width: 30 },
-      { header: 'Data Count', key: 'count', width: 12 }
+      { header: 'Data Count', key: 'count', width: 12 },
+      { header: 'Query', key: 'query', width: 50 }
     ];
     
     const tocExt = FileUtils.getExtension(outputPath);
