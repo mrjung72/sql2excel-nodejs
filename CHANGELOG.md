@@ -1,5 +1,86 @@
 # SQL2Excel Version History
 
+## v1.2.3 - Parameter Override Feature Addition (2025-08-29)
+
+### ✨ New Features
+- **⚙️ Parameter Override Feature**: Override query definition parameters for each sheet
+- **🔄 Enhanced Query Reuse**: Use the same query definition across multiple sheets with different parameters
+- **📊 Priority System**: Process in order: sheet-specific parameters > global variables > default values
+- **🎯 Multiple Data Type Support**: Support for string, number, array, boolean, and date parameter types
+- **📝 Detailed Logging**: Comprehensive logging output for parameter override process
+
+### 📊 Parameter Override System
+
+#### Parameter Override in XML
+```xml
+<queryDefs>
+  <queryDef id="customer_base" description="Base customer query">
+    <![CDATA[
+      SELECT CustomerID, CustomerName, Email, Phone, Region
+      FROM Customers 
+      WHERE IsActive = 1 
+        AND Region IN (${regionList})
+        AND CreatedDate >= '${startDate}'
+    ]]>
+  </queryDef>
+</queryDefs>
+
+<sheets>
+  <!-- Seoul customers -->
+  <sheet name="SeoulCustomers" use="true" queryRef="customer_base">
+    <params>
+      <param name="regionList">["Seoul"]</param>
+      <param name="startDate">2024-01-01</param>
+    </params>
+  </sheet>
+  
+  <!-- Busan customers -->
+  <sheet name="BusanCustomers" use="true" queryRef="customer_base">
+    <params>
+      <param name="regionList">["Busan"]</param>
+      <param name="startDate">2024-03-01</param>
+    </params>
+  </sheet>
+</sheets>
+```
+
+#### Parameter Override in JSON
+```json
+{
+  "queryDefs": {
+    "customer_base": {
+      "name": "customer_base",
+      "description": "Base customer query",
+      "query": "SELECT CustomerID, CustomerName, Email, Phone, Region FROM Customers WHERE IsActive = 1 AND Region IN (${regionList}) AND CreatedDate >= '${startDate}'"
+    }
+  },
+  "sheets": [
+    {
+      "name": "SeoulCustomers",
+      "use": true,
+      "queryRef": "customer_base",
+      "params": {
+        "regionList": ["Seoul"],
+        "startDate": "2024-01-01"
+      }
+    }
+  ]
+}
+```
+
+### 🔧 Improvements
+- **Enhanced Variable Processing Logic**: Added sheet-specific parameter support to `substituteVars` method
+- **Parser Improvements**: Parameter override functionality supported in both XML and JSON parsers
+- **Type Safety**: Safe parsing and processing for various data types
+- **Logging System**: Detailed logging output for parameter override process to support debugging
+
+### 📚 Documentation
+- **User Manual Update**: Added detailed parameter override feature description
+- **Example File Updates**: Added parameter override examples
+- **README Update**: Added parameter override to main feature list
+
+---
+
 ## v1.2.2 - Dynamic Variables System Enhancement (2025-08-20)
 
 ### ✨ New Features

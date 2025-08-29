@@ -22,6 +22,7 @@ SQL2Excel is a Node.js-based tool for generating Excel files from SQL query resu
 - 📝 **Variable System**: Use variables in queries for dynamic query generation
 - 🔄 **Enhanced Dynamic Variables**: Extract values from database in real-time with advanced processing
 - 🔄 **Query Reuse**: Define common queries and reuse them across multiple sheets
+- ⚙️ **Parameter Override**: Override query definition parameters for each sheet
 - 📋 **Auto Table of Contents**: Automatically generate table of contents sheet with hyperlinks
 - 📋 **Separate TOC Generation**: Generate standalone table of contents Excel file
 - 📊 **Aggregation Features**: Automatic aggregation and display of counts by specified column values
@@ -413,6 +414,8 @@ WHERE CustomerID IN (${customerData.CustomerID})
 ```
 
 ### 2. Query Reuse
+
+#### Basic Query Reuse
 ```xml
 <queryDefs>
   <queryDef id="customer_base" description="Base customer query">
@@ -428,6 +431,105 @@ WHERE CustomerID IN (${customerData.CustomerID})
     <queryRef ref="customer_base"/>
   </sheet>
 </sheets>
+```
+
+#### Parameter Override Feature
+
+You can use the same query definition across multiple sheets while applying different parameter values for each.
+
+##### Parameter Override in XML
+```xml
+<queryDefs>
+  <queryDef id="customer_base" description="Base customer query">
+    <![CDATA[
+      SELECT CustomerID, CustomerName, Email, Phone, Region
+      FROM Customers 
+      WHERE IsActive = 1 
+        AND Region IN (${regionList})
+        AND CreatedDate >= '${startDate}'
+    ]]>
+  </queryDef>
+</queryDefs>
+
+<sheets>
+  <!-- Seoul customers -->
+  <sheet name="SeoulCustomers" use="true" queryRef="customer_base">
+    <params>
+      <param name="regionList">["Seoul"]</param>
+      <param name="startDate">2024-01-01</param>
+    </params>
+  </sheet>
+  
+  <!-- Busan customers -->
+  <sheet name="BusanCustomers" use="true" queryRef="customer_base">
+    <params>
+      <param name="regionList">["Busan"]</param>
+      <param name="startDate">2024-03-01</param>
+    </params>
+  </sheet>
+  
+  <!-- All regions customers -->
+  <sheet name="AllCustomers" use="true" queryRef="customer_base">
+    <params>
+      <param name="regionList">["Seoul", "Busan", "Daegu", "Incheon"]</param>
+      <param name="startDate">2024-01-01</param>
+    </params>
+  </sheet>
+</sheets>
+```
+
+##### Parameter Override in JSON
+```json
+{
+  "queryDefs": {
+    "customer_base": {
+      "name": "customer_base",
+      "description": "Base customer query",
+      "query": "SELECT CustomerID, CustomerName, Email, Phone, Region FROM Customers WHERE IsActive = 1 AND Region IN (${regionList}) AND CreatedDate >= '${startDate}'"
+    }
+  },
+  "sheets": [
+    {
+      "name": "SeoulCustomers",
+      "use": true,
+      "queryRef": "customer_base",
+      "params": {
+        "regionList": ["Seoul"],
+        "startDate": "2024-01-01"
+      }
+    },
+    {
+      "name": "BusanCustomers",
+      "use": true,
+      "queryRef": "customer_base",
+      "params": {
+        "regionList": ["Busan"],
+        "startDate": "2024-03-01"
+      }
+    }
+  ]
+}
+```
+
+##### Parameter Priority
+1. **Sheet-specific parameters** (highest priority)
+2. **Global variables** (vars section)
+3. **Default values** (hardcoded in query definition)
+
+##### Supported Parameter Types
+- **String**: `"Seoul"`
+- **Number**: `1000`
+- **Array**: `["Seoul", "Busan"]`
+- **Boolean**: `true`, `false`
+- **Date**: `"2024-01-01"`
+
+##### Log Output Example
+```
+[쿼리 참조] 시트 "SeoulCustomers"이(가) 쿼리 정의 "customer_base"을(를) 참조합니다.
+[파라미터 재설정] 시트 "SeoulCustomers"에서 파라미터 재설정: {
+  regionList: [ 'Seoul' ],
+  startDate: '2024-01-01'
+}
 ```
 
 ### 3. Separate Table of Contents

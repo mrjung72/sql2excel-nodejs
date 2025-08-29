@@ -10,6 +10,7 @@ A Node.js-based tool for generating Excel files from SQL query results.
 - 📝 **Variable System**: Use variables in queries for dynamic query generation
 - 🔄 **Dynamic Variables**: Extract values from database in real-time for dynamic query generation
 - 🔄 **Query Reuse**: Define common queries and reuse them across multiple sheets
+- ⚙️ **Parameter Override**: Override query definition parameters for each sheet
 - 📋 **Auto Table of Contents**: Automatically generate table of contents sheet with hyperlinks
 - 📊 **Aggregation Features**: Automatic aggregation and display of counts by specified column values
 - 🚦 **Query Limits**: Row count limiting for large data processing

@@ -413,6 +413,8 @@ WHERE CustomerID IN (${customerData.CustomerID})
 ```
 
 ### 2. 쿼리 재사용
+
+#### 기본 쿼리 재사용
 ```xml
 <queryDefs>
   <queryDef id="customer_base" description="기본 고객 쿼리">
@@ -428,6 +430,105 @@ WHERE CustomerID IN (${customerData.CustomerID})
     <queryRef ref="customer_base"/>
   </sheet>
 </sheets>
+```
+
+#### 파라미터 재설정 기능
+
+동일한 쿼리 정의를 여러 시트에서 사용하면서 각각 다른 파라미터 값을 적용할 수 있습니다.
+
+##### XML에서 파라미터 재설정
+```xml
+<queryDefs>
+  <queryDef id="customer_base" description="기본 고객 쿼리">
+    <![CDATA[
+      SELECT CustomerID, CustomerName, Email, Phone, Region
+      FROM Customers 
+      WHERE IsActive = 1 
+        AND Region IN (${regionList})
+        AND CreatedDate >= '${startDate}'
+    ]]>
+  </queryDef>
+</queryDefs>
+
+<sheets>
+  <!-- 서울 지역 고객 -->
+  <sheet name="서울고객목록" use="true" queryRef="customer_base">
+    <params>
+      <param name="regionList">["서울"]</param>
+      <param name="startDate">2024-01-01</param>
+    </params>
+  </sheet>
+  
+  <!-- 부산 지역 고객 -->
+  <sheet name="부산고객목록" use="true" queryRef="customer_base">
+    <params>
+      <param name="regionList">["부산"]</param>
+      <param name="startDate">2024-03-01</param>
+    </params>
+  </sheet>
+  
+  <!-- 전체 지역 고객 -->
+  <sheet name="전체고객목록" use="true" queryRef="customer_base">
+    <params>
+      <param name="regionList">["서울", "부산", "대구", "인천"]</param>
+      <param name="startDate">2024-01-01</param>
+    </params>
+  </sheet>
+</sheets>
+```
+
+##### JSON에서 파라미터 재설정
+```json
+{
+  "queryDefs": {
+    "customer_base": {
+      "name": "customer_base",
+      "description": "기본 고객 쿼리",
+      "query": "SELECT CustomerID, CustomerName, Email, Phone, Region FROM Customers WHERE IsActive = 1 AND Region IN (${regionList}) AND CreatedDate >= '${startDate}'"
+    }
+  },
+  "sheets": [
+    {
+      "name": "서울고객목록",
+      "use": true,
+      "queryRef": "customer_base",
+      "params": {
+        "regionList": ["서울"],
+        "startDate": "2024-01-01"
+      }
+    },
+    {
+      "name": "부산고객목록",
+      "use": true,
+      "queryRef": "customer_base",
+      "params": {
+        "regionList": ["부산"],
+        "startDate": "2024-03-01"
+      }
+    }
+  ]
+}
+```
+
+##### 파라미터 우선순위
+1. **시트별 파라미터** (최우선)
+2. **전역 변수** (vars 섹션)
+3. **기본값** (쿼리 정의 내 하드코딩)
+
+##### 지원하는 파라미터 타입
+- **문자열**: `"서울"`
+- **숫자**: `1000`
+- **배열**: `["서울", "부산"]`
+- **불린**: `true`, `false`
+- **날짜**: `"2024-01-01"`
+
+##### 로그 출력 예시
+```
+[쿼리 참조] 시트 "서울고객목록"이(가) 쿼리 정의 "customer_base"을(를) 참조합니다.
+[파라미터 재설정] 시트 "서울고객목록"에서 파라미터 재설정: {
+  regionList: [ '서울' ],
+  startDate: '2024-01-01'
+}
 ```
 
 ### 3. 별도 목차 생성
