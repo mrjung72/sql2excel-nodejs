@@ -80,7 +80,17 @@
 
 
   <!-- 시트 정의 -->
-  <sheet name="${envType}_동적변수_테스트" use="true" queryRef="customer_base" aggregateColumn="지역" maxRows="100" db="sampleDB"/>
+  <sheet name="${envType}_동적변수_서울_테스트" use="true" queryRef="customer_base" aggregateColumn="지역" maxRows="100" db="sampleDB">
+    <params>
+      <param name="regionList">["서울"]</param>
+    </params>
+  </sheet>
+  
+  <sheet name="${envType}_동적변수_부산_테스트" use="true" queryRef="customer_base" aggregateColumn="지역" maxRows="100" db="sampleDB">
+    <params>
+      <param name="regionList">["부산"]</param>
+    </params>
+  </sheet>
   
   <sheet name="주문상세_동적변수_테스트2" use="false" aggregateColumn="주문상태">
     <![CDATA[

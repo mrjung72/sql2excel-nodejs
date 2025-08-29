@@ -117,15 +117,19 @@ class VariableProcessor {
    * 향상된 변수 치환 함수 (동적 변수 지원)
    * @param {string} str - 치환할 문자열
    * @param {Object} vars - 변수 객체
+   * @param {Object} sheetParams - 시트별 파라미터 (선택사항)
    * @returns {string} 치환된 문자열
    */
-  substituteVars(str, vars) {
+  substituteVars(str, vars, sheetParams = {}) {
     let result = str;
     const debugVariables = process.env.DEBUG_VARIABLES === 'true';
     
     if (debugVariables) {
       console.log(`변수 치환 시작: ${str.substring(0, 200)}${str.length > 200 ? '...' : ''}`);
     }
+    
+    // 시트별 파라미터를 전역 변수에 병합 (우선순위 높음)
+    const mergedVars = { ...vars, ...sheetParams };
     
     // 동적 변수 치환 (우선순위 높음)
     Object.entries(this.dynamicVariables).forEach(([key, value]) => {
@@ -203,7 +207,7 @@ class VariableProcessor {
     
     // 일반 변수 치환 (기존 방식)
     result = result.replace(/\$\{(\w+)\}/g, (_, v) => {
-      const value = vars[v];
+      const value = mergedVars[v];
       if (value === undefined || value === null) return '';
       
       // 배열 타입인 경우 IN절 처리

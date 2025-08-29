@@ -177,8 +177,8 @@ async function main() {
       continue;
     }
     
-    let sql = variableProcessor.substituteVars(sheetDef.query, mergedVars);
-    const sheetName = variableProcessor.substituteVars(sheetDef.name, mergedVars);
+    let sql = variableProcessor.substituteVars(sheetDef.query, mergedVars, sheetDef.params || {});
+    const sheetName = variableProcessor.substituteVars(sheetDef.name, mergedVars, sheetDef.params || {});
     
     // maxRows 제한 적용 (개별 시트 설정 > 전역 설정 우선)
     const effectiveMaxRows = sheetDef.maxRows || globalMaxRows;

@@ -42,14 +42,26 @@
         "query": "SELECT OrderID, OrderNumber, OrderDate FROM SampleDB.dbo.Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}' AND OrderDate >= DATEADD(day, -30, '${CURRENT_DATE}') ORDER BY OrderDate DESC"
       }
   ],
+  "queryDefs": {
+    "customer_base": {
+      "name": "customer_base",
+      "description": "Base customer query",
+      "query": "SELECT c.CustomerID as 고객ID, c.CustomerName as 고객명, c.City as 도시, c.Region as 지역, c.CustomerType as 고객유형 FROM SampleDB.dbo.Customers c WHERE c.CustomerID IN (${customerData.CustomerID}) AND c.Region IN (${regionList}) ORDER BY c.CustomerID"
+    }
+  },
   "sheets": [
     {
       "name": "${envType}_동적변수_테스트",
       "use": true,
+      "queryRef": "customer_base",
       "aggregateColumn": "지역",
       "maxRows": 100,
       "db": "sampleDB",
-      "query": "SELECT c.CustomerID as 고객ID, c.CustomerName as 고객명, c.City as 도시, c.Region as 지역, c.CustomerType as 고객유형 FROM SampleDB.dbo.Customers c WHERE c.CustomerID IN (${customerData.CustomerID}) AND c.Region IN (${regionList}) ORDER BY c.CustomerID"
+      "params": {
+        "regionList": ["서울", "부산", "대구"],
+        "startDate": "2024-03-01",
+        "endDate": "2024-12-31"
+      }
     },
     {
       "name": "주문상세_동적변수_테스트2",

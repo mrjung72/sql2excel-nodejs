@@ -117,6 +117,36 @@ class QueryParser {
     
     const sheets = parsed.queries.sheet.map(s => {
       let query = '';
+      let sheetParams = {};
+      
+      // 시트별 파라미터 파싱
+      if (s.params && s.params[0] && s.params[0].param) {
+        const paramElements = Array.isArray(s.params[0].param) 
+          ? s.params[0].param 
+          : [s.params[0].param];
+        
+        for (const param of paramElements) {
+          if (param.$ && param.$.name && param._) {
+            let value = param._.toString();
+            // 배열 형태 문자열을 실제 배열로 변환
+            if (value.startsWith('[') && value.endsWith(']')) {
+              try {
+                value = JSON.parse(value);
+              } catch (e) {
+                // JSON 파싱 실패 시 문자열 그대로 사용
+              }
+            }
+            // boolean 값 처리
+            if (value === 'true') value = true;
+            if (value === 'false') value = false;
+            // 숫자 값 처리
+            if (!isNaN(value) && !isNaN(parseFloat(value)) && typeof value === 'string') {
+              value = parseFloat(value);
+            }
+            sheetParams[param.$.name] = value;
+          }
+        }
+      }
       
       // queryRef 속성이 있으면 쿼리 정의에서 참조
       if (s.$.queryRef) {
@@ -124,6 +154,11 @@ class QueryParser {
         if (queryDefs[queryRef]) {
           query = queryDefs[queryRef].query;
           console.log(`[쿼리 참조] 시트 "${s.$.name}"이(가) 쿼리 정의 "${queryRef}"을(를) 참조합니다.`);
+          
+          // 시트별 파라미터가 있으면 로그 출력
+          if (Object.keys(sheetParams).length > 0) {
+            console.log(`[파라미터 재설정] 시트 "${s.$.name}"에서 파라미터 재설정:`, sheetParams);
+          }
         } else {
           throw new Error(`쿼리 정의를 찾을 수 없습니다: ${queryRef} (시트: ${s.$.name})`);
         }
@@ -140,6 +175,7 @@ class QueryParser {
         db: s.$.db || null,
         queryRef: s.$.queryRef || null,
         style: s.$.style || null, // 시트별 스타일 추가
+        params: sheetParams, // 시트별 파라미터 추가
         query: query
       };
     });
@@ -167,12 +203,18 @@ class QueryParser {
     // JSON 시트에서 queryRef 처리
     const sheets = (queries.sheets || []).map(sheet => {
       let query = sheet.query || '';
+      let sheetParams = sheet.params || {};
       
       // queryRef가 있으면 쿼리 정의에서 참조
       if (sheet.queryRef) {
         if (queryDefs[sheet.queryRef]) {
           query = queryDefs[sheet.queryRef].query || queryDefs[sheet.queryRef];
           console.log(`[쿼리 참조] 시트 "${sheet.name}"이(가) 쿼리 정의 "${sheet.queryRef}"을(를) 참조합니다.`);
+          
+          // 시트별 파라미터가 있으면 로그 출력
+          if (Object.keys(sheetParams).length > 0) {
+            console.log(`[파라미터 재설정] 시트 "${sheet.name}"에서 파라미터 재설정:`, sheetParams);
+          }
         } else {
           throw new Error(`쿼리 정의를 찾을 수 없습니다: ${sheet.queryRef} (시트: ${sheet.name})`);
         }
@@ -180,6 +222,7 @@ class QueryParser {
       
       return {
         ...sheet,
+        params: sheetParams,
         query: query
       };
     });
