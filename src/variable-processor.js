@@ -42,8 +42,12 @@ class VariableProcessor {
             // 쿼리에서 변수 치환 (기존 변수들로)
             const processedQuery = this.substituteVars(dynamicVar.query, globalVars);
             
+            // 동적 변수에 지정된 데이터베이스 사용 (있으면), 없으면 기본값 사용
+            const targetDbKey = dynamicVar.database || dbKey;
+            console.log(`   데이터베이스: ${targetDbKey} (${dynamicVar.database ? '동적변수 지정' : '기본값'})`);
+            
             // DB에서 데이터 조회
-            const pool = await mssqlHelper.createConnectionPool(configObj.dbs[dbKey], dbKey);
+            const pool = await mssqlHelper.createConnectionPool(configObj.dbs[targetDbKey], targetDbKey);
             const result = await mssqlHelper.executeQuery(pool, processedQuery);
             
             if (result.recordset && result.recordset.length > 0) {

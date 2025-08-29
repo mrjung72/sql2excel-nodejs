@@ -26,8 +26,8 @@ class QueryParser {
     let queryDefs = {};
     if (parsed.queries.queryDefs && parsed.queries.queryDefs[0] && parsed.queries.queryDefs[0].queryDef) {
       for (const queryDef of parsed.queries.queryDefs[0].queryDef) {
-        if (queryDef.$ && queryDef.$.name) {
-          const queryName = queryDef.$.name;
+        if (queryDef.$ && (queryDef.$.id || queryDef.$.name)) {
+          const queryName = queryDef.$.id || queryDef.$.name;
           const queryText = (queryDef._ || queryDef['#text'] || queryDef.__cdata || '').toString().trim();
           
           if (queryText) {
@@ -90,15 +90,17 @@ class QueryParser {
           const query = dv._.toString().trim();
           const type = dv.$.type || 'column_identified';
           const description = dv.$.description || '';
+          const database = dv.$.database || '';
           
           dynamicVars.push({
             name: dv.$.name,
             query: query,
             type: type,
-            description: description
+            description: description,
+            database: database
           });
           
-          console.log(`동적 변수 정의 발견: ${dv.$.name} (타입: ${type}, 설명: ${description})`);
+          console.log(`동적 변수 정의 발견: ${dv.$.name} (타입: ${type}, 설명: ${description}, 데이터베이스: ${database || '기본값'})`);
         }
       }
     }

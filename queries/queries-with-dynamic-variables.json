@@ -19,22 +19,26 @@
          {
        "name": "customerData",
        "description": "고객 데이터 컬럼별 분류",
+       "database": "sampleDB",
        "query": "SELECT CustomerID, CustomerName, City, Region, CustomerType FROM SampleDB.dbo.Customers WHERE IsActive = 1 ORDER BY CustomerID"
      },
     {
       "name": "orderDetails",
       "type": "key_value_pairs",
       "description": "주문상세 정보",
+      "database": "sampleDB",
       "query": "SELECT OrderID, OrderDetailID FROM SampleDB.dbo.OrderDetails ORDER BY OrderID"
     },
                    {
         "name": "activeOrders",
         "description": "활성 주문 목록",
+        "database": "sampleDB",
         "query": "SELECT OrderID FROM SampleDB.dbo.Orders WHERE OrderStatus = 'Pending' ORDER BY OrderID"
       },
            {
         "name": "recentOrders",
         "description": "최근 주문 정보",
+        "database": "sampleDB",
         "query": "SELECT OrderID, OrderNumber, OrderDate FROM SampleDB.dbo.Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}' AND OrderDate >= DATEADD(day, -30, '${CURRENT_DATE}') ORDER BY OrderDate DESC"
       }
   ],

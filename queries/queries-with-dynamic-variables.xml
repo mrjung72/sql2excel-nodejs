@@ -19,7 +19,7 @@
   <!-- 동적 변수 정의 -->
   <dynamicVars>
          <!-- 기본 타입 (column_identified): 각 컬럼별로 배열 생성 -->
-     <dynamicVar name="customerData" description="고객 데이터 컬럼별 분류">
+     <dynamicVar name="customerData" description="고객 데이터 컬럼별 분류" database="sampleDB">
       <![CDATA[
         SELECT CustomerID, CustomerName, City, Region, CustomerType
         FROM SampleDB.dbo.Customers
@@ -29,7 +29,7 @@
     </dynamicVar>
     
     <!-- key_value_pairs 타입: 첫 번째 컬럼을 키로, 두 번째 컬럼을 값으로 -->
-    <dynamicVar name="orderDetails" type="key_value_pairs" description="주문상세 정보">
+    <dynamicVar name="orderDetails" type="key_value_pairs" description="주문상세 정보" database="sampleDB">
       <![CDATA[
         SELECT OrderID, OrderDetailID
         FROM SampleDB.dbo.OrderDetails
@@ -38,7 +38,7 @@
     </dynamicVar>
     
                    <!-- 기본 타입 (column_identified): 각 컬럼별로 배열 생성 -->
-      <dynamicVar name="activeOrders" description="활성 주문 목록">
+      <dynamicVar name="activeOrders" description="활성 주문 목록" database="sampleDB">
        <![CDATA[
          SELECT OrderID
          FROM SampleDB.dbo.Orders
@@ -48,7 +48,7 @@
      </dynamicVar>
      
            <!-- 기본 타입 (column_identified): 시각 함수와 일반 변수를 조합한 동적 변수 -->
-      <dynamicVar name="recentOrders" description="최근 주문 정보">
+      <dynamicVar name="recentOrders" description="최근 주문 정보" database="sampleDB">
        <![CDATA[
          SELECT OrderID, OrderNumber, OrderDate
          FROM SampleDB.dbo.Orders
@@ -59,10 +59,11 @@
        ]]>
      </dynamicVar>
   </dynamicVars>
-  
-  <!-- 시트 정의 -->
-  <sheet name="${envType}_동적변수_테스트" use="true" aggregateColumn="지역" maxRows="100" db="sampleDB">
-    <![CDATA[
+
+
+  <queryDefs>
+    <queryDef id="customer_base" description="Base customer query">
+      <![CDATA[
       SELECT 
         c.CustomerID as 고객ID,
         c.CustomerName as 고객명,
@@ -73,10 +74,15 @@
       WHERE c.CustomerID IN (${customerData.CustomerID})
         AND c.Region IN (${regionList})
       ORDER BY c.CustomerID
-    ]]>
-  </sheet>
+      ]]>
+    </queryDef>
+  </queryDefs>
+
+
+  <!-- 시트 정의 -->
+  <sheet name="${envType}_동적변수_테스트" use="true" queryRef="customer_base" aggregateColumn="지역" maxRows="100" db="sampleDB"/>
   
-  <sheet name="주문상세_동적변수_테스트2" use="true" aggregateColumn="주문상태">
+  <sheet name="주문상세_동적변수_테스트2" use="false" aggregateColumn="주문상태">
     <![CDATA[
       SELECT 
         o.OrderID as 주문ID,
@@ -92,7 +98,7 @@
     ]]>
   </sheet>
   
-  <sheet name="주문상세_동적변수_테스트" use="true" aggregateColumn="주문상태">
+  <sheet name="주문상세_동적변수_테스트" use="false" aggregateColumn="주문상태">
     <![CDATA[
       SELECT 
         o.OrderNumber as 주문번호,
@@ -108,7 +114,7 @@
     ]]>
   </sheet>
   
-  <sheet name="복합_동적변수_테스트" use="true">
+  <sheet name="복합_동적변수_테스트" use="false">
     <![CDATA[
       SELECT 
         c.CustomerName as 고객명,
@@ -127,7 +133,7 @@
     ]]>
   </sheet>
   
-  <sheet name="시각함수_동적변수_테스트" use="true">
+  <sheet name="시각함수_동적변수_테스트" use="false">
     <![CDATA[
       SELECT 
         '현재시각' as 구분,
