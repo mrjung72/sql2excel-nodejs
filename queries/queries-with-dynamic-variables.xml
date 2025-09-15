@@ -1,5 +1,5 @@
 <queries>
-  <excel db="sampleDB" output="d:/temp/동적변수_테스트_2024.xlsx" maxRows="20" style="modern" aggregateInfoTemplate="applied data {count}rows">
+  <excel db="sampleDB" output="d:/temp/동적변수_테스트_2024.xlsx" maxRows="20" style="modern" aggregateInfoTemplate="관련데이터 {count}건 {details}">
     <!-- 스타일 템플릿 ID 지정 (기본값: default) -->
     <!-- 사용 가능한 템플릿: default, modern, dark, colorful, minimal, business, premium -->
     <!-- 필요시 개별 스타일 속성으로 덮어쓰기 가능 -->
