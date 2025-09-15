@@ -245,7 +245,8 @@ class QueryParser {
       maxRows: null,
       style: null,
       db: null,
-      output: null
+      output: null,
+      aggregateInfoTemplate: null
     };
 
     if (parsed.queries && parsed.queries.excel && parsed.queries.excel[0]) {
@@ -256,6 +257,8 @@ class QueryParser {
       if (excel.$ && excel.$.maxRows) excelSettings.maxRows = parseInt(excel.$.maxRows);
       // XML에서 스타일 템플릿 ID 읽기
       if (excel.$ && excel.$.style) excelSettings.style = excel.$.style;
+      // XML에서 전역 집계 정보 템플릿 읽기
+      if (excel.$ && excel.$.aggregateInfoTemplate) excelSettings.aggregateInfoTemplate = excel.$.aggregateInfoTemplate;
     }
 
     return excelSettings;
@@ -271,7 +274,8 @@ class QueryParser {
       maxRows: null,
       style: null,
       db: null,
-      output: null
+      output: null,
+      aggregateInfoTemplate: null
     };
 
     if (queries.excel) {
@@ -279,6 +283,7 @@ class QueryParser {
       if (queries.excel.output) excelSettings.output = queries.excel.output;
       if (queries.excel.maxRows !== undefined) excelSettings.maxRows = parseInt(queries.excel.maxRows);
       if (queries.excel.style) excelSettings.style = queries.excel.style;
+      if (queries.excel.aggregateInfoTemplate) excelSettings.aggregateInfoTemplate = queries.excel.aggregateInfoTemplate;
     }
 
     return excelSettings;

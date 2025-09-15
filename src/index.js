@@ -70,6 +70,7 @@ async function main() {
   let excelDb = undefined;
   let excelOutput = undefined;
   let globalMaxRows = null; // 전역 최대 조회 건수
+  let globalAggregateInfoTemplate = null; // 전역 집계 정보 템플릿
   
   // 기본 스타일 템플릿 적용 (CLI 옵션)
   const selectedStyle = await styleManager.getStyleById(argv.style);
@@ -91,8 +92,13 @@ async function main() {
     const excelSettings = queryParser.parseExcelSettingsFromXML(parsed);
     
     globalMaxRows = excelSettings.maxRows;
+    globalAggregateInfoTemplate = excelSettings.aggregateInfoTemplate;
     excelDb = excelSettings.db;
     excelOutput = excelSettings.output;
+    
+    if (globalAggregateInfoTemplate) {
+      console.log(`📋 전역 집계 정보 템플릿: "${globalAggregateInfoTemplate}"`);
+    }
     
     if (excelSettings.style) {
       const xmlStyle = await styleManager.getStyleById(excelSettings.style);
@@ -111,8 +117,13 @@ async function main() {
     const excelSettings = queryParser.parseExcelSettingsFromJSON(queries);
     
     globalMaxRows = excelSettings.maxRows;
+    globalAggregateInfoTemplate = excelSettings.aggregateInfoTemplate;
     excelDb = excelSettings.db;
     excelOutput = excelSettings.output;
+    
+    if (globalAggregateInfoTemplate) {
+      console.log(`📋 전역 집계 정보 템플릿: "${globalAggregateInfoTemplate}"`);
+    }
     
     if (queries.excel) {
       excelStyle = queries.excel;
@@ -226,7 +237,7 @@ async function main() {
         tabName: sheetName, 
         recordCount: recordCount,
         aggregateColumn: sheetDef.aggregateColumn,
-        aggregateInfoTemplate: sheetDef.aggregateInfoTemplate, // 집계 정보 템플릿 추가
+        aggregateInfoTemplate: sheetDef.aggregateInfoTemplate || globalAggregateInfoTemplate, // 시트별 > 전역 템플릿 우선
         aggregateData: null
       });
       createdSheetCounts.push(recordCount);
@@ -239,7 +250,7 @@ async function main() {
         recordCount: recordCount,
         dbKey: sheetDbKey,
         aggregateColumn: sheetDef.aggregateColumn,
-        aggregateInfoTemplate: sheetDef.aggregateInfoTemplate, // 집계 정보 템플릿 추가
+        aggregateInfoTemplate: sheetDef.aggregateInfoTemplate || globalAggregateInfoTemplate, // 시트별 > 전역 템플릿 우선
         query: sql
       });
       
