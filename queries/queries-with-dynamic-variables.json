@@ -2,7 +2,6 @@
   "excel": {
     "db": "sampleDB",
     "output": "d:/temp/동적변수_테스트_2024.xlsx",
-    "separateToc": false,
     "maxRows": 20,
     "style": "modern"
   },

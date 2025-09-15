@@ -146,8 +146,8 @@ db-test.bat
 #### 기본 구조
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<queries separateToc="true" maxRows="10000">
-  <excel db="sampleDB" output="output/SalesReport.xlsx" style="modern" separateToc="true">
+<queries maxRows="10000">
+  <excel db="sampleDB" output="output/SalesReport.xlsx" style="modern">
     <header>
       <font name="Arial" size="12" color="FFFFFF" bold="true"/>
       <fill color="4F81BD"/>
@@ -225,7 +225,6 @@ db-test.bat
     "db": "sampleDB",
     "output": "output/SalesReport.xlsx",
     "style": "modern",
-    "separateToc": true,
     "maxRows": 10000,
     "header": {
       "font": {
@@ -537,8 +536,8 @@ WHERE CustomerID IN (${customerData.CustomerID})
 
 #### XML 설정
 ```xml
-<queries separateToc="true">
-  <excel db="sampleDB" output="output/Report.xlsx" separateToc="true">
+<queries>
+  <excel db="sampleDB" output="output/Report.xlsx">
 ```
 
 #### CLI 옵션
@@ -614,7 +613,7 @@ node src/excel-cli.js list-styles
 ### 완전한 XML 예제
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<queries separateToc="true" maxRows="5000">
+<queries maxRows="5000">
   <excel db="sampleDB" output="output/SalesReport.xlsx" style="business">
     <header>
       <font name="Arial" size="12" color="FFFFFF" bold="true"/>
@@ -721,7 +720,6 @@ node src/excel-cli.js list-styles
     "db": "sampleDB",
     "output": "output/SalesReport.xlsx",
     "style": "business",
-    "separateToc": true,
     "maxRows": 5000,
     "header": {
       "font": {

@@ -19,7 +19,6 @@ class ExcelGenerator {
     const {
       sheets,
       outputPath,
-      createSeparateToc = false,
       createdSheetNames = [],
       createdSheetCounts = []
     } = options;
@@ -66,6 +65,7 @@ class ExcelGenerator {
         tabName: actualSheetName, 
         recordCount: recordCount,
         aggregateColumn: sheetDef.aggregateColumn,
+        aggregateInfoTemplate: sheetDef.aggregateInfoTemplate, // 집계 정보 템플릿 추가
         aggregateData: aggregateData,
         query: sheetDef.query || '' // 쿼리문 정보 추가
       });
@@ -114,10 +114,6 @@ class ExcelGenerator {
       // 목차 시트는 이미 첫 번째로 생성되었으므로 추가 조작 불필요
       
       console.log(`[목차] 내용 채우기 완료 (총 ${createdSheets.length}개 시트)`);
-
-      if (createSeparateToc) {
-        await this.createSeparateTocFile(outputPath, createdSheets, createdSheetCounts);
-      }
     }
     
     console.log(`\nGenerating excel file ... `);
@@ -127,62 +123,6 @@ class ExcelGenerator {
     console.log('-------------------------------------------------------------------------------\n\n');
     
     return outputPath;
-  }
-
-  /**
-   * 별도 목차 파일 생성
-   * @param {string} outputPath - 원본 출력 파일 경로
-   * @param {Array} createdSheetNames - 생성된 시트 정보
-   * @param {Array} createdSheetCounts - 시트별 데이터 개수
-   */
-  async createSeparateTocFile(outputPath, createdSheetNames, createdSheetCounts) {
-    const tocWb = new ExcelJS.Workbook();
-    const tocOnly = tocWb.addWorksheet('목차');
-    tocOnly.addRow(['No', 'Sheet Name', 'Data Count', 'Query']);
-    
-    createdSheetNames.forEach((obj, idx) => {
-      // 쿼리문 정보 추출 (최대 10000자로 제한)
-      let queryText = '';
-      if (obj.query) {
-        queryText = obj.query.replace(/\s+/g, ' ').trim(); // 연속 공백 제거
-        if (queryText.length > 10000) {
-          queryText = queryText.substring(0, 10000) + '... 이하 생략 (최대 10000자로 제한) .....';
-        }
-      }
-      
-      const row = tocOnly.addRow([idx + 1, obj.displayName, createdSheetCounts[idx], queryText]);
-      row.getCell(2).font = { color: { argb: '0563C1' }, underline: true };
-      row.getCell(3).font = { color: { argb: '0563C1' }, underline: true };
-      
-      // 쿼리문 셀 스타일링
-      const queryCell = row.getCell(4);
-      if (queryText) {
-        queryCell.font = { 
-          size: 9,
-          color: { argb: '2F5597' }
-        };
-        queryCell.alignment = { 
-          horizontal: 'left', 
-          vertical: 'middle',
-          wrapText: true 
-        };
-      }
-    });
-    
-    tocOnly.getRow(1).font = { bold: true };
-    tocOnly.columns = [
-      { header: 'No', key: 'no', width: 6 },
-      { header: 'Sheet Name', key: 'name', width: 30 },
-      { header: 'Data Count', key: 'count', width: 12 },
-      { header: 'Query', key: 'query', width: 50 }
-    ];
-    
-    const tocExt = FileUtils.getExtension(outputPath);
-    const tocBase = outputPath.slice(0, -tocExt.length);
-    const tocFile = `${tocBase}_목차_${FileUtils.getNowTimestampStr()}${tocExt}`;
-    
-    await tocWb.xlsx.writeFile(tocFile);
-    console.log(`[목차] 별도 엑셀 파일 생성: ${tocFile}`);
   }
 
   /**

@@ -1,5 +1,5 @@
 <queries>
-  <excel db="sampleDB" output="d:/temp/동적변수_테스트_2024.xlsx" separateToc="false" maxRows="20" style="modern">
+  <excel db="sampleDB" output="d:/temp/동적변수_테스트_2024.xlsx" maxRows="20" style="modern">
     <!-- 스타일 템플릿 ID 지정 (기본값: default) -->
     <!-- 사용 가능한 템플릿: default, modern, dark, colorful, minimal, business, premium -->
     <!-- 필요시 개별 스타일 속성으로 덮어쓰기 가능 -->
@@ -80,19 +80,19 @@
 
 
   <!-- 시트 정의 -->
-  <sheet name="${envType}_동적변수_서울_테스트" use="true" queryRef="customer_base" aggregateColumn="지역" maxRows="100" db="sampleDB">
+  <sheet name="${envType}_동적변수_서울_테스트" use="true" queryRef="customer_base" aggregateColumn="지역" aggregateInfoTemplate="지역별 고객 분포: {count}건" maxRows="100" db="sampleDB">
     <params>
       <param name="regionList">["서울"]</param>
     </params>
   </sheet>
   
-  <sheet name="${envType}_동적변수_부산_테스트" use="true" queryRef="customer_base" aggregateColumn="지역" maxRows="100" db="sampleDB">
+  <sheet name="${envType}_동적변수_부산_테스트" use="true" queryRef="customer_base" aggregateColumn="지역" aggregateInfoTemplate="지역별 고객 분포: {count}건" maxRows="100" db="sampleDB">
     <params>
       <param name="regionList">["부산"]</param>
     </params>
   </sheet>
   
-  <sheet name="주문상세_동적변수_테스트2" use="false" aggregateColumn="주문상태">
+  <sheet name="주문상세_동적변수_테스트2" use="false" aggregateColumn="주문상태" aggregateInfoTemplate="주문상태별 현황: {count}건 (총 {total}건)">
     <![CDATA[
       SELECT 
         o.OrderID as 주문ID,
@@ -108,7 +108,7 @@
     ]]>
   </sheet>
   
-  <sheet name="주문상세_동적변수_테스트" use="false" aggregateColumn="주문상태">
+  <sheet name="주문상세_동적변수_테스트" use="false" aggregateColumn="주문상태" aggregateInfoTemplate="주문상태별 분석: {count}건">
     <![CDATA[
       SELECT 
         o.OrderNumber as 주문번호,
@@ -124,7 +124,7 @@
     ]]>
   </sheet>
   
-  <sheet name="복합_동적변수_테스트" use="false">
+  <sheet name="복합_동적변수_테스트" use="false" aggregateInfoTemplate="고객별 주문 집계 분석">
     <![CDATA[
       SELECT 
         c.CustomerName as 고객명,
@@ -143,7 +143,7 @@
     ]]>
   </sheet>
   
-  <sheet name="시각함수_동적변수_테스트" use="false">
+  <sheet name="시각함수_동적변수_테스트" use="false" aggregateInfoTemplate="시각 함수 테스트 결과">
     <![CDATA[
       SELECT 
         '현재시각' as 구분,

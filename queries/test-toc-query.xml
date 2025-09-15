@@ -1,5 +1,5 @@
 <queries>
-  <excel db="sampleDB" output="d:/temp/ToC_테스트_2024.xlsx" separateToc="false" maxRows="10" style="business">
+  <excel db="sampleDB" output="d:/temp/ToC_테스트_2024.xlsx" maxRows="10" style="business">
     <!-- ToC 시트에 쿼리문 표시 테스트 -->
   </excel>
   <vars>

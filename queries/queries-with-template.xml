@@ -1,5 +1,5 @@
 <queries>
-  <excel db="sampleDB" output="d:/temp/매출집계_템플릿_2024.xlsx" separateToc="false" maxRows="20" style="business">
+  <excel db="sampleDB" output="d:/temp/매출집계_템플릿_2024.xlsx" maxRows="20" style="business">
     <!-- 전역 스타일 템플릿 ID (기본값: default) -->
     <!-- 시트별로 개별 스타일을 지정할 수 있음 -->
     <!-- 사용 가능한 템플릿: default, modern, dark, colorful, minimal, business, premium -->

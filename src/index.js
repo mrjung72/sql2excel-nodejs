@@ -69,7 +69,6 @@ async function main() {
   let excelStyle = {};
   let excelDb = undefined;
   let excelOutput = undefined;
-  let createSeparateToc = false; // 별도 목차 파일 생성 여부
   let globalMaxRows = null; // 전역 최대 조회 건수
   
   // 기본 스타일 템플릿 적용 (CLI 옵션)
@@ -91,7 +90,6 @@ async function main() {
     const parsed = await require('xml2js').parseStringPromise(xml, { trim: true });
     const excelSettings = queryParser.parseExcelSettingsFromXML(parsed);
     
-    createSeparateToc = excelSettings.separateToc;
     globalMaxRows = excelSettings.maxRows;
     excelDb = excelSettings.db;
     excelOutput = excelSettings.output;
@@ -112,7 +110,6 @@ async function main() {
     const queries = JSON5.parse(FileUtils.readFileSafely(FileUtils.resolvePath(argv.query), 'utf8'));
     const excelSettings = queryParser.parseExcelSettingsFromJSON(queries);
     
-    createSeparateToc = excelSettings.separateToc;
     globalMaxRows = excelSettings.maxRows;
     excelDb = excelSettings.db;
     excelOutput = excelSettings.output;
@@ -229,6 +226,7 @@ async function main() {
         tabName: sheetName, 
         recordCount: recordCount,
         aggregateColumn: sheetDef.aggregateColumn,
+        aggregateInfoTemplate: sheetDef.aggregateInfoTemplate, // 집계 정보 템플릿 추가
         aggregateData: null
       });
       createdSheetCounts.push(recordCount);
@@ -258,7 +256,6 @@ async function main() {
     await excelGenerator.generateExcel({
       sheets: processedSheets,
       outputPath: outFile,
-      createSeparateToc: createSeparateToc,
       createdSheetNames: createdSheetNames,
       createdSheetCounts: createdSheetCounts
     });

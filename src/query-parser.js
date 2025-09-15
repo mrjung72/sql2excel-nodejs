@@ -171,6 +171,7 @@ class QueryParser {
         name: s.$.name,
         use: s.$.use,
         aggregateColumn: s.$.aggregateColumn || null,
+        aggregateInfoTemplate: s.$.aggregateInfoTemplate || null, // 집계 정보 템플릿 추가
         maxRows: s.$.maxRows ? parseInt(s.$.maxRows) : null,
         db: s.$.db || null,
         queryRef: s.$.queryRef || null,
@@ -222,6 +223,7 @@ class QueryParser {
       
       return {
         ...sheet,
+        aggregateInfoTemplate: sheet.aggregateInfoTemplate || null, // 집계 정보 템플릿 추가
         params: sheetParams,
         query: query
       };
@@ -240,26 +242,16 @@ class QueryParser {
    */
   parseExcelSettingsFromXML(parsed) {
     const excelSettings = {
-      separateToc: false,
       maxRows: null,
       style: null,
       db: null,
       output: null
     };
 
-    // queries 루트 엘리먼트에서 separateToc 속성 확인
-    if (parsed.queries && parsed.queries.$) {
-      if (parsed.queries.$.separateToc) {
-        excelSettings.separateToc = parsed.queries.$.separateToc === 'true';
-      }
-    }
-    
     if (parsed.queries && parsed.queries.excel && parsed.queries.excel[0]) {
       const excel = parsed.queries.excel[0];
       if (excel.$ && excel.$.db) excelSettings.db = excel.$.db;
       if (excel.$ && excel.$.output) excelSettings.output = excel.$.output;
-      // excel 엘리먼트의 separateToc가 있으면 우선적용 (덮어쓰기)
-      if (excel.$ && excel.$.separateToc) excelSettings.separateToc = excel.$.separateToc === 'true';
       // excel 엘리먼트의 maxRows 읽기
       if (excel.$ && excel.$.maxRows) excelSettings.maxRows = parseInt(excel.$.maxRows);
       // XML에서 스타일 템플릿 ID 읽기
@@ -276,7 +268,6 @@ class QueryParser {
    */
   parseExcelSettingsFromJSON(queries) {
     const excelSettings = {
-      separateToc: false,
       maxRows: null,
       style: null,
       db: null,
@@ -286,7 +277,6 @@ class QueryParser {
     if (queries.excel) {
       if (queries.excel.db) excelSettings.db = queries.excel.db;
       if (queries.excel.output) excelSettings.output = queries.excel.output;
-      if (queries.excel.separateToc !== undefined) excelSettings.separateToc = queries.excel.separateToc;
       if (queries.excel.maxRows !== undefined) excelSettings.maxRows = parseInt(queries.excel.maxRows);
       if (queries.excel.style) excelSettings.style = queries.excel.style;
     }
