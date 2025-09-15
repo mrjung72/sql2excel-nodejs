@@ -8,7 +8,31 @@
     "export": "node src/excel-cli.js export",
     "validate": "node src/excel-cli.js validate",
     "list-dbs": "node src/excel-cli.js list-dbs",
-    "help": "node src/excel-cli.js help"
+    "help": "node src/excel-cli.js help",
+    "build": "pkg .",
+    "build-win": "pkg . --targets node18-win-x64",
+    "build-linux": "pkg . --targets node18-linux-x64",
+    "build-mac": "pkg . --targets node18-macos-x64",
+    "build-all": "pkg . --targets node18-win-x64,node18-linux-x64,node18-macos-x64"
+  },
+  "bin": "src/excel-cli.js",
+  "pkg": {
+    "scripts": [
+      "src/**/*.js",
+      "node_modules/**/*.js"
+    ],
+    "assets": [
+      "templets/**/*",
+      "config/**/*",
+      "queries/**/*",
+      "node_modules/open/xdg-open"
+    ],
+    "targets": [
+      "node18-win-x64",
+      "node18-linux-x64",
+      "node18-macos-x64"
+    ],
+    "outputPath": "dist"
   },
   "dependencies": {
     "mssql": "^10.0.0",
@@ -16,5 +40,8 @@
     "json5": "^2.2.3",
     "yargs": "^17.7.2",
     "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
   }
-} 
+}
