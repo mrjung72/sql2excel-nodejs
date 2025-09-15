@@ -92,7 +92,7 @@
     </params>
   </sheet>
   
-  <sheet name="주문상세_동적변수_테스트2" use="false" aggregateColumn="주문상태" aggregateInfoTemplate="주문상태별 현황: {count}건 (총 {total}건)">
+  <sheet name="주문상세_동적변수_테스트2" use="true" aggregateColumn="주문상태" aggregateInfoTemplate="주문상태별 현황: {count}건 (총 {total}건)">
     <![CDATA[
       SELECT 
         o.OrderID as 주문ID,
@@ -108,7 +108,7 @@
     ]]>
   </sheet>
   
-  <sheet name="주문상세_동적변수_테스트" use="false" aggregateColumn="주문상태" aggregateInfoTemplate="주문상태별 분석: {count}건">
+  <sheet name="주문상세_동적변수_테스트" use="true" aggregateColumn="주문상태" aggregateInfoTemplate="주문상태별 분석: {count}건">
     <![CDATA[
       SELECT 
         o.OrderNumber as 주문번호,
@@ -124,7 +124,7 @@
     ]]>
   </sheet>
   
-  <sheet name="복합_동적변수_테스트" use="false" aggregateInfoTemplate="고객별 주문 집계 분석">
+  <sheet name="복합_동적변수_테스트" use="true" aggregateInfoTemplate="관련데이터 {count}건">
     <![CDATA[
       SELECT 
         c.CustomerName as 고객명,
@@ -143,7 +143,7 @@
     ]]>
   </sheet>
   
-  <sheet name="시각함수_동적변수_테스트" use="false" aggregateInfoTemplate="시각 함수 테스트 결과">
+  <sheet name="시각함수_동적변수_테스트" use="true" aggregateInfoTemplate="시각 함수 테스트 결과 ({count})건">
     <![CDATA[
       SELECT 
         '현재시각' as 구분,
