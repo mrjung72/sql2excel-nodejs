@@ -421,7 +421,7 @@ function populateTableOfContents(tocSheet, sheetNames) {
         const topItems = obj.aggregateData.slice(0, 4); // 상위 4개만 표시
         const detailInfo = `(${topItems.map(item => `${item.key}:${item.count}`).join(', ')}`;
         const finalDetailInfo = obj.aggregateData.length > 4 
-          ? detailInfo + ` 외 ${obj.aggregateData.length - 4}개)`
+          ? detailInfo + ` and ${obj.aggregateData.length - 4} others)`
           : detailInfo + ')';
         
         aggregateInfo = aggregateInfo.replace(/{details}/g, finalDetailInfo);
@@ -445,11 +445,11 @@ function populateTableOfContents(tocSheet, sheetNames) {
         const topItems = obj.aggregateData.slice(0, 4); // 상위 4개만 표시
         const detailInfo = `(${topItems.map(item => `${item.key}:${item.count}`).join(', ')}`;
         const finalDetailInfo = obj.aggregateData.length > 4 
-          ? detailInfo + ` 외 ${obj.aggregateData.length - 4}개)`
+          ? detailInfo + ` and ${obj.aggregateData.length - 4} others)`
           : detailInfo + ')';
-        aggregateInfo = `관련데이터 ${obj.recordCount}건 ${finalDetailInfo}`;
+        aggregateInfo = `Selected data ${obj.recordCount} rows ${finalDetailInfo}`;
       } else {
-        aggregateInfo = `관련데이터 ${obj.recordCount}건`;
+        aggregateInfo = `Selected data ${obj.recordCount} rows`;
       }
     }
     
