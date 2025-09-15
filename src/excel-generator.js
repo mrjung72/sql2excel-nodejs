@@ -52,12 +52,8 @@ class ExcelGenerator {
       // 실제 생성된 시트명 가져오기 (31자 초과시 잘린 이름)
       const actualSheetName = sheet.name;
       
-      // 집계 컬럼이 지정된 경우 집계 데이터 계산
-      let aggregateData = null;
-      if (sheetDef.aggregateColumn && recordCount > 0) {
-        aggregateData = this.calculateAggregateData(sheetDef.aggregateColumn, sheetDef.data);
-        console.log(`\t[집계] ${sheetDef.aggregateColumn} 컬럼 집계: ${aggregateData.map(item => `${item.key}(${item.count})`).join(', ')}`);
-      }
+      // 집계 데이터는 이미 sheetDef에서 전달받음
+      let aggregateData = sheetDef.aggregateData;
       
       createdSheets.push({ 
         displayName: sheetDef.name, 

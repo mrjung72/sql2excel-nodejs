@@ -231,6 +231,15 @@ async function main() {
         console.log(`\t🎨 전역 스타일 적용: ${excelStyle.header?.font?.name || '기본'} 스타일`);
       }
       
+      // 집계 데이터 계산
+      let aggregateData = null;
+      if (sheetDef.aggregateColumn && recordCount > 0) {
+        aggregateData = excelGenerator.calculateAggregateData(sheetDef.aggregateColumn, result.recordset);
+        if (aggregateData && aggregateData.length > 0) {
+          console.log(`\t[집계] ${sheetDef.aggregateColumn} 컬럼 집계: ${aggregateData.map(item => `${item.key}(${item.count})`).join(', ')}`);
+        }
+      }
+      
       createdSheetNames.push({ 
         displayName: sheetName, 
         originalName: sheetName,
@@ -238,7 +247,7 @@ async function main() {
         recordCount: recordCount,
         aggregateColumn: sheetDef.aggregateColumn,
         aggregateInfoTemplate: sheetDef.aggregateInfoTemplate || globalAggregateInfoTemplate, // 시트별 > 전역 템플릿 우선
-        aggregateData: null
+        aggregateData: aggregateData
       });
       createdSheetCounts.push(recordCount);
       
@@ -251,6 +260,7 @@ async function main() {
         dbKey: sheetDbKey,
         aggregateColumn: sheetDef.aggregateColumn,
         aggregateInfoTemplate: sheetDef.aggregateInfoTemplate || globalAggregateInfoTemplate, // 시트별 > 전역 템플릿 우선
+        aggregateData: aggregateData, // 집계 데이터 추가
         query: sql
       });
       
