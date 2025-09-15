@@ -239,6 +239,7 @@ async function main() {
         recordCount: recordCount,
         dbKey: sheetDbKey,
         aggregateColumn: sheetDef.aggregateColumn,
+        aggregateInfoTemplate: sheetDef.aggregateInfoTemplate, // 집계 정보 템플릿 추가
         query: sql
       });
       
