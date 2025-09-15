@@ -23,7 +23,6 @@ SQL2Excel은 SQL 쿼리 결과를 Excel 파일로 생성하는 Node.js 기반 �
 - 🔄 **향상된 동적 변수**: 실시간 데이터베이스에서 값을 추출하여 고급 처리
 - 🔄 **쿼리 재사용**: 공통 쿼리를 정의하고 여러 시트에서 재사용
 - 📋 **자동 목차**: 하이퍼링크가 포함된 목차 시트 자동 생성
-- 📋 **별도 목차 생성**: 독립적인 목차 Excel 파일 생성
 - 📊 **집계 기능**: 지정된 컬럼 값별 자동 집계 및 표시
 - 🚦 **쿼리 제한**: 대용량 데이터 처리를 위한 행 수 제한
 - 🖥️ **CLI 인터페이스**: 간단한 명령줄 도구 실행
@@ -92,10 +91,6 @@ node src/excel-cli.js export --xml ./queries/sample-queries.xml --var "year=2024
 
 # 템플릿 스타일 사용
 node src/excel-cli.js export --xml ./queries/sample-queries.xml --style modern
-
-# 별도 목차 파일 생성
-node src/excel-cli.js export --xml ./queries/sample-queries.xml --separate-toc
-```
 
 #### 2. 쿼리 파일 검증
 ```bash
@@ -530,22 +525,7 @@ WHERE CustomerID IN (${customerData.CustomerID})
 }
 ```
 
-### 3. 별도 목차 생성
-
-독립적인 목차 파일 생성:
-
-#### XML 설정
-```xml
-<queries>
-  <excel db="sampleDB" output="output/Report.xlsx">
-```
-
-#### CLI 옵션
-```bash
-node src/excel-cli.js export --xml queries.xml --separate-toc
-```
-
-### 4. 파일 검증
+### 3. 파일 검증
 
 이 도구는 파일명을 자동으로 검증하고 한글 문자에 대해 경고합니다:
 
@@ -569,7 +549,7 @@ node src/excel-cli.js export --xml queries.xml --separate-toc
 
 | 명령어 | 설명 | 옵션 |
 |---------|-------------|---------|
-| `export` | Excel 파일 생성 | `--xml`, `--query`, `--style`, `--separate-toc`, `--var` |
+| `export` | Excel 파일 생성 | `--xml`, `--query`, `--style`, `--var` |
 | `validate` | 설정 파일 검증 | `--xml`, `--query` |
 | `list-dbs` | 사용 가능한 데이터베이스 목록 | 없음 |
 | `list-styles` | 사용 가능한 템플릿 스타일 목록 | 없음 |
@@ -581,7 +561,6 @@ node src/excel-cli.js export --xml queries.xml --separate-toc
 | `--xml <file>` | XML 쿼리 정의 파일 | `--xml queries.xml` |
 | `--query <file>` | JSON 쿼리 정의 파일 | `--query queries.json` |
 | `--style <style>` | 사용할 템플릿 스타일 | `--style modern` |
-| `--separate-toc` | 별도 목차 파일 생성 | `--separate-toc` |
 | `--var <key=value>` | 변수 값 설정 | `--var "year=2024"` |
 | `--config <file>` | 데이터베이스 설정 파일 | `--config config/dbinfo.json` |
 | `--db <dbname>` | 기본 데이터베이스 | `--db sampleDB` |
@@ -597,9 +576,6 @@ node src/excel-cli.js export --xml queries/sales.xml --style business
 
 # 변수와 함께 내보내기
 node src/excel-cli.js export --xml queries/sales.xml --var "year=2024" --var "region=North"
-
-# 별도 목차와 함께 내보내기
-node src/excel-cli.js export --xml queries/sales.xml --separate-toc
 
 # 설정 검증
 node src/excel-cli.js validate --xml queries/sales.xml

@@ -24,7 +24,6 @@ SQL2Excel is a Node.js-based tool for generating Excel files from SQL query resu
 - 🔄 **Query Reuse**: Define common queries and reuse them across multiple sheets
 - ⚙️ **Parameter Override**: Override query definition parameters for each sheet
 - 📋 **Auto Table of Contents**: Automatically generate table of contents sheet with hyperlinks
-- 📋 **Separate TOC Generation**: Generate standalone table of contents Excel file
 - 📊 **Aggregation Features**: Automatic aggregation and display of counts by specified column values
 - 🚦 **Query Limits**: Row count limiting for large data processing
 - 🖥️ **CLI Interface**: Simple command-line tool execution
@@ -93,9 +92,6 @@ node src/excel-cli.js export --xml ./queries/sample-queries.xml --var "year=2024
 
 # Using template style
 node src/excel-cli.js export --xml ./queries/sample-queries.xml --style modern
-
-# Generate separate TOC file
-node src/excel-cli.js export --xml ./queries/sample-queries.xml --separate-toc
 ```
 
 #### 2. Validate Query File
@@ -543,7 +539,7 @@ Generate a standalone TOC file:
 
 #### CLI Option
 ```bash
-node src/excel-cli.js export --xml queries.xml --separate-toc
+node src/excel-cli.js export --xml queries.xml
 ```
 
 ### 4. File Validation
@@ -570,7 +566,7 @@ Each sheet includes database source information:
 
 | Command | Description | Options |
 |---------|-------------|---------|
-| `export` | Generate Excel file | `--xml`, `--query`, `--style`, `--separate-toc`, `--var` |
+| `export` | Generate Excel file | `--xml`, `--query`, `--style`, `--var` |
 | `validate` | Validate configuration file | `--xml`, `--query` |
 | `list-dbs` | List available databases | None |
 | `list-styles` | List available template styles | None |
@@ -582,7 +578,6 @@ Each sheet includes database source information:
 | `--xml <file>` | XML query definition file | `--xml queries.xml` |
 | `--query <file>` | JSON query definition file | `--query queries.json` |
 | `--style <style>` | Template style to use | `--style modern` |
-| `--separate-toc` | Generate separate TOC file | `--separate-toc` |
 | `--var <key=value>` | Set variable value | `--var "year=2024"` |
 | `--config <file>` | Database config file | `--config config/dbinfo.json` |
 | `--db <dbname>` | Default database | `--db sampleDB` |
@@ -598,9 +593,6 @@ node src/excel-cli.js export --xml queries/sales.xml --style business
 
 # Export with variables
 node src/excel-cli.js export --xml queries/sales.xml --var "year=2024" --var "region=North"
-
-# Export with separate TOC
-node src/excel-cli.js export --xml queries/sales.xml --separate-toc
 
 # Validate configuration
 node src/excel-cli.js validate --xml queries/sales.xml
