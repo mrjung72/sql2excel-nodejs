@@ -405,18 +405,53 @@ function populateTableOfContents(tocSheet, sheetNames) {
     const isTruncated = obj.originalName && obj.originalName !== obj.tabName;
     const noteText = isTruncated ? '(31자 초과로 잘림)' : '';
     
-    // 집계 정보 텍스트 생성
+    // 집계 정보 텍스트 생성 (템플릿 사용)
     let aggregateInfo = '';
-    if (obj.aggregateColumn && obj.aggregateData && obj.aggregateData.length > 0) {
-      const topItems = obj.aggregateData.slice(0, 4); // 상위 4개만 표시
-      aggregateInfo = `(${topItems.map(item => `${item.key}:${item.count}`).join(', ')}`;
-      if (obj.aggregateData.length > 4) {
-        aggregateInfo += ` 외 ${obj.aggregateData.length - 4}개)`;
+    
+    if (obj.aggregateInfoTemplate) {
+      // 템플릿이 지정된 경우 템플릿 사용
+      aggregateInfo = obj.aggregateInfoTemplate;
+      
+      // 템플릿 변수 치환
+      aggregateInfo = aggregateInfo.replace(/{count}/g, obj.recordCount || 0);
+      aggregateInfo = aggregateInfo.replace(/{total}/g, obj.recordCount || 0);
+      
+      // 집계 데이터가 있는 경우 추가 변수 치환
+      if (obj.aggregateColumn && obj.aggregateData && obj.aggregateData.length > 0) {
+        const topItems = obj.aggregateData.slice(0, 4); // 상위 4개만 표시
+        const detailInfo = `(${topItems.map(item => `${item.key}:${item.count}`).join(', ')}`;
+        const finalDetailInfo = obj.aggregateData.length > 4 
+          ? detailInfo + ` 외 ${obj.aggregateData.length - 4}개)`
+          : detailInfo + ')';
+        
+        aggregateInfo = aggregateInfo.replace(/{details}/g, finalDetailInfo);
+        aggregateInfo = aggregateInfo.replace(/{column}/g, obj.aggregateColumn);
+        
+        // 최다 항목 정보
+        if (obj.aggregateData.length > 0) {
+          aggregateInfo = aggregateInfo.replace(/{top_item}/g, obj.aggregateData[0].key);
+          aggregateInfo = aggregateInfo.replace(/{top_count}/g, obj.aggregateData[0].count);
+        }
       } else {
-        aggregateInfo += ')';
+        // 집계 데이터가 없는 경우 빈 문자열로 치환
+        aggregateInfo = aggregateInfo.replace(/{details}/g, '');
+        aggregateInfo = aggregateInfo.replace(/{column}/g, '');
+        aggregateInfo = aggregateInfo.replace(/{top_item}/g, '');
+        aggregateInfo = aggregateInfo.replace(/{top_count}/g, '');
+      }
+    } else {
+      // 기본 템플릿 사용 (기존 로직)
+      if (obj.aggregateColumn && obj.aggregateData && obj.aggregateData.length > 0) {
+        const topItems = obj.aggregateData.slice(0, 4); // 상위 4개만 표시
+        const detailInfo = `(${topItems.map(item => `${item.key}:${item.count}`).join(', ')}`;
+        const finalDetailInfo = obj.aggregateData.length > 4 
+          ? detailInfo + ` 외 ${obj.aggregateData.length - 4}개)`
+          : detailInfo + ')';
+        aggregateInfo = `관련데이터 ${obj.recordCount}건 ${finalDetailInfo}`;
+      } else {
+        aggregateInfo = `관련데이터 ${obj.recordCount}건`;
       }
     }
-    aggregateInfo = `관련데이터 ${obj.recordCount}건 ${aggregateInfo}`
     
     // 쿼리문 정보 추출 (최대 10000자로 제한)
     let queryText = '';
