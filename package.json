@@ -1,6 +1,6 @@
 {
   "name": "sql2excel-exporter",
-  "version": "1.2.1",
+  "version": "1.2.3",
   "description": "SQL 쿼리 결과를 엑셀 파일로 저장하는 도구 (시트별 쿼리, 변수, XML/JSON 지원)",
   "main": "src/index.js",
   "scripts": {
@@ -9,28 +9,20 @@
     "validate": "node src/excel-cli.js validate",
     "list-dbs": "node src/excel-cli.js list-dbs",
     "help": "node src/excel-cli.js help",
-    "build": "pkg .",
-    "build-win": "pkg . --targets node18-win-x64",
-    "build-linux": "pkg . --targets node18-linux-x64",
-    "build-mac": "pkg . --targets node18-macos-x64",
-    "build-all": "pkg . --targets node18-win-x64,node18-linux-x64,node18-macos-x64"
+    "build:exe": "pkg . --public --no-native-build"
   },
   "bin": "src/excel-cli.js",
   "pkg": {
     "scripts": [
-      "src/**/*.js",
-      "node_modules/**/*.js"
+      "src/**/*.js"
     ],
     "assets": [
-      "templets/**/*",
-      "config/**/*",
-      "queries/**/*",
-      "node_modules/open/xdg-open"
+      "queries/**/*.xml",
+      "config/**/*.json",
+      ".env"
     ],
     "targets": [
-      "node18-win-x64",
-      "node18-linux-x64",
-      "node18-macos-x64"
+      "node18-win-x64"
     ],
     "outputPath": "dist"
   },

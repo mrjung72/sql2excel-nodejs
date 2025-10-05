@@ -1,0 +1,88 @@
+{
+  "excel": {
+    "db": "sampleDB",
+    "output": "d:/temp/동적변수_테스트_2024.xlsx",
+    "maxRows": 20,
+    "style": "modern"
+  },
+  "vars": {
+    "envType": "운영",
+    "startDate": "2024-01-01",
+    "endDate": "2024-06-30",
+    "regionList": ["서울", "부산"],
+    "statusList": ["ACTIVE", "PENDING", "COMPLETED"],
+    "categoryIds": [1, 2, 3, 5],
+    "maxRows": 1000
+  },
+  "dynamicVars": [
+         {
+       "name": "customerData",
+       "description": "고객 데이터 컬럼별 분류",
+       "database": "sampleDB",
+       "query": "SELECT CustomerID, CustomerName, City, Region, CustomerType FROM SampleDB.dbo.Customers WHERE IsActive = 1 ORDER BY CustomerID"
+     },
+    {
+      "name": "orderDetails",
+      "type": "key_value_pairs",
+      "description": "주문상세 정보",
+      "database": "sampleDB",
+      "query": "SELECT OrderID, OrderDetailID FROM SampleDB.dbo.OrderDetails ORDER BY OrderID"
+    },
+                   {
+        "name": "activeOrders",
+        "description": "활성 주문 목록",
+        "database": "sampleDB",
+        "query": "SELECT OrderID FROM SampleDB.dbo.Orders WHERE OrderStatus = 'Pending' ORDER BY OrderID"
+      },
+           {
+        "name": "recentOrders",
+        "description": "최근 주문 정보",
+        "database": "sampleDB",
+        "query": "SELECT OrderID, OrderNumber, OrderDate FROM SampleDB.dbo.Orders WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}' AND OrderDate >= DATEADD(day, -30, '${CURRENT_DATE}') ORDER BY OrderDate DESC"
+      }
+  ],
+  "queryDefs": {
+    "customer_base": {
+      "name": "customer_base",
+      "description": "Base customer query",
+      "query": "SELECT c.CustomerID as 고객ID, c.CustomerName as 고객명, c.City as 도시, c.Region as 지역, c.CustomerType as 고객유형 FROM SampleDB.dbo.Customers c WHERE c.CustomerID IN (${customerData.CustomerID}) AND c.Region IN (${regionList}) ORDER BY c.CustomerID"
+    }
+  },
+  "sheets": [
+    {
+      "name": "${envType}_동적변수_테스트",
+      "use": true,
+      "queryRef": "customer_base",
+      "aggregateColumn": "지역",
+      "maxRows": 100,
+      "db": "sampleDB",
+      "params": {
+        "regionList": ["서울", "부산", "대구"],
+        "startDate": "2024-03-01",
+        "endDate": "2024-12-31"
+      }
+    },
+    {
+      "name": "주문상세_동적변수_테스트2",
+      "use": true,
+      "aggregateColumn": "주문상태",
+             "query": "SELECT o.OrderID as 주문ID, o.OrderNumber as 주문번호, o.OrderStatus as 주문상태, od.OrderDetailID as 상세ID, FORMAT(o.TotalAmount, 'N0') as 총금액 FROM SampleDB.dbo.Orders o INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID WHERE o.OrderID IN (${orderDetails.OrderID}) AND o.OrderID IN (${activeOrders.OrderID}) ORDER BY o.OrderID DESC"
+    },
+    {
+      "name": "주문상세_동적변수_테스트",
+      "use": true,
+      "aggregateColumn": "주문상태",
+      "query": "SELECT o.OrderNumber as 주문번호, FORMAT(o.OrderDate, 'yyyy-MM-dd') as 주문일, o.OrderStatus as 주문상태, c.CustomerName as 고객명, FORMAT(o.TotalAmount, 'N0') as 총금액 FROM SampleDB.dbo.Orders o INNER JOIN SampleDB.dbo.Customers c ON o.CustomerID = c.CustomerID WHERE o.OrderID IN (${recentOrders.OrderID}) AND o.OrderStatus IN (${statusList}) ORDER BY o.OrderDate DESC"
+    },
+    {
+      "name": "복합_동적변수_테스트",
+      "use": true,
+             "query": "SELECT c.CustomerName as 고객명, c.Region as 지역, COUNT(o.OrderID) as 주문건수, FORMAT(SUM(o.TotalAmount), 'N0') as 총주문금액 FROM SampleDB.dbo.Customers c INNER JOIN SampleDB.dbo.Orders o ON c.CustomerID = o.CustomerID WHERE c.CustomerID IN (${customerData.CustomerID}) AND c.Region IN (${customerData.Region}) AND o.OrderID IN (${activeOrders.OrderID}) AND o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}' GROUP BY c.CustomerName, c.Region ORDER BY 총주문금액 DESC"
+    },
+    {
+      "name": "시각함수_동적변수_테스트",
+      "use": true,
+      "query": "SELECT '현재시각' as 구분, '${CURRENT_TIMESTAMP}' as 현재시각, '${CURRENT_DATE}' as 현재날짜, '${CURRENT_TIME}' as 현재시간, '${UNIX_TIMESTAMP}' as 유닉스타임스탬프, '${GETDATE}' as SQL서버_GETDATE UNION ALL SELECT '동적변수_테스트' as 구분, CONVERT(VARCHAR, GETDATE(), 120) as 현재시각, CONVERT(VARCHAR, GETDATE(), 23) as 현재날짜, CONVERT(VARCHAR, GETDATE(), 108) as 현재시간, DATEDIFF(SECOND, '1970-01-01', GETDATE()) as 유닉스타임스탬프, GETDATE() as SQL서버_GETDATE"
+    }
+  ]
+}
