@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <queries maxRows="1000">
-  <excel db="sampleDB" output="output/datetime_variables_example.xlsx" style="modern">
+  <excel db="sampleDB" output="d:/temp/datetime-variables-example.xlsx" style="modern">
   </excel>
   
   <vars>
@@ -8,7 +8,6 @@
     <var name="department">IT</var>
   </vars>
   
-  <sheets>
     <!-- 기본 시각 함수들 -->
     <sheet name="기본시각함수" use="true">
       <![CDATA[
@@ -70,7 +69,6 @@
           '요일: ${WEEKDAY_KR}' as 요일정보,
           '파일명 형식: Report_${DATE_YYYYMMDD}_${department}' as 파일명예시,
           'WHERE 조건 예시: created_date >= ''${DATE_YYYY_MM_DD}''' as 쿼리예시
-      ]]>
-    </sheet>
-  </sheets>
+       ]]>
+     </sheet>
 </queries>

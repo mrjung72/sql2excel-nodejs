@@ -205,7 +205,27 @@ class VariableProcessor {
       }
     });
     
-    // 일반 변수 치환 (기존 방식)
+    // 현재 시각 함수 치환 (MSSQL 헬퍼 사용) - 일반 변수보다 먼저 처리
+    const timestampFunctions = this.mssqlHelper.getTimestampFunctions();
+    
+    // 현재 시각 함수 패턴 매칭 및 치환
+    Object.entries(timestampFunctions).forEach(([funcName, funcImpl]) => {
+      const pattern = new RegExp(`\\$\\{${funcName}\\}`, 'g');
+      const beforeReplace = result;
+      
+      try {
+        result = result.replace(pattern, funcImpl());
+        
+        if (debugVariables && beforeReplace !== result) {
+          console.log(`시각 함수 [${funcName}] 치환: ${funcImpl()}`);
+        }
+      } catch (error) {
+        console.log(`시각 함수 [${funcName}] 치환 중 오류: ${error.message}`);
+        // 오류 발생 시 원본 유지
+      }
+    });
+    
+    // 일반 변수 치환 (기존 방식) - 시각 함수 치환 후 처리
     result = result.replace(/\$\{(\w+)\}/g, (_, v) => {
       const value = mergedVars[v];
       if (value === undefined || value === null) return '';
@@ -224,26 +244,6 @@ class VariableProcessor {
           console.log(`일반 변수 [${v}] 치환: ${value}`);
         }
         return value;
-      }
-    });
-    
-    // 현재 시각 함수 치환 (MSSQL 헬퍼 사용)
-    const timestampFunctions = this.mssqlHelper.getTimestampFunctions();
-    
-    // 현재 시각 함수 패턴 매칭 및 치환
-    Object.entries(timestampFunctions).forEach(([funcName, funcImpl]) => {
-      const pattern = new RegExp(`\\$\\{${funcName}\\}`, 'g');
-      const beforeReplace = result;
-      
-      try {
-        result = result.replace(pattern, funcImpl());
-        
-        if (debugVariables && beforeReplace !== result) {
-          console.log(`시각 함수 [${funcName}] 치환: ${funcImpl()}`);
-        }
-      } catch (error) {
-        console.log(`시각 함수 [${funcName}] 치환 중 오류: ${error.message}`);
-        // 오류 발생 시 원본 유지
       }
     });
     

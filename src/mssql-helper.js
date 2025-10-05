@@ -72,26 +72,58 @@ class MSSQLHelper {
    * @returns {Object} 타임스탬프 함수들
    */
   getTimestampFunctions() {
-    const now = new Date();
-    const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000)); // UTC+9 (한국 시간)
-    
     return {
       // 기본 시각 함수들
-      'CURRENT_TIMESTAMP': () => now.toISOString().slice(0, 19).replace('T', ' '), // YYYY-MM-DD HH:mm:ss
-      'CURRENT_DATETIME': () => now.toISOString().slice(0, 19).replace('T', ' '), // YYYY-MM-DD HH:mm:ss
-      'NOW': () => now.toISOString().slice(0, 19).replace('T', ' '), // YYYY-MM-DD HH:mm:ss
-      'CURRENT_DATE': () => now.toISOString().slice(0, 10), // YYYY-MM-DD
-      'CURRENT_TIME': () => now.toTimeString().slice(0, 8), // HH:mm:ss
-      'GETDATE': () => now.toISOString().slice(0, 19).replace('T', ' '), // SQL Server GETDATE() equivalent
+      'CURRENT_TIMESTAMP': () => {
+        const now = new Date();
+        return now.toISOString().slice(0, 19).replace('T', ' ');
+      }, // YYYY-MM-DD HH:mm:ss
+      'CURRENT_DATETIME': () => {
+        const now = new Date();
+        return now.toISOString().slice(0, 19).replace('T', ' ');
+      }, // YYYY-MM-DD HH:mm:ss
+      'NOW': () => {
+        const now = new Date();
+        return now.toISOString().slice(0, 19).replace('T', ' ');
+      }, // YYYY-MM-DD HH:mm:ss
+      'CURRENT_DATE': () => {
+        const now = new Date();
+        return now.toISOString().slice(0, 10);
+      }, // YYYY-MM-DD
+      'CURRENT_TIME': () => {
+        const now = new Date();
+        return now.toTimeString().slice(0, 8);
+      }, // HH:mm:ss
+      'GETDATE': () => {
+        const now = new Date();
+        return now.toISOString().slice(0, 19).replace('T', ' ');
+      }, // SQL Server GETDATE() equivalent
       
       // 한국 시간대 함수들
-      'KST_NOW': () => koreaTime.toISOString().slice(0, 19).replace('T', ' '), // 한국 시간 YYYY-MM-DD HH:mm:ss
-      'KST_DATE': () => koreaTime.toISOString().slice(0, 10), // 한국 날짜 YYYY-MM-DD
-      'KST_TIME': () => koreaTime.toISOString().slice(11, 19), // 한국 시간 HH:mm:ss
-      'KST_DATETIME': () => koreaTime.toISOString().slice(0, 19).replace('T', ' '), // 한국 날짜시간
+      'KST_NOW': () => {
+        const now = new Date();
+        const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        return koreaTime.toISOString().slice(0, 19).replace('T', ' ');
+      }, // 한국 시간 YYYY-MM-DD HH:mm:ss
+      'KST_DATE': () => {
+        const now = new Date();
+        const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        return koreaTime.toISOString().slice(0, 10);
+      }, // 한국 날짜 YYYY-MM-DD
+      'KST_TIME': () => {
+        const now = new Date();
+        const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        return koreaTime.toISOString().slice(11, 19);
+      }, // 한국 시간 HH:mm:ss
+      'KST_DATETIME': () => {
+        const now = new Date();
+        const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        return koreaTime.toISOString().slice(0, 19).replace('T', ' ');
+      }, // 한국 날짜시간
       
       // 한국식 날짜 형식
       'KOREAN_DATE': () => {
+        const now = new Date();
         const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
         return kst.toLocaleDateString('ko-KR', {
           year: 'numeric',
@@ -100,6 +132,7 @@ class MSSQLHelper {
         });
       }, // YYYY년 M월 D일
       'KOREAN_DATETIME': () => {
+        const now = new Date();
         const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
         return kst.toLocaleString('ko-KR', {
           year: 'numeric',
@@ -112,6 +145,7 @@ class MSSQLHelper {
         });
       }, // YYYY년 M월 D일 HH:mm:ss
       'KOREAN_DATE_SHORT': () => {
+        const now = new Date();
         const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
         return kst.toLocaleDateString('ko-KR', {
           year: 'numeric',
@@ -122,6 +156,7 @@ class MSSQLHelper {
       
       // 다양한 형식들
       'DATE_YYYYMMDD': () => {
+        const now = new Date();
         const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
         const year = kst.getFullYear();
         const month = String(kst.getMonth() + 1).padStart(2, '0');
@@ -129,6 +164,7 @@ class MSSQLHelper {
         return `${year}${month}${day}`;
       }, // YYYYMMDD
       'DATE_YYYY_MM_DD': () => {
+        const now = new Date();
         const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
         const year = kst.getFullYear();
         const month = String(kst.getMonth() + 1).padStart(2, '0');
@@ -136,6 +172,7 @@ class MSSQLHelper {
         return `${year}-${month}-${day}`;
       }, // YYYY-MM-DD (한국 시간)
       'DATETIME_YYYYMMDD_HHMMSS': () => {
+        const now = new Date();
         const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
         const year = kst.getFullYear();
         const month = String(kst.getMonth() + 1).padStart(2, '0');
@@ -149,16 +186,25 @@ class MSSQLHelper {
       // 타임스탬프 함수들
       'UNIX_TIMESTAMP': () => Math.floor(Date.now() / 1000), // Unix timestamp
       'TIMESTAMP_MS': () => Date.now(), // Milliseconds timestamp
-      'ISO_TIMESTAMP': () => now.toISOString(), // ISO 8601 format
-      'KST_ISO_TIMESTAMP': () => koreaTime.toISOString(), // 한국 시간 ISO 8601
+      'ISO_TIMESTAMP': () => {
+        const now = new Date();
+        return now.toISOString();
+      }, // ISO 8601 format
+      'KST_ISO_TIMESTAMP': () => {
+        const now = new Date();
+        const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        return koreaTime.toISOString();
+      }, // 한국 시간 ISO 8601
       
       // 요일 정보
       'WEEKDAY_KR': () => {
+        const now = new Date();
         const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
         const weekdays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
         return weekdays[kst.getDay()];
       }, // 한국어 요일
       'WEEKDAY_EN': () => {
+        const now = new Date();
         const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
         const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         return weekdays[kst.getDay()];
@@ -166,10 +212,12 @@ class MSSQLHelper {
       
       // 월 정보
       'MONTH_KR': () => {
+        const now = new Date();
         const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
         return `${kst.getMonth() + 1}월`;
       }, // N월
       'YEAR_KR': () => {
+        const now = new Date();
         const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
         return `${kst.getFullYear()}년`;
       } // YYYY년

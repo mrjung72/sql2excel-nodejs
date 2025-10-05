@@ -1,0 +1,13 @@
+{
+  "excel": {
+    "db": "sampleDB",
+    "output": "d:/temp/final-datetime-test.xlsx"
+  },
+  "sheets": [
+    {
+      "name": "DateTimeTest",
+      "use": true,
+      "query": "SELECT 'Test' as message, '${KST_NOW}' as korean_time, '${KOREAN_DATE}' as korean_date, '${DATE_YYYYMMDD}' as number_date, 123 as test_number"
+    }
+  ]
+}
