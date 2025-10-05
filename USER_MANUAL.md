@@ -7,42 +7,66 @@
 - [Query Definition File Structure](#query-definition-file-structure)
 - [Advanced Features](#advanced-features)
 - [Template Style System](#template-style-system)
+- [Building and Deployment](#building-and-deployment)
 - [CLI Command Reference](#cli-command-reference)
 - [Examples](#examples)
 - [Troubleshooting](#troubleshooting)
 
 ## 🎯 Overview
 
-SQL2Excel is a Node.js-based tool for generating Excel files from SQL query results with advanced styling and template support.
+SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL query results with advanced styling, template support, and standalone executable distribution.
 
 ### Key Features
 - 📊 **Multi-Sheet Support**: Save multiple SQL query results in separate sheets within one Excel file
-- 🎨 **Template Style System**: Pre-defined Excel styling templates for consistent design
+- 🎨 **Template Style System**: Pre-defined Excel styling templates for consistent design with 7 built-in styles
 - 🔗 **Multiple DB Connections**: Use different database connections for each sheet
 - 📝 **Variable System**: Use variables in queries for dynamic query generation
 - 🔄 **Enhanced Dynamic Variables**: Extract values from database in real-time with advanced processing
 - 🔄 **Query Reuse**: Define common queries and reuse them across multiple sheets
-- ⚙️ **Parameter Override**: Override query definition parameters for each sheet
+- ⚙️ **Parameter Override**: Override query definition parameters for each sheet with different values
 - 📋 **Auto Table of Contents**: Automatically generate table of contents sheet with hyperlinks
 - 📊 **Aggregation Features**: Automatic aggregation and display of counts by specified column values
 - 🚦 **Query Limits**: Row count limiting for large data processing
 - 🖥️ **CLI Interface**: Simple command-line tool execution
-- 🪟 **Windows Batch Files**: Batch files for Windows users
+- 🪟 **Windows Batch Files**: Interactive batch files for Windows users
 - 📄 **XML/JSON Support**: Flexible configuration file format support
 - 🔍 **File Validation**: Automatic filename validation and Korean character warnings
 - 🎯 **Sheet-specific Styling**: Apply different styles to individual sheets
+- 📦 **Standalone Executable**: Generate standalone .exe files for distribution without Node.js dependency
+- 🌐 **Multi-language Support**: Korean and English release packages
+- 🔧 **Release Automation**: Automated release package generation with proper documentation
 
 ## 🛠️ Installation and Setup
 
 ### 1. System Requirements
+
+#### For Development/Source Code Usage
 - Node.js 16.0 or higher
 - SQL Server 2012 or higher
 - Appropriate database permissions
 
-### 2. Installation
+#### For Standalone Executable Usage
+- Windows 10 or higher (64-bit)
+- SQL Server 2012 or higher
+- Appropriate database permissions
+- **No Node.js installation required**
+
+### 2. Installation Options
+
+#### Option A: Development Installation
 ```bash
+# Clone or download the source code
 npm install
+
+# Build standalone executable (optional)
+npm run build
 ```
+
+#### Option B: Standalone Executable
+1. Download the release package from the releases section
+2. Extract to your desired directory
+3. Run `sql2excel.bat` for interactive menu
+4. Or use `sql2excel-v{version}.exe` directly
 
 ### 3. Database Connection Setup
 Create `config/dbinfo.json` file:
@@ -77,9 +101,23 @@ Create `config/dbinfo.json` file:
 
 ## 🚀 Basic Usage
 
-### CLI Command Execution
+### Method 1: Interactive Batch File (Recommended for Windows Users)
 
-#### 1. Generate Excel File
+Run the interactive batch file for a user-friendly menu:
+```bash
+sql2excel.bat
+```
+
+The interactive menu provides:
+1. **Validate Query Definition File** - Check your XML/JSON files for errors
+2. **Test Database Connection** - Verify database connectivity
+3. **Generate Excel File (XML File)** - Export using XML query definitions
+4. **Generate Excel File (JSON File)** - Export using JSON query definitions
+5. **Show Help** - Display detailed help information
+
+### Method 2: Direct CLI Command Execution
+
+#### For Development (Node.js)
 ```bash
 # Using XML query file
 node src/excel-cli.js export --xml ./queries/sample-queries.xml
@@ -94,22 +132,22 @@ node src/excel-cli.js export --xml ./queries/sample-queries.xml --var "year=2024
 node src/excel-cli.js export --xml ./queries/sample-queries.xml --style modern
 ```
 
-#### 2. Validate Query File
+#### For Standalone Executable
 ```bash
-node src/excel-cli.js validate --xml ./queries/sample-queries.xml
+# Using XML query file
+sql2excel.exe export --xml ./queries/sample-queries.xml
+
+# Using JSON query file
+sql2excel.exe export --query ./queries/sample-queries.json
+
+# Execute with variables
+sql2excel.exe export --xml ./queries/sample-queries.xml --var "year=2024" --var "dept=IT"
+
+# Using template style
+sql2excel.exe export --xml ./queries/sample-queries.xml --style modern
 ```
 
-#### 3. Test Database Connection
-```bash
-node src/excel-cli.js list-dbs
-```
-
-#### 4. List Available Template Styles
-```bash
-node src/excel-cli.js list-styles
-```
-
-### NPM Script Usage
+### Method 3: NPM Scripts (Development Only)
 ```bash
 # Export to Excel
 npm run export -- --xml ./queries/sample-queries.xml
@@ -118,22 +156,42 @@ npm run export -- --xml ./queries/sample-queries.xml
 npm run validate -- --xml ./queries/sample-queries.xml
 
 # Test database connection
-npm run test-db
+npm run list-dbs
+
+# Build standalone executable
+npm run build
+
+# Create release package
+npm run release
 ```
 
-### Windows Batch Files
+### Common Commands
+
+#### Validate Query File
 ```bash
-# Export to Excel
-export-xml.bat queries\sample-queries.xml
+# Development
+node src/excel-cli.js validate --xml ./queries/sample-queries.xml
 
-# Export with JSON
-export-json.bat queries\sample-queries.json
+# Standalone
+sql2excel.exe validate --xml ./queries/sample-queries.xml
+```
 
-# Validate configuration
-validate.bat queries\sample-queries.xml
+#### Test Database Connection
+```bash
+# Development
+node src/excel-cli.js list-dbs
 
-# Test database connection
-db-test.bat
+# Standalone
+sql2excel.exe list-dbs
+```
+
+#### List Available Template Styles
+```bash
+# Development
+node src/excel-cli.js list-styles
+
+# Standalone
+sql2excel.exe list-styles
 ```
 
 ## 📋 Query Definition File Structure
@@ -560,6 +618,91 @@ Each sheet includes database source information:
 📊 출처: sampleDB DB
 ```
 
+## 📦 Building and Deployment
+
+### Building Standalone Executable
+
+#### 1. Build Single Executable
+```bash
+# Build versioned executable (e.g., sql2excel.exe)
+npm run build
+```
+
+This creates a standalone executable in the `dist/` directory that includes:
+- All Node.js dependencies
+- Source code
+- Configuration templates
+- Style templates
+
+#### 2. Create Release Package
+```bash
+# Generate complete release package
+npm run release
+```
+
+This creates a comprehensive release package including:
+- Standalone executable (`sql2excel-v{version}.exe`)
+- Interactive batch file (`sql2excel.bat`)
+- Configuration files (`config/dbinfo.json`)
+- Sample query files (`queries/`)
+- Style templates (`templates/`)
+- Documentation (`user_manual/`)
+- License and changelog
+
+#### 3. Clean Build Artifacts
+```bash
+# Remove all build artifacts and release packages
+npm run clean
+```
+
+### Release Package Structure
+
+```
+sql2excel-v{version}/
+├── sql2excel.exe          # Standalone executable
+├── sql2excel.bat                  # Interactive batch interface
+├── config/
+│   └── dbinfo.json               # Database configuration
+├── queries/                      # Sample query files
+│   ├── queries-sample.xml
+│   ├── queries-sample.json
+│   └── ...
+├── templates/
+│   └── excel-styles.xml          # Style templates
+├── user_manual/
+│   ├── USER_MANUAL.md            # This manual
+│   └── CHANGELOG.md              # Version history
+├── README.md                     # Quick start guide
+├── RELEASE_INFO.txt              # Release information
+└── LICENSE                       # License file
+```
+
+### Distribution Options
+
+#### Option 1: Standalone Package
+- **Target**: End users without Node.js
+- **Contents**: Complete executable package
+- **Usage**: Run `sql2excel.bat` or use `sql2excel-v{version}.exe` directly
+
+#### Option 2: Source Code Package
+- **Target**: Developers and advanced users
+- **Contents**: Full source code with Node.js dependencies
+- **Usage**: `npm install` then use npm scripts or Node.js commands
+
+### Multi-language Support
+
+The release system supports multiple language packages:
+
+#### Korean Package (`sql2excel-v{version}-ko/`)
+- Korean batch interface
+- Korean documentation (`배포정보.txt`)
+- Korean error messages and prompts
+
+#### English Package (`sql2excel-v{version}-en/`)
+- English batch interface
+- English documentation (`RELEASE_INFO.txt`)
+- English error messages and prompts
+
 ## 🔧 CLI Command Reference
 
 ### Main Commands
@@ -584,6 +727,7 @@ Each sheet includes database source information:
 
 ### Examples
 
+#### Development Environment
 ```bash
 # Basic export with XML
 node src/excel-cli.js export --xml queries/sales.xml
@@ -601,6 +745,35 @@ node src/excel-cli.js validate --xml queries/sales.xml
 node src/excel-cli.js list-styles
 ```
 
+#### Standalone Executable
+```bash
+# Basic export with XML
+sql2excel.exe export --xml queries/sales.xml
+
+# Export with template style
+sql2excel.exe export --xml queries/sales.xml --style business
+
+# Export with variables
+sql2excel.exe export --xml queries/sales.xml --var "year=2024" --var "region=North"
+
+# Validate configuration
+sql2excel.exe validate --xml queries/sales.xml
+
+# List available styles
+sql2excel.exe list-styles
+```
+
+#### Interactive Batch File
+```bash
+# Run interactive menu
+sql2excel.bat
+
+# Follow the prompts:
+# 1. Select option (1-5)
+# 2. Enter file paths when prompted
+# 3. Review results
+```
+
 ## 📊 Examples
 
 ### Complete XML Example
@@ -608,23 +781,6 @@ node src/excel-cli.js list-styles
 <?xml version="1.0" encoding="UTF-8"?>
 <queries maxRows="5000">
   <excel db="sampleDB" output="output/SalesReport.xlsx" style="business">
-    <header>
-      <font name="Arial" size="12" color="FFFFFF" bold="true"/>
-      <fill color="1E3A8A"/>
-      <colwidths min="20" max="50"/>
-      <alignment horizontal="center" vertical="middle"/>
-      <border>
-        <all style="thin" color="1E40AF"/>
-      </border>
-    </header>
-    <body>
-      <font name="Arial" size="11" color="1F2937" bold="false"/>
-      <fill color="F9FAFB"/>
-      <alignment horizontal="left" vertical="middle"/>
-      <border>
-        <all style="thin" color="E5E7EB"/>
-      </border>
-    </body>
   </excel>
   
   <vars>
@@ -714,17 +870,6 @@ node src/excel-cli.js list-styles
     "output": "output/SalesReport.xlsx",
     "style": "business",
     "maxRows": 5000,
-    "header": {
-      "font": {
-        "name": "Arial",
-        "size": 12,
-        "color": "FFFFFF",
-        "bold": true
-      },
-      "fill": {
-        "color": "1E3A8A"
-      }
-    }
   },
   "vars": {
     "year": "2024",
@@ -817,10 +962,40 @@ node src/excel-cli.js list-styles
 - Verify style ID spelling
 - Use `list-styles` command to see available styles
 
+#### 8. Executable Not Found (Standalone)
+**Problem**: `sql2excel-v*.exe file not found` error
+**Solution**:
+- Ensure the executable file is in the same directory as `sql2excel.bat`
+- Check that the executable name matches the version (e.g., `sql2excel.exe`)
+- Re-extract the release package if files are missing
+
+#### 9. PowerShell Execution Policy (Windows)
+**Problem**: PowerShell execution policy prevents batch file execution
+**Solution**:
+- Run Command Prompt as Administrator
+- Use `cmd` instead of PowerShell
+- Or set PowerShell execution policy: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+#### 10. Missing Dependencies (Development)
+**Problem**: Module not found errors during development
+**Solution**:
+- Run `npm install` to install dependencies
+- Check Node.js version (requires 16.0+)
+- Clear npm cache: `npm cache clean --force`
+
 ### Debug Mode
 Enable debug mode to see detailed variable substitution:
+
+#### Development Environment
 ```bash
 DEBUG_VARIABLES=true node src/excel-cli.js export --xml ./queries/sample.xml
+```
+
+#### Standalone Executable
+```bash
+# Set environment variable then run
+set DEBUG_VARIABLES=true
+sql2excel.exe export --xml ./queries/sample.xml
 ```
 
 ### Error Recovery
