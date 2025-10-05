@@ -1,5 +1,85 @@
 # SQL2Excel Version History
 
+## v1.2.4 - Standalone Executable & Enhanced User Experience (2025-10-05)
+
+### ✨ New Features
+- **📦 Standalone Executable Generation**: Generate versioned standalone .exe files without Node.js dependency
+- **🌐 Multi-language Release Packages**: Automated Korean and English release package generation
+- **🕒 Creation Timestamp Display**: Show creation timestamp on each Excel sheet
+- **⏰ Enhanced DateTime Variables**: 20+ automatic datetime variables for real-time timestamp generation
+- **📋 SQL Query Formatting**: Preserve original SQL formatting with line breaks in Table of Contents
+- **🔧 Input Validation**: Automatic whitespace trimming for file path inputs in batch interface
+- **🚀 Release Automation**: Complete automated release process with proper documentation
+
+### 📦 Standalone Executable Features
+- **Versioned Executable Names**: `sql2excel-v1.2.4.exe` format for clear version identification
+- **Asset Bundling**: Excel templates and style files bundled within executable
+- **Path Resolution**: Smart path resolution for packaged vs development environments
+- **No Node.js Dependency**: Fully self-contained executable for end users
+
+### 🌐 Multi-language Support
+- **Korean Release Package**: `sql2excel-v1.2.4-ko` with Korean documentation and interface
+- **English Release Package**: `sql2excel-v1.2.4-en` with English documentation and interface
+- **Localized Batch Files**: Language-specific batch interfaces (`sql2excel.bat`, `sql2excel-en.bat`)
+- **Automated Documentation**: Dynamic version replacement in user manuals and README files
+
+### 🕒 Enhanced DateTime System
+- **20+ DateTime Variables**: Comprehensive set of datetime functions for various formats
+- **Real-time Generation**: Each function generates current timestamp at execution time
+- **Multiple Formats**: UTC, KST, Korean localized, ISO, compact formats
+- **Variable Processing Order**: Fixed processing order to ensure datetime variables work correctly
+
+#### Available DateTime Variables
+```javascript
+CURRENT_TIMESTAMP    // 2025-10-05 14:30:25
+KST_NOW             // 2025-10-05 23:30:25 (Korea Standard Time)
+CURRENT_DATE        // 2025-10-05
+CURRENT_TIME        // 14:30:25
+KOREAN_DATE         // 2025년 10월 05일
+KOREAN_DATETIME     // 2025년 10월 05일 14시 30분 25초
+DATE_YYYYMMDD       // 20251005
+DATETIME_YYYYMMDD_HHMMSS // 20251005_143025
+ISO_TIMESTAMP       // 2025-10-05T14:30:25.123Z
+UNIX_TIMESTAMP      // 1728134225
+// ... and 10 more formats
+```
+
+### 📋 Table of Contents Enhancements
+- **SQL Formatting Preservation**: Original SQL query formatting with line breaks maintained
+- **Creation Timestamp**: Display file creation timestamp in each sheet
+- **Improved Readability**: Better visual presentation of complex SQL queries
+
+### 🔧 User Interface Improvements
+- **Input Validation**: Automatic whitespace trimming for file paths in batch interface
+- **Error Prevention**: Prevents "file not found" errors from accidental whitespace
+- **Copy-Paste Friendly**: Handles paths copied from other sources with leading/trailing spaces
+
+### 🚀 Build & Release System
+- **Automated Release Script**: `npm run release` creates complete release packages
+- **Version-aware Building**: `npm run build` generates versioned executable names
+- **Documentation Sync**: Automatic version replacement in all documentation files
+- **Clean Build Process**: `npm run clean` removes old builds and release files
+
+### 🔧 Technical Improvements
+- **Module Resolution Fix**: Resolved "Cannot find module" errors in packaged executables
+- **Asset Path Management**: Dynamic asset path resolution for templates and styles
+- **Variable Processing Logic**: Fixed datetime variable substitution order
+- **Batch Script Robustness**: Improved file type detection and error handling
+
+### 📚 Documentation Updates
+- **User Manual Enhancement**: Updated with all new features and standalone executable usage
+- **Release Documentation**: Comprehensive deployment and usage instructions
+- **Example Updates**: Added datetime variable examples and multi-line SQL formatting
+
+### 🐛 Bug Fixes
+- **DateTime Variable Output**: Fixed issue where datetime values were not displaying in Excel sheets
+- **Variable Processing Order**: Corrected variable substitution sequence to prioritize datetime functions
+- **XML Structure Validation**: Fixed missing `<sheets>` tags in example files
+- **Batch File Type Detection**: Improved XML/JSON file type identification in Windows batch interface
+- **Path Resolution**: Fixed template file paths in packaged executable environment
+
+---
+
 ## v1.2.3 - Parameter Override Feature Addition (2025-08-29)
 
 ### ✨ New Features

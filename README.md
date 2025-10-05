@@ -2,31 +2,66 @@
 
 A Node.js-based tool for generating Excel files from SQL query results.
 
-## 🎯 Key Features
-
+### Key Features
 - 📊 **Multi-Sheet Support**: Save multiple SQL query results in separate sheets within one Excel file
-- 🎨 **Excel Styling**: Detailed styling for header/data areas including fonts, colors, borders, alignment
+- 🎨 **Template Style System**: Pre-defined Excel styling templates for consistent design with 7 built-in styles
 - 🔗 **Multiple DB Connections**: Use different database connections for each sheet
 - 📝 **Variable System**: Use variables in queries for dynamic query generation
-- 🔄 **Dynamic Variables**: Extract values from database in real-time for dynamic query generation
+- 🔄 **Enhanced Dynamic Variables**: Extract values from database in real-time with advanced processing
 - 🔄 **Query Reuse**: Define common queries and reuse them across multiple sheets
-- ⚙️ **Parameter Override**: Override query definition parameters for each sheet
+- ⚙️ **Parameter Override**: Override query definition parameters for each sheet with different values
 - 📋 **Auto Table of Contents**: Automatically generate table of contents sheet with hyperlinks
 - 📊 **Aggregation Features**: Automatic aggregation and display of counts by specified column values
 - 🚦 **Query Limits**: Row count limiting for large data processing
 - 🖥️ **CLI Interface**: Simple command-line tool execution
-- 🪟 **Windows Batch Files**: Batch files for Windows users
+- 🪟 **Windows Batch Files**: Interactive batch files for Windows users
 - 📄 **XML/JSON Support**: Flexible configuration file format support
+- 🔍 **File Validation**: Automatic filename validation and Korean character warnings
+- 🎯 **Sheet-specific Styling**: Apply different styles to individual sheets
+- 📦 **Standalone Executable**: Generate standalone .exe files for distribution without Node.js dependency
+- 🌐 **Multi-language Support**: Korean and English release packages
+- 🔧 **Release Automation**: Automated release package generation with proper documentation
+- 🕒 **Creation Timestamp**: Display creation timestamp on each Excel sheet
+- ⏰ **Enhanced DateTime Variables**: 20+ automatic datetime variables for real-time timestamp generation
+- 📋 **SQL Query Formatting**: Preserve original SQL formatting with line breaks in Table of Contents
+- 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 
 ## 🚀 Quick Start
 
-### 1. Installation
+## 🛠️ Installation and Setup
+
+### 1. System Requirements
+
+#### For Development/Source Code Usage
+- Node.js 16.0 or higher
+- SQL Server 2012 or higher
+- Appropriate database permissions
+
+#### For Standalone Executable Usage
+- Windows 10 or higher (64-bit)
+- SQL Server 2012 or higher
+- Appropriate database permissions
+- **No Node.js installation required**
+
+### 2. Installation Options
+
+#### Option A: Development Installation
 ```bash
+# Clone or download the source code
 npm install
+
+# Build standalone executable (optional)
+npm run build
 ```
 
-### 2. Database Configuration
-Configure database connection information in `config/dbinfo.json`:
+#### Option B: Standalone Executable
+1. Download the release package from the releases section
+2. Extract to your desired directory
+3. Run `sql2excel.bat` for interactive menu
+4. Or use `sql2excel-v{version}.exe` directly
+
+### 3. Database Connection Setup
+Create `config/dbinfo.json` file:
 ```json
 {
   "dbs": {
@@ -40,37 +75,117 @@ Configure database connection information in `config/dbinfo.json`:
         "encrypt": false,
         "trustServerCertificate": true
       }
+    },
+    "erpDB": {
+      "server": "erp-server.com",
+      "port": 1433,
+      "database": "ERP_Database",
+      "user": "erp_user",
+      "password": "erp_password",
+      "options": {
+        "encrypt": true,
+        "trustServerCertificate": false
+      }
     }
   }
 }
 ```
 
-### 3. Generate Excel File
+## 🚀 Basic Usage
+
+### Method 1: Interactive Batch File (Recommended for Windows Users)
+
+Run the interactive batch file for a user-friendly menu:
 ```bash
-# Execute via CLI command
-node src/excel-cli.js export --xml ./queries/queries-sample.xml
-
-# Or execute via NPM script
-npm run export -- --xml ./queries/queries-sample.xml
-
-# Or execute via Windows batch file
-실행하기.bat
+sql2excel.bat
 ```
 
-### 4. Main CLI Commands
-```bash
-# Generate Excel file
-node src/excel-cli.js export --xml ./queries/sample.xml
+The interactive menu provides:
+1. **Validate Query Definition File** - Check your XML/JSON files for errors
+2. **Test Database Connection** - Verify database connectivity
+3. **Generate Excel File (XML File)** - Export using XML query definitions
+4. **Generate Excel File (JSON File)** - Export using JSON query definitions
+5. **Show Help** - Display detailed help information
 
-# Validate query file
-node src/excel-cli.js validate --xml ./queries/sample.xml
+### Method 2: Direct CLI Command Execution
+
+#### For Development (Node.js)
+```bash
+# Using XML query file
+node src/excel-cli.js export --xml ./queries/sample-queries.xml
+
+# Using JSON query file
+node src/excel-cli.js export --query ./queries/sample-queries.json
+
+# Execute with variables
+node src/excel-cli.js export --xml ./queries/sample-queries.xml --var "year=2024" --var "dept=IT"
+
+# Using template style
+node src/excel-cli.js export --xml ./queries/sample-queries.xml --style modern
+```
+
+#### For Standalone Executable
+```bash
+# Using XML query file
+sql2excel.exe export --xml ./queries/sample-queries.xml
+
+# Using JSON query file
+sql2excel.exe export --query ./queries/sample-queries.json
+
+# Execute with variables
+sql2excel.exe export --xml ./queries/sample-queries.xml --var "year=2024" --var "dept=IT"
+
+# Using template style
+sql2excel.exe export --xml ./queries/sample-queries.xml --style modern
+```
+
+### Method 3: NPM Scripts (Development Only)
+```bash
+# Export to Excel
+npm run export -- --xml ./queries/sample-queries.xml
+
+# Validate configuration
+npm run validate -- --xml ./queries/sample-queries.xml
 
 # Test database connection
+npm run list-dbs
+
+# Build standalone executable
+npm run build
+
+# Create release package
+npm run release
+```
+
+### Common Commands
+
+#### Validate Query File
+```bash
+# Development
+node src/excel-cli.js validate --xml ./queries/sample-queries.xml
+
+# Standalone
+sql2excel.exe validate --xml ./queries/sample-queries.xml
+```
+
+#### Test Database Connection
+```bash
+# Development
 node src/excel-cli.js list-dbs
 
-# Help
-node src/excel-cli.js help
+# Standalone
+sql2excel.exe list-dbs
 ```
+
+#### List Available Template Styles
+```bash
+# Development
+node src/excel-cli.js list-styles
+
+# Standalone
+sql2excel.exe list-styles
+```
+
 
 ## 📚 Documentation
 

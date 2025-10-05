@@ -7,6 +7,7 @@
 - [Query Definition File Structure](#query-definition-file-structure)
 - [Enhanced Dynamic Variables System](#enhanced-dynamic-variables-system)
 - [Automatic DateTime Variables](#automatic-datetime-variables)
+- [Creation Timestamp Feature](#creation-timestamp-feature)
 - [Advanced Features](#advanced-features)
 - [Template Style System](#template-style-system)
 - [Building and Deployment](#building-and-deployment)
@@ -37,6 +38,10 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 - 📦 **Standalone Executable**: Generate standalone .exe files for distribution without Node.js dependency
 - 🌐 **Multi-language Support**: Korean and English release packages
 - 🔧 **Release Automation**: Automated release package generation with proper documentation
+- 🕒 **Creation Timestamp**: Display creation timestamp on each Excel sheet
+- ⏰ **Enhanced DateTime Variables**: 20+ automatic datetime variables for real-time timestamp generation
+- 📋 **SQL Query Formatting**: Preserve original SQL formatting with line breaks in Table of Contents
+- 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 
 ## 🛠️ Installation and Setup
 
@@ -532,6 +537,50 @@ This will show output like:
 시각 함수 [DATE_YYYYMMDD] 치환: 20241006
 ```
 
+## 🕒 Creation Timestamp Feature
+
+SQL2Excel automatically adds creation timestamps to each generated Excel sheet, providing clear information about when the data was generated.
+
+### Automatic Timestamp Display
+
+Each Excel sheet includes:
+- **Database Source Information**: Shows which database the data came from
+- **Creation Timestamp**: Shows exactly when the Excel file was generated
+
+### Sheet Header Format
+```
+📊 출처: sampleDB DB
+🕒 생성일시: 2024년 10월 5일 토요일 오후 11:30:25
+```
+
+### Timestamp Format
+The creation timestamp uses Korean locale formatting:
+- **Date**: `2024년 10월 5일` (Year Month Day in Korean)
+- **Weekday**: `토요일` (Korean weekday name)
+- **Time**: `오후 11:30:25` (12-hour format with AM/PM in Korean)
+
+### Benefits
+1. **Data Freshness**: Users can immediately see how current the data is
+2. **Audit Trail**: Provides clear documentation of when reports were generated
+3. **Version Control**: Helps distinguish between different versions of the same report
+4. **Compliance**: Supports audit requirements by timestamping all generated data
+
+### Visual Styling
+- **Database Source**: Blue background with white bold text
+- **Creation Timestamp**: Blue background with white bold text
+- **Consistent Formatting**: Applied to all sheets in the workbook
+
+### Example Usage
+When you generate an Excel file, each sheet will automatically include:
+```
+📊 출처: customerDB DB
+🕒 생성일시: 2024년 10월 5일 토요일 오후 11:30:25
+
+[Your data table starts here]
+```
+
+This feature works automatically - no configuration required!
+
 ## 🎨 Advanced Features
 
 ### 1. Excel Styling
@@ -711,7 +760,7 @@ Each sheet includes database source information:
 
 #### 1. Build Single Executable
 ```bash
-# Build versioned executable (e.g., sql2excel.exe)
+# Build versioned executable (e.g., sql2excel-v1.2.4.exe)
 npm run build
 ```
 
@@ -720,20 +769,35 @@ This creates a standalone executable in the `dist/` directory that includes:
 - Source code
 - Configuration templates
 - Style templates
+- **Versioned filename**: Automatically includes current version from `package.json`
+- **Asset bundling**: Excel templates and style files are bundled within the executable
 
 #### 2. Create Release Package
 ```bash
-# Generate complete release package
+# Generate complete release package with multi-language support
 npm run release
 ```
 
-This creates a comprehensive release package including:
+This creates comprehensive release packages including:
+
+**Korean Release Package** (`sql2excel-v{version}-ko/`):
 - Standalone executable (`sql2excel-v{version}.exe`)
-- Interactive batch file (`sql2excel.bat`)
+- Korean interactive batch file (`sql2excel.bat`)
 - Configuration files (`config/dbinfo.json`)
 - Sample query files (`queries/`)
 - Style templates (`templates/`)
-- Documentation (`user_manual/`)
+- Korean documentation (`user_manual/`)
+- Korean deployment info (`배포정보.txt`)
+- License and changelog
+
+**English Release Package** (`sql2excel-v{version}-en/`):
+- Standalone executable (`sql2excel-v{version}.exe`)
+- English interactive batch file (`sql2excel.bat`)
+- Configuration files (`config/dbinfo.json`)
+- Sample query files (`queries/`)
+- Style templates (`templates/`)
+- English documentation (`user_manual/`)
+- English deployment info (`RELEASE_README.txt`)
 - License and changelog
 
 #### 3. Clean Build Artifacts
@@ -1069,6 +1133,37 @@ sql2excel.bat
 - Run `npm install` to install dependencies
 - Check Node.js version (requires 16.0+)
 - Clear npm cache: `npm cache clean --force`
+
+#### 11. DateTime Variables Not Working
+**Problem**: DateTime variables like `${KST_NOW}` not showing values in Excel
+**Solution**:
+- Check variable syntax (use exact variable names from documentation)
+- Ensure variables are used in queries, not just in variable definitions
+- Enable debug mode to see variable substitution: `DEBUG_VARIABLES=true`
+- Verify the variable processing order is correct
+
+#### 12. File Path Input Issues (Batch Interface)
+**Problem**: "File not found" errors when using batch interface
+**Solution**:
+- Remove leading/trailing spaces from file paths
+- Use tab completion or copy-paste to avoid typos
+- Check file extension (.xml vs .json)
+- Ensure file exists in the specified location
+
+#### 13. SQL Query Formatting Issues in Table of Contents
+**Problem**: SQL queries appear as single line in Table of Contents
+**Solution**:
+- This is now automatically preserved in v1.2.4+
+- Original SQL formatting with line breaks is maintained
+- No configuration required - works automatically
+
+#### 14. Creation Timestamp Not Appearing
+**Problem**: Excel sheets don't show creation timestamp
+**Solution**:
+- This feature is automatic in v1.2.4+
+- Check that you're using the latest version
+- Timestamp appears at the top of each sheet automatically
+- No configuration required
 
 ### Debug Mode
 Enable debug mode to see detailed variable substitution:
