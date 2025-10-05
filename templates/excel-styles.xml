@@ -129,7 +129,7 @@
   <!-- premium style -->
   <style id="premium" name="premium style" description="premium design">
     <header>
-      <font name="Arial" size="12" color="FFFFFF" bold="true"/>
+      <font name="Arial" size="11" color="FFFFFF" bold="true"/>
       <fill color="8B4513"/>
       <colwidths min="22" max="55"/>
       <alignment horizontal="center" vertical="middle"/>
