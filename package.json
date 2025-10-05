@@ -1,5 +1,5 @@
 {
-  "name": "sql2excel-exporter",
+  "name": "sql2excel",
   "version": "1.2.3",
   "description": "SQL 쿼리 결과를 엑셀 파일로 저장하는 도구 (시트별 쿼리, 변수, XML/JSON 지원)",
   "main": "src/index.js",
@@ -9,7 +9,7 @@
     "validate": "node src/excel-cli.js validate",
     "list-dbs": "node src/excel-cli.js list-dbs",
     "help": "node src/excel-cli.js help",
-    "build": "pkg . --public --no-native-build"
+    "build": "node -e \"const pkg = require('./package.json'); const { execSync } = require('child_process'); execSync(`pkg . --public --no-native-build --output dist/sql2excel-v${pkg.version}.exe`, { stdio: 'inherit' });\""
   },
   "bin": "src/excel-cli.js",
   "pkg": {
