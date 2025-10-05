@@ -17,7 +17,15 @@ class StyleManager {
   async loadStyleTemplates() {
     if (this.styleTemplates) return this.styleTemplates;
     
-    const templatePath = path.join(__dirname, '..', 'templates', 'excel-styles.xml');
+    // pkg로 빌드된 exe 파일에서는 실행 파일과 같은 디렉토리의 templates 폴더를 사용
+    let templatePath;
+    if (process.pkg) {
+      // exe 파일로 실행 중인 경우: 실행 파일과 같은 디렉토리의 templates 폴더
+      templatePath = path.join(path.dirname(process.execPath), 'templates', 'excel-styles.xml');
+    } else {
+      // 개발 환경에서 실행 중인 경우: 기존 경로
+      templatePath = path.join(__dirname, '..', 'templates', 'excel-styles.xml');
+    }
     
     try {
       const xml = fs.readFileSync(templatePath, 'utf8');
