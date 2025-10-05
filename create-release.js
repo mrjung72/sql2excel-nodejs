@@ -63,9 +63,9 @@ const filesToCopy = [
     // 설정 파일
     { src: 'config/dbinfo.json', dest: `${releaseDir}/config/dbinfo.json` },
     
-    // 문서 파일
-    { src: 'README.md', dest: `${releaseDir}/README.md` },
-    { src: 'USER_MANUAL.md', dest: `${releaseDir}/user_manual/USER_MANUAL.md` },
+    // 문서 파일 (USER_MANUAL.md는 버전별로 명령어 교체)
+    { src: 'README.md', dest: `${releaseDir}/README.md`, replaceVersion: true },
+    { src: 'USER_MANUAL.md', dest: `${releaseDir}/user_manual/USER_MANUAL.md`, replaceVersion: true },
     { src: 'CHANGELOG.md', dest: `${releaseDir}/user_manual/CHANGELOG.md` },
     { src: 'LICENSE', dest: `${releaseDir}/LICENSE` }
 ];
@@ -76,13 +76,18 @@ filesToCopy.forEach(({ src, dest, replaceVersion }) => {
         console.log(`- ${path.basename(dest)} 복사...`);
         
         if (replaceVersion) {
-            // 배치 파일의 exe 파일명을 현재 버전으로 교체
             let content = fs.readFileSync(src, 'utf8');
             
-            // sql2excel.exe를 현재 버전으로 교체
-            content = content.replace(/sql2excel\.exe/g, `sql2excel-v${version}.exe`);
+            if (src.endsWith('.bat')) {
+                // 배치 파일의 exe 파일명을 현재 버전으로 교체
+                content = content.replace(/sql2excel\.exe/g, `sql2excel-v${version}.exe`);
+                console.log(`  → exe 파일명을 sql2excel-v${version}.exe로 교체`);
+            } else if (src.endsWith('.md')) {
+                // 매뉴얼 파일의 node 명령어를 exe 파일명으로 교체
+                content = content.replace(/node src\/excel-cli\.js/g, `sql2excel-v${version}.exe`);
+                console.log(`  → node src/excel-cli.js 명령어를 sql2excel-v${version}.exe로 교체`);
+            }
             
-            console.log(`  → exe 파일명을 sql2excel-v${version}.exe로 교체`);
             fs.writeFileSync(dest, content);
         } else {
             fs.copyFileSync(src, dest);
