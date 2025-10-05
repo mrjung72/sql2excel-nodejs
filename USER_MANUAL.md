@@ -203,23 +203,6 @@ sql2excel.exe list-styles
 <?xml version="1.0" encoding="UTF-8"?>
 <queries maxRows="10000">
   <excel db="sampleDB" output="output/SalesReport.xlsx" style="modern">
-    <header>
-      <font name="Arial" size="12" color="FFFFFF" bold="true"/>
-      <fill color="4F81BD"/>
-      <colwidths min="20" max="50"/>
-      <alignment horizontal="center" vertical="middle"/>
-      <border>
-        <all style="thin" color="000000"/>
-      </border>
-    </header>
-    <body>
-      <font name="Arial" size="11" color="000000" bold="false"/>
-      <fill color="FFFFCC"/>
-      <alignment horizontal="left" vertical="middle"/>
-      <border>
-        <all style="thin" color="CCCCCC"/>
-      </border>
-    </body>
   </excel>
   
   <vars>
@@ -280,18 +263,7 @@ sql2excel.exe list-styles
     "db": "sampleDB",
     "output": "output/SalesReport.xlsx",
     "style": "modern",
-    "maxRows": 10000,
-    "header": {
-      "font": {
-        "name": "Arial",
-        "size": 12,
-        "color": "FFFFFF",
-        "bold": true
-      },
-      "fill": {
-        "color": "4F81BD"
-      }
-    }
+    "maxRows": 10000
   },
   "vars": {
     "startDate": "2024-01-01",
@@ -576,14 +548,6 @@ You can use the same query definition across multiple sheets while applying diff
 - **Boolean**: `true`, `false`
 - **Date**: `"2024-01-01"`
 
-##### Log Output Example
-```
-[쿼리 참조] 시트 "SeoulCustomers"이(가) 쿼리 정의 "customer_base"을(를) 참조합니다.
-[파라미터 재설정] 시트 "SeoulCustomers"에서 파라미터 재설정: {
-  regionList: [ 'Seoul' ],
-  startDate: '2024-01-01'
-}
-```
 
 ### 3. Separate Table of Contents
 
@@ -869,7 +833,7 @@ sql2excel.bat
     "db": "sampleDB",
     "output": "output/SalesReport.xlsx",
     "style": "business",
-    "maxRows": 5000,
+    "maxRows": 5000
   },
   "vars": {
     "year": "2024",
