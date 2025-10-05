@@ -57,28 +57,36 @@ const filesToCopy = [
     // 실행 파일
     { src: `dist/sql2excel-v${version}.exe`, dest: `${releaseDir}/sql2excel-v${version}.exe` },
     
-    // 배치 파일
-    { src: 'dist/sql2excel.bat', dest: `${releaseDir}/sql2excel.bat` },
-    { src: 'dist/sql2excel-kr.bat', dest: `${releaseDir}/sql2excel-kr.bat` },
+    // 배치 파일 (버전별로 exe 파일명 교체)
+    { src: 'dist/sql2excel-release.bat', dest: `${releaseDir}/sql2excel.bat`, replaceVersion: true },
     
     // 설정 파일
     { src: 'config/dbinfo.json', dest: `${releaseDir}/config/dbinfo.json` },
     
     // 문서 파일
     { src: 'README.md', dest: `${releaseDir}/README.md` },
-    { src: 'README_KR.md', dest: `${releaseDir}/README_KR.md` },
     { src: 'USER_MANUAL.md', dest: `${releaseDir}/user_manual/USER_MANUAL.md` },
-    { src: 'USER_MANUAL_KR.md', dest: `${releaseDir}/user_manual/USER_MANUAL_KR.md` },
     { src: 'CHANGELOG.md', dest: `${releaseDir}/user_manual/CHANGELOG.md` },
-    { src: 'CHANGELOG_KR.md', dest: `${releaseDir}/user_manual/CHANGELOG_KR.md` },
     { src: 'LICENSE', dest: `${releaseDir}/LICENSE` }
 ];
 
 // 파일 복사
-filesToCopy.forEach(({ src, dest }) => {
+filesToCopy.forEach(({ src, dest, replaceVersion }) => {
     if (fs.existsSync(src)) {
         console.log(`- ${path.basename(dest)} 복사...`);
-        fs.copyFileSync(src, dest);
+        
+        if (replaceVersion) {
+            // 배치 파일의 exe 파일명을 현재 버전으로 교체
+            let content = fs.readFileSync(src, 'utf8');
+            
+            // sql2excel.exe를 현재 버전으로 교체
+            content = content.replace(/sql2excel\.exe/g, `sql2excel-v${version}.exe`);
+            
+            console.log(`  → exe 파일명을 sql2excel-v${version}.exe로 교체`);
+            fs.writeFileSync(dest, content);
+        } else {
+            fs.copyFileSync(src, dest);
+        }
     } else {
         console.warn(`⚠️  파일을 찾을 수 없습니다: ${src}`);
     }
@@ -112,25 +120,46 @@ copyDirectory('templates', `${releaseDir}/templates`);
 
 // 배포 정보 파일 생성
 console.log('- 배포 정보 파일 생성...');
-const deployInfo = `SQL2Excel v${version} 배포판
+const deployInfo = `SQL2Excel v${version} Release Package
 
-빌드 날짜: ${new Date().toLocaleString('ko-KR')}
+Build Date: ${new Date().toLocaleString('en-US')}
 
-포함된 파일:
-- sql2excel-v${version}.exe (메인 실행 파일)
-- sql2excel.bat (메뉴 인터페이스)
-- config/ (데이터베이스 설정)
-- queries/ (쿼리 샘플 파일)
-- templates/ (엑셀 스타일 템플릿)
-- 문서 파일들 (README, 사용자 매뉴얼 등)
+Included Files:
+- sql2excel-v${version}.exe (Main executable file)
+- sql2excel.bat (Menu interface)
+- config/ (Database configuration)
+- queries/ (Query sample files)
+- templates/ (Excel style templates)
+- user_manual/ (Documentation files - README, User Manual, etc.)
 
-사용법:
-1. sql2excel.bat 실행
-2. config/dbinfo.json에서 데이터베이스 연결 정보 설정
-3. queries/ 폴더의 샘플 파일 참고하여 쿼리 작성
-4. 메뉴에서 원하는 기능 선택하여 실행`;
+Usage:
+1. Run sql2excel.bat
+2. Configure database connection settings in config/dbinfo.json
+3. Create queries by referring to sample files in queries/ folder
+4. Select desired function from the menu
 
-fs.writeFileSync(`${releaseDir}/RELEASE_README.txt`, deployInfo);
+Features:
+- Multi-sheet Excel generation from SQL queries
+- Support for both XML and JSON query definitions
+- Variable substitution in queries
+- Multiple database support
+- Excel styling and formatting options
+- Data aggregation and statistics
+
+System Requirements:
+- Windows operating system
+- SQL Server database access
+- No additional software installation required (standalone executable)
+
+Quick Start:
+1. Extract all files to a folder
+2. Edit config/dbinfo.json with your database connection details
+3. Run sql2excel.bat to start the interactive menu
+4. Choose option 3 or 4 to generate Excel files from sample queries
+
+For detailed instructions, please refer to the user manual files in the user_manual/ folder.`;
+
+fs.writeFileSync(`${releaseDir}/RELEASE_INFO.txt`, deployInfo);
 
 // 파일 개수 확인
 console.log();

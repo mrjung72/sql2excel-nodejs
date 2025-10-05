@@ -835,4 +835,4 @@ DEBUG_VARIABLES=true node src/excel-cli.js export --xml ./queries/sample.xml
 - **Documentation**: Refer to project documentation
 - **Issues**: Report issues via GitHub
 - **Email**: sql2excel.nodejs@gmail.com
-- **Website**: sql2excel.com
+- **Website**: www.sql2excel.com

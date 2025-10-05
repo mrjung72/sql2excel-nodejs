@@ -1,6 +1,7 @@
 node_modules/
 result/
 output/
+dist/*.exe
 
 # 배포 관련
 release/
