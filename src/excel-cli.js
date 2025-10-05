@@ -187,7 +187,7 @@ async function testAllDatabaseConnections(configPath) {
         const successCount = results.filter(r => r.success).length;
         const failureCount = results.length - successCount;
         
-        console.log('\n='.repeat(80));
+        console.log('='.repeat(80));
         console.log('📊 연결 테스트 결과 요약');
         console.log('='.repeat(80));
         console.log(`총 데이터베이스: ${results.length}개`);
