@@ -70,6 +70,8 @@ echo.
 
 echo Enter the query file path (e.g., queries/my-queries.xml):
 set /p query_file=
+:: Remove leading and trailing spaces
+for /f "tokens=* delims= " %%a in ("%query_file%") do set query_file=%%a
 if "%query_file%"=="" (
     echo File path not entered.
     echo.
@@ -151,6 +153,8 @@ echo.
 
 echo Enter XML file path (e.g., queries/my-queries.xml):
 set /p xml_file=
+:: Remove leading and trailing spaces
+for /f "tokens=* delims= " %%a in ("%xml_file%") do set xml_file=%%a
 if "%xml_file%"=="" (
     echo File path not entered.
     echo.
@@ -205,6 +209,8 @@ echo.
 
 echo Enter JSON file path (e.g., queries/my-queries.json):
 set /p json_file=
+:: Remove leading and trailing spaces
+for /f "tokens=* delims= " %%a in ("%json_file%") do set json_file=%%a
 if "%json_file%"=="" (
     echo File path not entered.
     echo.
