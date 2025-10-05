@@ -13,10 +13,11 @@ echo   SQL2Excel Tool v1.2
 echo =========================================
 echo.
 
-:: Check executable file
-if not exist "sql2excel-v1.2.3.exe" (
-    echo sql2excel-v1.2.3.exe file not found.
-    echo Please make sure the executable file is in the current directory.
+:: Check Node.js installation
+node --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Node.js가 설치되지 않았습니다.
+    echo https://nodejs.org 에서 Node.js를 설치해주세요.
     echo.
     pause
     exit /b 1
@@ -92,9 +93,9 @@ echo Validating query definition file...
 echo.
 
 if "%file_type%"=="xml" (
-    sql2excel-v1.2.3.exe validate --xml "%query_file%"
+    node src/excel-cli.js validate --xml "%query_file%"
 ) else (
-    sql2excel-v1.2.3.exe validate --query "%query_file%"
+    node src/excel-cli.js validate --query "%query_file%"
 )
 
 if %errorlevel% equ 0 (
@@ -118,7 +119,7 @@ echo.
 echo Testing configured database connections...
 echo.
 
-sql2excel-v1.2.3.exe list-dbs
+node src/excel-cli.js list-dbs
 
 if %errorlevel% equ 0 (
     echo.
@@ -170,7 +171,7 @@ echo.
 :: Record start time
 set start_time=%time%
 
-sql2excel-v1.2.3.exe export --xml "%xml_file%"
+node src/excel-cli.js export --xml "%xml_file%"
 
 if %errorlevel% equ 0 (
     echo.
@@ -224,7 +225,7 @@ echo.
 :: Record start time
 set start_time=%time%
 
-sql2excel-v1.2.3.exe export --query "%json_file%"
+node src/excel-cli.js export --query "%json_file%"
 
 if %errorlevel% equ 0 (
     echo.
@@ -253,7 +254,7 @@ echo   Help
 echo =========================================
 echo.
 
-sql2excel-v1.2.3.exe help
+node src/excel-cli.js help
 
 echo.
 echo Additional Information:
