@@ -172,7 +172,7 @@ WHERE CustomerID IN (${customerData.CustomerID})
 
 ## 📞 Support
 
-- **Website**: sql2excel.com
+- **Website**: www.sql2excel.com
 - **Email**: sql2excel.nodejs@gmail.com
 
 
