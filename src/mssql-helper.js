@@ -72,16 +72,107 @@ class MSSQLHelper {
    * @returns {Object} 타임스탬프 함수들
    */
   getTimestampFunctions() {
+    const now = new Date();
+    const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000)); // UTC+9 (한국 시간)
+    
     return {
-      'CURRENT_TIMESTAMP': () => new Date().toISOString().slice(0, 19).replace('T', ' '), // YYYY-MM-DD HH:mm:ss
-      'CURRENT_DATETIME': () => new Date().toISOString().slice(0, 19).replace('T', ' '), // YYYY-MM-DD HH:mm:ss
-      'NOW': () => new Date().toISOString().slice(0, 19).replace('T', ' '), // YYYY-MM-DD HH:mm:ss
-      'CURRENT_DATE': () => new Date().toISOString().slice(0, 10), // YYYY-MM-DD
-      'CURRENT_TIME': () => new Date().toTimeString().slice(0, 8), // HH:mm:ss
+      // 기본 시각 함수들
+      'CURRENT_TIMESTAMP': () => now.toISOString().slice(0, 19).replace('T', ' '), // YYYY-MM-DD HH:mm:ss
+      'CURRENT_DATETIME': () => now.toISOString().slice(0, 19).replace('T', ' '), // YYYY-MM-DD HH:mm:ss
+      'NOW': () => now.toISOString().slice(0, 19).replace('T', ' '), // YYYY-MM-DD HH:mm:ss
+      'CURRENT_DATE': () => now.toISOString().slice(0, 10), // YYYY-MM-DD
+      'CURRENT_TIME': () => now.toTimeString().slice(0, 8), // HH:mm:ss
+      'GETDATE': () => now.toISOString().slice(0, 19).replace('T', ' '), // SQL Server GETDATE() equivalent
+      
+      // 한국 시간대 함수들
+      'KST_NOW': () => koreaTime.toISOString().slice(0, 19).replace('T', ' '), // 한국 시간 YYYY-MM-DD HH:mm:ss
+      'KST_DATE': () => koreaTime.toISOString().slice(0, 10), // 한국 날짜 YYYY-MM-DD
+      'KST_TIME': () => koreaTime.toISOString().slice(11, 19), // 한국 시간 HH:mm:ss
+      'KST_DATETIME': () => koreaTime.toISOString().slice(0, 19).replace('T', ' '), // 한국 날짜시간
+      
+      // 한국식 날짜 형식
+      'KOREAN_DATE': () => {
+        const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        return kst.toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      }, // YYYY년 M월 D일
+      'KOREAN_DATETIME': () => {
+        const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        return kst.toLocaleString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
+        });
+      }, // YYYY년 M월 D일 HH:mm:ss
+      'KOREAN_DATE_SHORT': () => {
+        const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        return kst.toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        });
+      }, // YYYY. MM. DD.
+      
+      // 다양한 형식들
+      'DATE_YYYYMMDD': () => {
+        const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        const year = kst.getFullYear();
+        const month = String(kst.getMonth() + 1).padStart(2, '0');
+        const day = String(kst.getDate()).padStart(2, '0');
+        return `${year}${month}${day}`;
+      }, // YYYYMMDD
+      'DATE_YYYY_MM_DD': () => {
+        const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        const year = kst.getFullYear();
+        const month = String(kst.getMonth() + 1).padStart(2, '0');
+        const day = String(kst.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }, // YYYY-MM-DD (한국 시간)
+      'DATETIME_YYYYMMDD_HHMMSS': () => {
+        const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        const year = kst.getFullYear();
+        const month = String(kst.getMonth() + 1).padStart(2, '0');
+        const day = String(kst.getDate()).padStart(2, '0');
+        const hour = String(kst.getHours()).padStart(2, '0');
+        const minute = String(kst.getMinutes()).padStart(2, '0');
+        const second = String(kst.getSeconds()).padStart(2, '0');
+        return `${year}${month}${day}_${hour}${minute}${second}`;
+      }, // YYYYMMDD_HHMMSS
+      
+      // 타임스탬프 함수들
       'UNIX_TIMESTAMP': () => Math.floor(Date.now() / 1000), // Unix timestamp
       'TIMESTAMP_MS': () => Date.now(), // Milliseconds timestamp
-      'ISO_TIMESTAMP': () => new Date().toISOString(), // ISO 8601 format
-      'GETDATE': () => new Date().toISOString().slice(0, 19).replace('T', ' ') // SQL Server GETDATE() equivalent
+      'ISO_TIMESTAMP': () => now.toISOString(), // ISO 8601 format
+      'KST_ISO_TIMESTAMP': () => koreaTime.toISOString(), // 한국 시간 ISO 8601
+      
+      // 요일 정보
+      'WEEKDAY_KR': () => {
+        const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        const weekdays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+        return weekdays[kst.getDay()];
+      }, // 한국어 요일
+      'WEEKDAY_EN': () => {
+        const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        return weekdays[kst.getDay()];
+      }, // 영어 요일
+      
+      // 월 정보
+      'MONTH_KR': () => {
+        const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        return `${kst.getMonth() + 1}월`;
+      }, // N월
+      'YEAR_KR': () => {
+        const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+        return `${kst.getFullYear()}년`;
+      } // YYYY년
     };
   }
 

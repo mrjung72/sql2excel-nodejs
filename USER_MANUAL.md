@@ -5,6 +5,8 @@
 - [Installation and Setup](#installation-and-setup)
 - [Basic Usage](#basic-usage)
 - [Query Definition File Structure](#query-definition-file-structure)
+- [Enhanced Dynamic Variables System](#enhanced-dynamic-variables-system)
+- [Automatic DateTime Variables](#automatic-datetime-variables)
 - [Advanced Features](#advanced-features)
 - [Template Style System](#template-style-system)
 - [Building and Deployment](#building-and-deployment)
@@ -408,6 +410,127 @@ WHERE CustomerID IN (${customerData.CustomerID})
 3. **Error Handling**: If a variable query fails, it's replaced with an empty result
 4. **Performance**: Variables are executed once and cached for the entire export
 5. **Debug Mode**: Enable with `DEBUG_VARIABLES=true` for detailed variable substitution
+
+## 🕒 Automatic DateTime Variables
+
+SQL2Excel provides built-in datetime variables that are automatically resolved to current time values. These variables can be used in queries, file names, and any text content.
+
+### Basic DateTime Functions
+
+| Variable | Description | Example Output |
+|----------|-------------|----------------|
+| `${CURRENT_TIMESTAMP}` | Current UTC timestamp | `2024-10-05 15:30:45` |
+| `${NOW}` | Current UTC timestamp | `2024-10-05 15:30:45` |
+| `${CURRENT_DATE}` | Current UTC date | `2024-10-05` |
+| `${CURRENT_TIME}` | Current UTC time | `15:30:45` |
+| `${GETDATE}` | SQL Server format | `2024-10-05 15:30:45` |
+
+### Korean Time Zone Functions
+
+| Variable | Description | Example Output |
+|----------|-------------|----------------|
+| `${KST_NOW}` | Korean Standard Time | `2024-10-06 00:30:45` |
+| `${KST_DATE}` | Korean date | `2024-10-06` |
+| `${KST_TIME}` | Korean time | `00:30:45` |
+| `${KST_DATETIME}` | Korean datetime | `2024-10-06 00:30:45` |
+
+### Korean Localized Formats
+
+| Variable | Description | Example Output |
+|----------|-------------|----------------|
+| `${KOREAN_DATE}` | Korean date format | `2024년 10월 6일` |
+| `${KOREAN_DATETIME}` | Korean datetime format | `2024년 10월 6일 00:30:45` |
+| `${KOREAN_DATE_SHORT}` | Short Korean date | `2024. 10. 06.` |
+| `${WEEKDAY_KR}` | Korean weekday | `일요일` |
+| `${MONTH_KR}` | Korean month | `10월` |
+| `${YEAR_KR}` | Korean year | `2024년` |
+
+### Formatted Date/Time Functions
+
+| Variable | Description | Example Output |
+|----------|-------------|----------------|
+| `${DATE_YYYYMMDD}` | Compact date format | `20241006` |
+| `${DATE_YYYY_MM_DD}` | Hyphenated date (KST) | `2024-10-06` |
+| `${DATETIME_YYYYMMDD_HHMMSS}` | Compact datetime | `20241006_003045` |
+| `${WEEKDAY_EN}` | English weekday | `Sunday` |
+
+### Timestamp Functions
+
+| Variable | Description | Example Output |
+|----------|-------------|----------------|
+| `${UNIX_TIMESTAMP}` | Unix timestamp | `1728140445` |
+| `${TIMESTAMP_MS}` | Milliseconds timestamp | `1728140445123` |
+| `${ISO_TIMESTAMP}` | ISO 8601 format | `2024-10-05T15:30:45.123Z` |
+| `${KST_ISO_TIMESTAMP}` | Korean ISO format | `2024-10-06T00:30:45.123Z` |
+
+### Usage Examples
+
+#### In XML Queries
+```xml
+<vars>
+  <var name="reportDate">${KOREAN_DATE}</var>
+  <var name="department">IT</var>
+</vars>
+
+<sheets>
+  <sheet name="DailyReport" use="true">
+    <![CDATA[
+      SELECT 
+        '${reportDate} 일일 리포트' as title,
+        '${KST_NOW}' as generated_at,
+        * FROM orders 
+      WHERE created_date >= '${DATE_YYYY_MM_DD}'
+        AND department = '${department}'
+    ]]>
+  </sheet>
+</sheets>
+```
+
+#### In JSON Queries
+```json
+{
+  "vars": {
+    "reportTitle": "Daily Report - ${KOREAN_DATE}",
+    "currentTime": "${KST_NOW}"
+  },
+  "sheets": [
+    {
+      "name": "Report_${DATE_YYYYMMDD}",
+      "query": "SELECT '${reportTitle}' as title, '${currentTime}' as generated_at FROM users"
+    }
+  ]
+}
+```
+
+#### For File Naming
+```xml
+<excel db="sampleDB" output="output/report_${DATE_YYYYMMDD}_${DATETIME_YYYYMMDD_HHMMSS}.xlsx">
+```
+
+#### In Query Conditions
+```sql
+-- Filter records from today (Korean time)
+SELECT * FROM orders 
+WHERE order_date >= '${DATE_YYYY_MM_DD} 00:00:00'
+  AND order_date < '${DATE_YYYY_MM_DD} 23:59:59'
+
+-- Create backup table with timestamp
+CREATE TABLE backup_orders_${DATE_YYYYMMDD} AS 
+SELECT * FROM orders WHERE created_at < '${KST_NOW}'
+```
+
+### Debug Mode
+Enable debug mode to see datetime variable substitution:
+```bash
+DEBUG_VARIABLES=true node src/excel-cli.js export --xml queries/my-queries.xml
+```
+
+This will show output like:
+```
+시각 함수 [KST_NOW] 치환: 2024-10-06 00:30:45
+시각 함수 [KOREAN_DATE] 치환: 2024년 10월 6일
+시각 함수 [DATE_YYYYMMDD] 치환: 20241006
+```
 
 ## 🎨 Advanced Features
 

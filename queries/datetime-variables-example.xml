@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries maxRows="1000">
+  <excel db="sampleDB" output="output/datetime_variables_example.xlsx" style="modern">
+  </excel>
+  
+  <vars>
+    <var name="reportTitle">시각 변수 사용 예제</var>
+    <var name="department">IT</var>
+  </vars>
+  
+  <sheets>
+    <!-- 기본 시각 함수들 -->
+    <sheet name="기본시각함수" use="true">
+      <![CDATA[
+        SELECT 
+          '${reportTitle}' as 리포트제목,
+          '${CURRENT_TIMESTAMP}' as 현재시각_UTC,
+          '${NOW}' as 현재시각_NOW,
+          '${CURRENT_DATE}' as 현재날짜,
+          '${CURRENT_TIME}' as 현재시간,
+          '${GETDATE}' as SQL서버형식
+      ]]>
+    </sheet>
+    
+    <!-- 한국 시간대 함수들 -->
+    <sheet name="한국시간대" use="true">
+      <![CDATA[
+        SELECT 
+          '${KST_NOW}' as 한국현재시각,
+          '${KST_DATE}' as 한국현재날짜,
+          '${KST_TIME}' as 한국현재시간,
+          '${KST_DATETIME}' as 한국날짜시간,
+          '${KST_ISO_TIMESTAMP}' as 한국ISO형식
+      ]]>
+    </sheet>
+    
+    <!-- 한국식 날짜 형식 -->
+    <sheet name="한국식날짜형식" use="true">
+      <![CDATA[
+        SELECT 
+          '${KOREAN_DATE}' as 한국식날짜,
+          '${KOREAN_DATETIME}' as 한국식날짜시간,
+          '${KOREAN_DATE_SHORT}' as 한국식날짜짧은형식,
+          '${WEEKDAY_KR}' as 한국어요일,
+          '${MONTH_KR}' as 한국어월,
+          '${YEAR_KR}' as 한국어년도
+      ]]>
+    </sheet>
+    
+    <!-- 다양한 형식들 -->
+    <sheet name="다양한형식" use="true">
+      <![CDATA[
+        SELECT 
+          '${DATE_YYYYMMDD}' as YYYYMMDD형식,
+          '${DATE_YYYY_MM_DD}' as YYYY_MM_DD형식,
+          '${DATETIME_YYYYMMDD_HHMMSS}' as 날짜시간조합형식,
+          '${WEEKDAY_EN}' as 영어요일,
+          '${UNIX_TIMESTAMP}' as 유닉스타임스탬프,
+          '${TIMESTAMP_MS}' as 밀리초타임스탬프
+      ]]>
+    </sheet>
+    
+    <!-- 실제 사용 예제 -->
+    <sheet name="실제사용예제" use="true">
+      <![CDATA[
+        SELECT 
+          '${department}' as 부서명,
+          '리포트 생성일: ${KOREAN_DATE}' as 생성정보,
+          '생성시각: ${KST_NOW}' as 상세시각,
+          '요일: ${WEEKDAY_KR}' as 요일정보,
+          '파일명 형식: Report_${DATE_YYYYMMDD}_${department}' as 파일명예시,
+          'WHERE 조건 예시: created_date >= ''${DATE_YYYY_MM_DD}''' as 쿼리예시
+      ]]>
+    </sheet>
+  </sheets>
+</queries>
