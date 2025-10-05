@@ -82,13 +82,9 @@ if "%query_file%"=="" (
     goto MENU
 )
 
-:: Determine file type
-echo %query_file% | findstr /i "\.xml$" >nul
-if %errorlevel% equ 0 (
-    set file_type=xml
-) else (
-    set file_type=json
-)
+:: Determine file type by extension
+set file_type=json
+if /i "%query_file:~-4%"==".xml" set file_type=xml
 
 echo.
 echo 쿼리문정의 파일을 검증하고 있습니다...
