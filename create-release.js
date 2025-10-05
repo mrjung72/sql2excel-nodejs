@@ -69,8 +69,7 @@ const filesToCopy = [
     { src: 'USER_MANUAL_KR.md', dest: `${releaseDir}/USER_MANUAL_KR.md` },
     { src: 'CHANGELOG.md', dest: `${releaseDir}/CHANGELOG.md` },
     { src: 'CHANGELOG_KR.md', dest: `${releaseDir}/CHANGELOG_KR.md` },
-    { src: 'LICENSE', dest: `${releaseDir}/LICENSE` },
-    { src: 'RELEASE_README.md', dest: `${releaseDir}/배포판_README.md` },
+    { src: 'LICENSE', dest: `${releaseDir}/LICENSE` }
 ];
 
 // 파일 복사
@@ -129,7 +128,7 @@ const deployInfo = `SQL2Excel v${version} 배포판
 3. queries/ 폴더의 샘플 파일 참고하여 쿼리 작성
 4. 메뉴에서 원하는 기능 선택하여 실행`;
 
-fs.writeFileSync(`${releaseDir}/배포정보.txt`, deployInfo);
+fs.writeFileSync(`${releaseDir}/RELEASE_README.txt`, deployInfo);
 
 // 파일 개수 확인
 console.log();
