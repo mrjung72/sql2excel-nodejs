@@ -453,10 +453,10 @@ function populateTableOfContents(tocSheet, sheetNames) {
       }
     }
     
-    // 쿼리문 정보 추출 (최대 10000자로 제한)
+    // 쿼리문 정보 추출 (최대 10000자로 제한, 원래 형식 유지)
     let queryText = '';
     if (obj.query) {
-      queryText = obj.query.replace(/\s+/g, ' ').trim(); // 연속 공백 제거
+      queryText = obj.query.trim(); // 앞뒤 공백만 제거, 줄바꿈과 들여쓰기 유지
       if (queryText.length > 10000) {
         queryText = queryText.substring(0, 10000) + '... 이하 생략 (최대 10000자로 제한) .....';
       }
