@@ -9,7 +9,7 @@
     "validate": "node src/excel-cli.js validate",
     "list-dbs": "node src/excel-cli.js list-dbs",
     "help": "node src/excel-cli.js help",
-    "build:exe": "pkg . --public --no-native-build"
+    "build": "pkg . --public --no-native-build"
   },
   "bin": "src/excel-cli.js",
   "pkg": {
@@ -19,6 +19,7 @@
     "assets": [
       "queries/**/*.xml",
       "config/**/*.json",
+      "templates/**/*.xml",
       ".env"
     ],
     "targets": [

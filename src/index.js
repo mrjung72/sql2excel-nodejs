@@ -287,6 +287,9 @@ async function main() {
   await mssqlHelper.closeAllConnections();
 }
 
+// 모듈로 사용될 때를 위해 main 함수를 export
+module.exports = { main };
+
 if (require.main === module) {
   main().catch(err => { console.error(err); process.exit(1); });
 }

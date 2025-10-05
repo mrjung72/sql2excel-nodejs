@@ -372,10 +372,20 @@ async function main() {
                 }
                 
                 try {
-                    const { execSync } = require('child_process');
-                    const cmd = `node src/index.js ${exportArgs.join(' ')}`;
-                    console.log(`실행 명령어: ${cmd}\n`);
-                    execSync(cmd, { stdio: 'inherit' });
+                    // 직접 index.js의 main 함수를 호출하여 pkg 빌드와 호환되도록 함
+                    const { main: indexMain } = require('./index.js');
+                    
+                    // process.argv를 임시로 수정하여 yargs가 올바른 인수를 받도록 함
+                    const originalArgv = process.argv;
+                    process.argv = ['node', 'src/index.js', ...exportArgs];
+                    
+                    console.log(`실행 명령어: node src/index.js ${exportArgs.join(' ')}\n`);
+                    
+                    // index.js의 main 함수를 직접 호출
+                    await indexMain();
+                    
+                    // process.argv 복원
+                    process.argv = originalArgv;
                 } catch (error) {
                     console.error('엑셀 내보내기 실행 중 오류가 발생했습니다:', error.message);
                     process.exit(1);
