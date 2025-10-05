@@ -2,22 +2,21 @@
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 
-:: Korean output setup
+:: English output setup
 color 0F
 
 :HEADER
 cls
 echo.
 echo =========================================
-echo   SQL2Excel 도구 v1.2
+echo   SQL2Excel Tool v1.2
 echo =========================================
 echo.
 
-:: Check Node.js installation
-node --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Node.js가 설치되지 않았습니다.
-    echo https://nodejs.org 에서 Node.js를 설치해주세요.
+:: Check executable file
+if not exist "sql2excel-v1.2.3.exe" (
+    echo sql2excel-v1.2.3.exe file not found.
+    echo Please make sure the executable file is in the current directory.
     echo.
     pause
     exit /b 1
@@ -25,20 +24,20 @@ if %errorlevel% neq 0 (
 
 :MENU
 echo =========================================
-echo   메뉴 선택
+echo   Menu Selection
 echo =========================================
-echo 1. 쿼리문정의 파일 검증
+echo 1. Validate Query Definition File
 echo.
-echo 2. 데이터베이스 연결 테스트
+echo 2. Test Database Connection
 echo.
-echo 3. 엑셀 파일 생성 (XML 파일)
-echo 4. 엑셀 파일 생성 (JSON 파일)
+echo 3. Generate Excel File (XML File)
+echo 4. Generate Excel File (JSON File)
 echo.
-echo 5. 도움말 보기
-echo 0. 종료
+echo 5. Show Help
+echo 0. Exit
 echo =========================================
 echo.
-set /p choice=선택하세요 (0-5): 
+set /p choice=Please select (0-5): 
 
 if "%choice%"=="1" goto VALIDATE
 if "%choice%"=="2" goto TEST_DB
@@ -47,7 +46,7 @@ if "%choice%"=="4" goto EXPORT_JSON
 if "%choice%"=="5" goto HELP
 if "%choice%"=="0" goto EXIT
 
-echo 잘못된 선택입니다. 다시 선택해주세요.
+echo Invalid selection. Please try again.
 echo.
 pause
 goto MENU
@@ -55,26 +54,30 @@ goto MENU
 :VALIDATE
 echo.
 echo =========================================
-echo   쿼리문정의 파일 검증
+echo   Query Definition File Validation
 echo =========================================
 echo.
-echo 사용 가능한 쿼리문정의 파일들:
+echo Available query definition files:
 echo.
 if exist "queries\*.xml" (
-    echo [XML 파일들]
     for %%f in (queries\*.xml) do echo   - %%f
-    echo.
 )
 if exist "queries\*.json" (
-    echo [JSON 파일들]
     for %%f in (queries\*.json) do echo   - %%f
-    echo.
 )
+echo.
 
-echo 검증할 파일 경로를 입력하세요 (예: queries/my-queries.xml):
+echo Enter the query file path (e.g., queries/my-queries.xml):
 set /p query_file=
 if "%query_file%"=="" (
-    echo 파일 경로가 입력되지 않았습니다.
+    echo File path not entered.
+    echo.
+    pause
+    goto MENU
+)
+
+if not exist "%query_file%" (
+    echo File not found: %query_file%
     echo.
     pause
     goto MENU
@@ -85,21 +88,21 @@ set file_type=json
 if /i "%query_file:~-4%"==".xml" set file_type=xml
 
 echo.
-echo 쿼리문정의 파일을 검증하고 있습니다...
+echo Validating query definition file...
 echo.
 
 if "%file_type%"=="xml" (
-    node src/excel-cli.js validate --xml "%query_file%"
+    sql2excel-v1.2.3.exe validate --xml "%query_file%"
 ) else (
-    node src/excel-cli.js validate --query "%query_file%"
+    sql2excel-v1.2.3.exe validate --query "%query_file%"
 )
 
 if %errorlevel% equ 0 (
     echo.
-    echo ✅ 쿼리문정의 파일 검증이 완료되었습니다.
+    echo ✅ Query definition file validation completed.
 ) else (
     echo.
-    echo ❌ 쿼리문정의 파일에 오류가 있습니다.
+    echo ❌ Query definition file has errors.
 )
 
 echo.
@@ -109,21 +112,21 @@ goto MENU
 :TEST_DB
 echo.
 echo =========================================
-echo   데이터베이스 연결 테스트
+echo   Database Connection Test
 echo =========================================
 echo.
-echo 설정된 데이터베이스 연결을 테스트하고 있습니다...
+echo Testing configured database connections...
 echo.
 
-node src/excel-cli.js list-dbs
+sql2excel-v1.2.3.exe list-dbs
 
 if %errorlevel% equ 0 (
     echo.
-    echo ✅ 데이터베이스 연결 테스트가 완료되었습니다.
+    echo ✅ Database connection test completed.
 ) else (
     echo.
-    echo ❌ 데이터베이스 연결에 실패했습니다.
-    echo config/dbinfo.json 파일의 연결 정보를 확인해주세요.
+    echo ❌ Database connection failed.
+    echo Please check the connection information in config/dbinfo.json.
 )
 
 echo.
@@ -133,51 +136,51 @@ goto MENU
 :EXPORT_XML
 echo.
 echo =========================================
-echo   엑셀 파일 생성 (XML)
+echo   Generate Excel File (XML)
 echo =========================================
 echo.
-echo 사용 가능한 XML 쿼리문정의 파일들:
+echo Available XML query definition files:
 echo.
 if exist "queries\*.xml" (
     for %%f in (queries\*.xml) do echo   - %%f
 ) else (
-    echo   (XML 파일이 없습니다)
+    echo   (No XML files found)
 )
 echo.
 
-echo XML 파일 경로를 입력하세요 (예: queries/my-queries.xml):
+echo Enter XML file path (e.g., queries/my-queries.xml):
 set /p xml_file=
 if "%xml_file%"=="" (
-    echo 파일 경로가 입력되지 않았습니다.
+    echo File path not entered.
     echo.
     pause
     goto MENU
 )
 
 if not exist "%xml_file%" (
-    echo 파일을 찾을 수 없습니다: %xml_file%
+    echo File not found: %xml_file%
     echo.
     pause
     goto MENU
 )
 
 echo.
-echo 엑셀 파일을 생성하고 있습니다...
+echo Generating Excel file...
 echo.
 :: Record start time
 set start_time=%time%
 
-node src/excel-cli.js export --xml "%xml_file%"
+sql2excel-v1.2.3.exe export --xml "%xml_file%"
 
 if %errorlevel% equ 0 (
     echo.
-    echo ✅ 엑셀 파일이 성공적으로 생성되었습니다.
-    echo 시작 시간: %start_time%
-    echo 완료 시간: %time%
+    echo ✅ Excel file generated successfully.
+    echo Start time: %start_time%
+    echo End time: %time%
     echo.
 ) else (
     echo.
-    echo ❌ 엑셀 파일 생성 중 오류가 발생했습니다.
+    echo ❌ Error occurred while generating Excel file.
 )
 
 echo.
@@ -187,56 +190,56 @@ goto MENU
 :EXPORT_JSON
 echo.
 echo =========================================
-echo   엑셀 파일 생성 (JSON)
+echo   Generate Excel File (JSON)
 echo =========================================
 echo.
-echo 사용 가능한 JSON 쿼리문정의 파일들:
+echo Available JSON query definition files:
 echo.
 if exist "queries\*.json" (
     for %%f in (queries\*.json) do echo   - %%f
 ) else (
-    echo   (JSON 파일이 없습니다)
+    echo   (No JSON files found)
 )
 echo.
 
-echo JSON 파일 경로를 입력하세요 (예: queries/my-queries.json):
+echo Enter JSON file path (e.g., queries/my-queries.json):
 set /p json_file=
 if "%json_file%"=="" (
-    echo 파일 경로가 입력되지 않았습니다.
+    echo File path not entered.
     echo.
     pause
     goto MENU
 )
 
 if not exist "%json_file%" (
-    echo 파일을 찾을 수 없습니다: %json_file%
+    echo File not found: %json_file%
     echo.
     pause
     goto MENU
 )
 
 echo.
-echo 엑셀 파일을 생성하고 있습니다...
+echo Generating Excel file...
 echo.
 :: Record start time
 set start_time=%time%
 
-node src/excel-cli.js export --query "%json_file%"
+sql2excel-v1.2.3.exe export --query "%json_file%"
 
 if %errorlevel% equ 0 (
     echo.
-    echo ✅ 엑셀 파일이 성공적으로 생성되었습니다.
-    echo 시작 시간: %start_time%
-    echo 완료 시간: %time%
+    echo ✅ Excel file generated successfully.
+    echo Start time: %start_time%
+    echo End time: %time%
     echo.
-    echo 생성된 파일을 확인하시겠습니까? (Y/N)
+    echo Would you like to open the output folder? (Y/N)
     set /p open_folder=
     if /i "!open_folder!"=="Y" (
         explorer output
     )
 ) else (
     echo.
-    echo ❌ 엑셀 파일 생성 중 오류가 발생했습니다.
+    echo ❌ Error occurred while generating Excel file.
 )
 
 echo.
@@ -246,28 +249,33 @@ goto MENU
 :HELP
 echo.
 echo =========================================
-echo   도움말
+echo   Help
 echo =========================================
 echo.
 
-node src/excel-cli.js help
+sql2excel-v1.2.3.exe help
 
 echo.
-echo 추가 정보:
-echo - 쿼리 정의 재사용: v1.2부터 queryRef 속성으로 쿼리 재사용 가능
-echo - XML 파일: queries/ 폴더에 XML 형식으로 쿼리 정의
-echo - JSON 파일: queries/ 폴더에 JSON 형식으로 쿼리 정의
-echo - 출력 파일: output/ 폴더에 엑셀 파일 생성
-echo - DB 설정: config/dbinfo.json 파일에서 연결 정보 관리
+echo Additional Information:
+echo - Query Definition Reuse: From v1.2, you can reuse queries with queryRef attribute
+echo - XML Files: Define queries in XML format in queries/ folder
+echo - JSON Files: Define queries in JSON format in queries/ folder
+echo - Variables: Use variables in queries for dynamic content
+echo - Multi-Database: Support multiple database connections
+echo - Excel Styling: Apply various Excel styles and formatting
 echo.
-echo 자세한 사용법은 README.md 파일을 참고하세요.
+echo Configuration:
+echo - Database settings: config/dbinfo.json
+echo - Query samples: queries/ folder
+echo - Output files: output/ folder
+echo - Style templates: templates/ folder
 echo.
 pause
 goto MENU
 
 :EXIT
 echo.
-echo 프로그램을 종료합니다.
+echo Thank you for using SQL2Excel Tool!
 echo.
 pause
 exit /b 0

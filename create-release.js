@@ -33,6 +33,7 @@ fs.mkdirSync(releaseDir, { recursive: true });
 fs.mkdirSync(`${releaseDir}/config`, { recursive: true });
 fs.mkdirSync(`${releaseDir}/queries`, { recursive: true });
 fs.mkdirSync(`${releaseDir}/templates`, { recursive: true });
+fs.mkdirSync(`${releaseDir}/user_manual`, { recursive: true });
 
 // 실행 파일 빌드
 console.log();
@@ -58,6 +59,7 @@ const filesToCopy = [
     
     // 배치 파일
     { src: 'dist/sql2excel.bat', dest: `${releaseDir}/sql2excel.bat` },
+    { src: 'dist/sql2excel-kr.bat', dest: `${releaseDir}/sql2excel-kr.bat` },
     
     // 설정 파일
     { src: 'config/dbinfo.json', dest: `${releaseDir}/config/dbinfo.json` },
@@ -65,10 +67,10 @@ const filesToCopy = [
     // 문서 파일
     { src: 'README.md', dest: `${releaseDir}/README.md` },
     { src: 'README_KR.md', dest: `${releaseDir}/README_KR.md` },
-    { src: 'USER_MANUAL.md', dest: `${releaseDir}/USER_MANUAL.md` },
-    { src: 'USER_MANUAL_KR.md', dest: `${releaseDir}/USER_MANUAL_KR.md` },
-    { src: 'CHANGELOG.md', dest: `${releaseDir}/CHANGELOG.md` },
-    { src: 'CHANGELOG_KR.md', dest: `${releaseDir}/CHANGELOG_KR.md` },
+    { src: 'USER_MANUAL.md', dest: `${releaseDir}/user_manual/USER_MANUAL.md` },
+    { src: 'USER_MANUAL_KR.md', dest: `${releaseDir}/user_manual/USER_MANUAL_KR.md` },
+    { src: 'CHANGELOG.md', dest: `${releaseDir}/user_manual/CHANGELOG.md` },
+    { src: 'CHANGELOG_KR.md', dest: `${releaseDir}/user_manual/CHANGELOG_KR.md` },
     { src: 'LICENSE', dest: `${releaseDir}/LICENSE` }
 ];
 
