@@ -1,5 +1,23 @@
 # SQL2Excel Version History
 
+## v1.2.5 - Batch Interface Improvements (2025-10-10)
+
+### 🔧 Improvements
+- **📋 Numbered File Selection**: Changed file selection from manual path entry to numbered menu system
+- **✅ Enhanced Input Validation**: Added validation for file selection numbers
+- **🎯 Improved User Experience**: More intuitive file selection with automatic listing of XML/JSON files
+- **🔍 File Type Detection**: Automatic detection and separation of XML and JSON files in selection menus
+- **📁 Empty Directory Handling**: Better handling when no query definition files are found
+
+### 🪟 Batch Interface Changes
+- **VALIDATE Menu**: Display numbered list of all query files (XML/JSON) for validation
+- **EXPORT_XML Menu**: Display numbered list of XML files with simplified selection
+- **EXPORT_JSON Menu**: Display numbered list of JSON files with simplified selection
+- **Input Validation**: Check if number is in valid range and provide clear error messages
+- **User Feedback**: Show selected file path before processing
+
+---
+
 ## v1.2.4 - Standalone Executable & Enhanced User Experience (2025-10-05)
 
 ### ✨ New Features
