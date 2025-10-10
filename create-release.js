@@ -58,7 +58,7 @@ const filesToCopy = [
     { src: `dist/sql2excel-v${version}.exe`, dest: `${releaseDir}/sql2excel-v${version}.exe` },
     
     // 배치 파일 (버전별로 exe 파일명 교체)
-    { src: 'dist/sql2excel-release.bat', dest: `${releaseDir}/sql2excel.bat`, replaceVersion: true },
+    { src: 'sql2excel.bat', dest: `${releaseDir}/sql2excel.bat`, replaceVersion: true },
     
     // 설정 파일
     { src: 'config/dbinfo.json', dest: `${releaseDir}/config/dbinfo.json` },
@@ -82,9 +82,17 @@ filesToCopy.forEach(({ src, dest, replaceVersion }) => {
             let content = fs.readFileSync(src, 'utf8');
             
             if (src.endsWith('.bat')) {
-                // 배치 파일의 exe 파일명을 현재 버전으로 교체
-                content = content.replace(/sql2excel\.exe/g, `sql2excel-v${version}.exe`);
-                console.log(`  → exe 파일명을 sql2excel-v${version}.exe로 교체`);
+                // Node.js 체크 부분 제거 (16-24번 라인)
+                content = content.replace(
+                    /:: Check Node\.js installation[\s\S]*?exit \/b 1\s*\)/m,
+                    ':: Standalone executable - no Node.js check needed'
+                );
+                
+                // node src/excel-cli.js를 sql2excel-v{version}.exe로 교체
+                content = content.replace(/node src\/excel-cli\.js/g, `sql2excel-v${version}.exe`);
+                
+                console.log(`  → Node.js 체크 제거`);
+                console.log(`  → node src/excel-cli.js를 sql2excel-v${version}.exe로 교체`);
             }
             
             fs.writeFileSync(dest, content);
