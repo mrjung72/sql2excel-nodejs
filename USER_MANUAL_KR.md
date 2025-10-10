@@ -1,0 +1,1196 @@
+# SQL2Excel 도구 사용자 매뉴얼
+
+## 📖 목차
+- [개요](#개요)
+- [설치 및 설정](#설치-및-설정)
+- [기본 사용법](#기본-사용법)
+- [쿼리 정의 파일 구조](#쿼리-정의-파일-구조)
+- [향상된 동적 변수 시스템](#향상된-동적-변수-시스템)
+- [자동 DateTime 변수](#자동-datetime-변수)
+- [생성 타임스탬프 기능](#생성-타임스탬프-기능)
+- [고급 기능](#고급-기능)
+- [템플릿 스타일 시스템](#템플릿-스타일-시스템)
+- [빌드 및 배포](#빌드-및-배포)
+- [CLI 명령 참조](#cli-명령-참조)
+- [예제](#예제)
+- [문제 해결](#문제-해결)
+
+## 🎯 개요
+
+SQL2Excel은 고급 스타일링, 템플릿 지원, 독립 실행 파일 배포 기능을 갖춘 SQL 쿼리 결과로 엑셀 파일을 생성하는 강력한 Node.js 기반 도구입니다.
+
+### 주요 기능
+- 📊 **다중 시트 지원**: 하나의 엑셀 파일 내에서 여러 SQL 쿼리 결과를 별도의 시트에 저장
+- 🎨 **템플릿 스타일 시스템**: 일관된 디자인을 위한 사전 정의된 엑셀 스타일링 템플릿 (7가지 내장 스타일)
+- 🔗 **다중 DB 연결**: 각 시트마다 다른 데이터베이스 연결 사용 가능
+- 📝 **변수 시스템**: 동적 쿼리 생성을 위한 변수 사용
+- 🔄 **향상된 동적 변수**: 실시간으로 데이터베이스에서 값을 추출하여 고급 처리
+- 🔄 **쿼리 재사용**: 공통 쿼리를 정의하고 여러 시트에서 재사용
+- ⚙️ **파라미터 오버라이드**: 각 시트에 대해 쿼리 정의 파라미터를 다른 값으로 재정의
+- 📋 **자동 목차 생성**: 하이퍼링크가 있는 목차 시트 자동 생성
+- 📊 **집계 기능**: 지정된 컬럼 값별 개수 자동 집계 및 표시
+- 🚦 **쿼리 제한**: 대용량 데이터 처리를 위한 행 개수 제한
+- 🖥️ **CLI 인터페이스**: 간단한 명령줄 도구 실행
+- 🪟 **Windows 배치 파일**: Windows 사용자를 위한 대화형 배치 파일
+- 📄 **XML/JSON 지원**: 유연한 구성 파일 형식 지원
+- 🔍 **파일 유효성 검사**: 자동 파일명 유효성 검사 및 한글 문자 경고
+- 🎯 **시트별 스타일링**: 개별 시트에 다른 스타일 적용
+- 📦 **독립 실행 파일**: Node.js 의존성 없이 배포할 수 있는 독립 실행 파일(.exe) 생성
+- 🌐 **다국어 지원**: 한국어 및 영어 릴리스 패키지
+- 🔧 **릴리스 자동화**: 적절한 문서와 함께 자동 릴리스 패키지 생성
+- 🕒 **생성 타임스탬프**: 각 엑셀 시트에 생성 타임스탬프 표시
+- ⏰ **향상된 DateTime 변수**: 실시간 타임스탬프 생성을 위한 20개 이상의 자동 datetime 변수
+- 📋 **SQL 쿼리 포맷팅**: 목차에서 줄바꿈을 포함한 원본 SQL 포맷 유지
+- 🔧 **입력 유효성 검증**: 파일 경로 입력에 대한 자동 공백 제거
+
+## 🛠️ 설치 및 설정
+
+### 1. 시스템 요구사항
+
+#### 개발/소스 코드 사용 시
+- Node.js 16.0 이상
+- SQL Server 2012 이상
+- 적절한 데이터베이스 권한
+
+#### 독립 실행 파일 사용 시
+- Windows 10 이상 (64비트)
+- SQL Server 2012 이상
+- 적절한 데이터베이스 권한
+- **Node.js 설치 불필요**
+
+### 2. 설치 옵션
+
+#### 옵션 A: 개발 설치
+```bash
+# 소스 코드 복제 또는 다운로드
+npm install
+
+# 독립 실행 파일 빌드 (선택사항)
+npm run build
+```
+
+#### 옵션 B: 독립 실행 파일
+1. 릴리스 섹션에서 릴리스 패키지 다운로드
+2. 원하는 디렉토리에 압축 해제
+3. 대화형 메뉴를 위해 `sql2excel.bat` 실행
+4. 또는 `sql2excel-v{version}.exe`를 직접 사용
+
+### 3. 데이터베이스 연결 설정
+`config/dbinfo.json` 파일을 생성하세요:
+```json
+{
+  "dbs": {
+    "sampleDB": {
+      "server": "localhost",
+      "port": 1433,
+      "database": "SampleDB",
+      "user": "sa",
+      "password": "yourpassword",
+      "options": {
+        "encrypt": false,
+        "trustServerCertificate": true
+      }
+    },
+    "erpDB": {
+      "server": "erp-server.com",
+      "port": 1433,
+      "database": "ERP_Database",
+      "user": "erp_user",
+      "password": "erp_password",
+      "options": {
+        "encrypt": true,
+        "trustServerCertificate": false
+      }
+    }
+  }
+}
+```
+
+## 🚀 기본 사용법
+
+### 방법 1: 대화형 배치 파일 (Windows 사용자 권장)
+
+사용자 친화적인 메뉴를 위해 대화형 배치 파일 실행:
+```bash
+sql2excel.bat
+```
+
+대화형 메뉴 제공 항목:
+1. **쿼리 정의 파일 유효성 검사** - XML/JSON 파일의 오류 확인
+2. **데이터베이스 연결 테스트** - 데이터베이스 연결 확인
+3. **엑셀 파일 생성 (XML 파일)** - XML 쿼리 정의를 사용하여 내보내기
+4. **엑셀 파일 생성 (JSON 파일)** - JSON 쿼리 정의를 사용하여 내보내기
+5. **도움말 표시** - 자세한 도움말 정보 표시
+
+### 방법 2: 직접 CLI 명령 실행
+
+#### 개발 환경 (Node.js)
+```bash
+# XML 쿼리 파일 사용
+node src/excel-cli.js export --xml ./queries/sample-queries.xml
+
+# JSON 쿼리 파일 사용
+node src/excel-cli.js export --query ./queries/sample-queries.json
+
+# 변수와 함께 실행
+node src/excel-cli.js export --xml ./queries/sample-queries.xml --var "year=2024" --var "dept=IT"
+
+# 템플릿 스타일 사용
+node src/excel-cli.js export --xml ./queries/sample-queries.xml --style modern
+```
+
+#### 독립 실행 파일
+```bash
+# XML 쿼리 파일 사용
+sql2excel.exe export --xml ./queries/sample-queries.xml
+
+# JSON 쿼리 파일 사용
+sql2excel.exe export --query ./queries/sample-queries.json
+
+# 변수와 함께 실행
+sql2excel.exe export --xml ./queries/sample-queries.xml --var "year=2024" --var "dept=IT"
+
+# 템플릿 스타일 사용
+sql2excel.exe export --xml ./queries/sample-queries.xml --style modern
+```
+
+### 방법 3: NPM 스크립트 (개발 전용)
+```bash
+# 엑셀로 내보내기
+npm run export -- --xml ./queries/sample-queries.xml
+
+# 구성 유효성 검사
+npm run validate -- --xml ./queries/sample-queries.xml
+
+# 데이터베이스 연결 테스트
+npm run list-dbs
+
+# 독립 실행 파일 빌드
+npm run build
+
+# 릴리스 패키지 생성
+npm run release
+```
+
+### 일반 명령어
+
+#### 쿼리 파일 유효성 검사
+```bash
+# 개발 환경
+node src/excel-cli.js validate --xml ./queries/sample-queries.xml
+
+# 독립 실행 파일
+sql2excel.exe validate --xml ./queries/sample-queries.xml
+```
+
+#### 데이터베이스 연결 테스트
+```bash
+# 개발 환경
+node src/excel-cli.js list-dbs
+
+# 독립 실행 파일
+sql2excel.exe list-dbs
+```
+
+#### 사용 가능한 템플릿 스타일 목록
+```bash
+# 개발 환경
+node src/excel-cli.js list-styles
+
+# 독립 실행 파일
+sql2excel.exe list-styles
+```
+
+## 📋 쿼리 정의 파일 구조
+
+### XML 형식
+
+#### 기본 구조
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<queries maxRows="10000">
+  <excel db="sampleDB" output="output/SalesReport.xlsx" style="modern">
+  </excel>
+  
+  <vars>
+    <var name="startDate">2024-01-01</var>
+    <var name="endDate">2024-12-31</var>
+    <var name="year">2024</var>
+  </vars>
+  
+  <dynamicVars>
+    <dynamicVar name="activeCustomers" description="활성 고객 목록">
+      <![CDATA[
+        SELECT CustomerID, CustomerName, Region FROM Customers WHERE IsActive = 1
+      ]]>
+    </dynamicVar>
+    <dynamicVar name="productPrices" type="key_value_pairs" description="제품 가격">
+      <![CDATA[
+        SELECT ProductID, UnitPrice FROM Products WHERE Discontinued = 0
+      ]]>
+    </dynamicVar>
+  </dynamicVars>
+  
+  <queryDefs>
+    <queryDef id="customer_base" description="기본 고객 쿼리">
+      <![CDATA[
+        SELECT CustomerID, CustomerName, Email, Phone
+        FROM Customers WHERE IsActive = 1
+      ]]>
+    </queryDef>
+  </queryDefs>
+  
+  <sheets>
+    <sheet name="MonthlySales" use="true" aggregateColumn="Month" limit="1000" style="business">
+      <![CDATA[
+        SELECT MONTH(OrderDate) as Month, 
+               SUM(TotalAmount) as Sales,
+               COUNT(*) as OrderCount
+        FROM Orders 
+        WHERE YEAR(OrderDate) = ${year}
+          AND CustomerID IN (${activeCustomers.CustomerID})
+        GROUP BY MONTH(OrderDate)
+        ORDER BY Month
+      ]]>
+    </sheet>
+    
+    <sheet name="CustomerList" use="true" db="erpDB">
+      <queryRef ref="customer_base"/>
+    </sheet>
+  </sheets>
+</queries>
+```
+
+### JSON 형식
+
+#### 기본 구조
+```json
+{
+  "excel": {
+    "db": "sampleDB",
+    "output": "output/SalesReport.xlsx",
+    "style": "modern",
+    "maxRows": 10000
+  },
+  "vars": {
+    "startDate": "2024-01-01",
+    "endDate": "2024-12-31",
+    "year": "2024"
+  },
+  "dynamicVars": [
+    {
+      "name": "activeCustomers",
+      "description": "활성 고객 목록",
+      "query": "SELECT CustomerID, CustomerName FROM Customers WHERE IsActive = 1"
+    },
+    {
+      "name": "productPrices",
+      "type": "key_value_pairs",
+      "description": "제품 가격",
+      "query": "SELECT ProductID, UnitPrice FROM Products WHERE Discontinued = 0"
+    }
+  ],
+  "sheets": [
+    {
+      "name": "MonthlySales",
+      "use": true,
+      "aggregateColumn": "Month",
+      "limit": 1000,
+      "style": "business",
+      "query": "SELECT MONTH(OrderDate) as Month, SUM(TotalAmount) as Sales FROM Orders WHERE YEAR(OrderDate) = ${year} GROUP BY MONTH(OrderDate)"
+    }
+  ]
+}
+```
+
+## 🎨 템플릿 스타일 시스템
+
+SQL2Excel은 사전 정의된 엑셀 스타일링 템플릿을 포함한 포괄적인 템플릿 스타일 시스템을 제공합니다.
+
+### 사용 가능한 템플릿 스타일
+
+| 스타일 ID | 이름 | 설명 |
+|----------|------|------|
+| `default` | 기본 스타일 | 기본 엑셀 스타일 |
+| `modern` | 모던 스타일 | 현대적인 디자인 |
+| `dark` | 다크 스타일 | 어두운 테마 |
+| `colorful` | 컬러풀 스타일 | 다채로운 색상 |
+| `minimal` | 미니멀 스타일 | 간결한 디자인 |
+| `business` | 비즈니스 스타일 | 업무용 스타일 |
+| `premium` | 프리미엄 스타일 | 고급스러운 디자인 |
+
+### 템플릿 스타일 사용
+
+#### 1. 전역 스타일 (XML)
+```xml
+<excel db="sampleDB" output="output/Report.xlsx" style="modern">
+```
+
+#### 2. 전역 스타일 (JSON)
+```json
+{
+  "excel": {
+    "db": "sampleDB",
+    "output": "output/Report.xlsx",
+    "style": "modern"
+  }
+}
+```
+
+#### 3. CLI 스타일 옵션
+```bash
+node src/excel-cli.js export --xml queries.xml --style modern
+```
+
+#### 4. 시트별 스타일
+```xml
+<sheet name="SalesData" use="true" style="business">
+  <![CDATA[
+    SELECT * FROM Sales
+  ]]>
+</sheet>
+```
+
+### 템플릿 스타일 커스터마이징
+
+템플릿 스타일을 커스텀 스타일링으로 재정의할 수 있습니다:
+
+```xml
+<excel db="sampleDB" output="output/Report.xlsx" style="modern">
+  <header>
+    <font name="Calibri" size="14" color="FFFFFF" bold="true"/>
+    <fill color="2E75B6"/>
+  </header>
+  <body>
+    <font name="Calibri" size="11" color="000000"/>
+    <fill color="F8F9FA"/>
+  </body>
+</excel>
+```
+
+## 🔄 향상된 동적 변수 시스템
+
+이 도구는 런타임에 데이터를 추출하여 쿼리에서 사용할 수 있는 고급 동적 변수를 지원합니다.
+
+### 변수 유형
+
+| 유형 | 설명 | 액세스 패턴 | 기본값 |
+|------|------|-------------|--------|
+| `column_identified` | 모든 컬럼을 컬럼명으로 키가 지정된 배열로 추출 | `${varName.columnName}` | ✅ 예 |
+| `key_value_pairs` | 처음 두 컬럼을 키-값 쌍으로 추출 | `${varName.key}` | 아니오 |
+
+### 사용 예제
+
+#### XML 구성
+```xml
+<dynamicVars>
+  <!-- column_identified 사용 (기본값) -->
+  <dynamicVar name="customerData" description="고객 정보">
+    <![CDATA[
+      SELECT CustomerID, CustomerName, Region FROM Customers
+    ]]>
+  </dynamicVar>
+  
+  <!-- key_value_pairs 사용 -->
+  <dynamicVar name="productPrices" type="key_value_pairs" description="제품 가격">
+    <![CDATA[
+      SELECT ProductID, UnitPrice FROM Products WHERE Discontinued = 0
+    ]]>
+  </dynamicVar>
+</dynamicVars>
+```
+
+#### 쿼리에서 사용
+```sql
+-- 시트 쿼리에서
+SELECT * FROM Orders 
+WHERE CustomerID IN (${customerData.CustomerID})
+  AND ProductID IN (${productPrices.ProductID})
+  AND Region IN (${customerData.Region})
+```
+
+### 변수 처리
+1. **실행 순서**: 동적 변수는 시트 쿼리 전에 처리됩니다
+2. **데이터베이스 연결**: 지정된 데이터베이스 연결을 사용합니다
+3. **오류 처리**: 변수 쿼리가 실패하면 빈 결과로 대체됩니다
+4. **성능**: 변수는 한 번 실행되고 전체 내보내기에 대해 캐시됩니다
+5. **디버그 모드**: 자세한 변수 치환을 위해 `DEBUG_VARIABLES=true`로 활성화
+
+## 🕒 자동 DateTime 변수
+
+SQL2Excel은 현재 시간 값으로 자동 해석되는 내장 datetime 변수를 제공합니다. 이러한 변수는 쿼리, 파일 이름 및 모든 텍스트 콘텐츠에서 사용할 수 있습니다.
+
+### 기본 DateTime 함수
+
+| 변수 | 설명 | 예제 출력 |
+|------|------|----------|
+| `${CURRENT_TIMESTAMP}` | 현재 UTC 타임스탬프 | `2024-10-05 15:30:45` |
+| `${NOW}` | 현재 UTC 타임스탬프 | `2024-10-05 15:30:45` |
+| `${CURRENT_DATE}` | 현재 UTC 날짜 | `2024-10-05` |
+| `${CURRENT_TIME}` | 현재 UTC 시간 | `15:30:45` |
+| `${GETDATE}` | SQL Server 형식 | `2024-10-05 15:30:45` |
+
+### 한국 시간대 함수
+
+| 변수 | 설명 | 예제 출력 |
+|------|------|----------|
+| `${KST_NOW}` | 한국 표준시 | `2024-10-06 00:30:45` |
+| `${KST_DATE}` | 한국 날짜 | `2024-10-06` |
+| `${KST_TIME}` | 한국 시간 | `00:30:45` |
+| `${KST_DATETIME}` | 한국 일시 | `2024-10-06 00:30:45` |
+
+### 한국어 로케일 형식
+
+| 변수 | 설명 | 예제 출력 |
+|------|------|----------|
+| `${KOREAN_DATE}` | 한국어 날짜 형식 | `2024년 10월 6일` |
+| `${KOREAN_DATETIME}` | 한국어 일시 형식 | `2024년 10월 6일 00:30:45` |
+| `${KOREAN_DATE_SHORT}` | 짧은 한국어 날짜 | `2024. 10. 06.` |
+| `${WEEKDAY_KR}` | 한국어 요일 | `일요일` |
+| `${MONTH_KR}` | 한국어 월 | `10월` |
+| `${YEAR_KR}` | 한국어 년 | `2024년` |
+
+### 형식화된 날짜/시간 함수
+
+| 변수 | 설명 | 예제 출력 |
+|------|------|----------|
+| `${DATE_YYYYMMDD}` | 압축 날짜 형식 | `20241006` |
+| `${DATE_YYYY_MM_DD}` | 하이픈 날짜 (KST) | `2024-10-06` |
+| `${DATETIME_YYYYMMDD_HHMMSS}` | 압축 일시 | `20241006_003045` |
+| `${WEEKDAY_EN}` | 영어 요일 | `Sunday` |
+
+### 타임스탬프 함수
+
+| 변수 | 설명 | 예제 출력 |
+|------|------|----------|
+| `${UNIX_TIMESTAMP}` | Unix 타임스탬프 | `1728140445` |
+| `${TIMESTAMP_MS}` | 밀리초 타임스탬프 | `1728140445123` |
+| `${ISO_TIMESTAMP}` | ISO 8601 형식 | `2024-10-05T15:30:45.123Z` |
+| `${KST_ISO_TIMESTAMP}` | 한국 ISO 형식 | `2024-10-06T00:30:45.123Z` |
+
+### 사용 예제
+
+#### XML 쿼리에서
+```xml
+<vars>
+  <var name="reportDate">${KOREAN_DATE}</var>
+  <var name="department">IT</var>
+</vars>
+
+<sheets>
+  <sheet name="DailyReport" use="true">
+    <![CDATA[
+      SELECT 
+        '${reportDate} 일일 리포트' as title,
+        '${KST_NOW}' as generated_at,
+        * FROM orders 
+      WHERE created_date >= '${DATE_YYYY_MM_DD}'
+        AND department = '${department}'
+    ]]>
+  </sheet>
+</sheets>
+```
+
+#### JSON 쿼리에서
+```json
+{
+  "vars": {
+    "reportTitle": "일일 리포트 - ${KOREAN_DATE}",
+    "currentTime": "${KST_NOW}"
+  },
+  "sheets": [
+    {
+      "name": "Report_${DATE_YYYYMMDD}",
+      "query": "SELECT '${reportTitle}' as title, '${currentTime}' as generated_at FROM users"
+    }
+  ]
+}
+```
+
+#### 파일 이름 지정
+```xml
+<excel db="sampleDB" output="output/report_${DATE_YYYYMMDD}_${DATETIME_YYYYMMDD_HHMMSS}.xlsx">
+```
+
+#### 쿼리 조건에서
+```sql
+-- 오늘 날짜의 레코드 필터링 (한국 시간)
+SELECT * FROM orders 
+WHERE order_date >= '${DATE_YYYY_MM_DD} 00:00:00'
+  AND order_date < '${DATE_YYYY_MM_DD} 23:59:59'
+
+-- 타임스탬프로 백업 테이블 생성
+CREATE TABLE backup_orders_${DATE_YYYYMMDD} AS 
+SELECT * FROM orders WHERE created_at < '${KST_NOW}'
+```
+
+### 디버그 모드
+datetime 변수 치환을 확인하려면 디버그 모드를 활성화하세요:
+```bash
+DEBUG_VARIABLES=true node src/excel-cli.js export --xml queries/my-queries.xml
+```
+
+다음과 같은 출력이 표시됩니다:
+```
+시각 함수 [KST_NOW] 치환: 2024-10-06 00:30:45
+시각 함수 [KOREAN_DATE] 치환: 2024년 10월 6일
+시각 함수 [DATE_YYYYMMDD] 치환: 20241006
+```
+
+## 🕒 생성 타임스탬프 기능
+
+SQL2Excel은 생성된 각 엑셀 시트에 자동으로 생성 타임스탬프를 추가하여 데이터가 언제 생성되었는지에 대한 명확한 정보를 제공합니다.
+
+### 자동 타임스탬프 표시
+
+각 엑셀 시트에는 다음이 포함됩니다:
+- **데이터베이스 소스 정보**: 데이터가 어떤 데이터베이스에서 왔는지 표시
+- **생성 타임스탬프**: 엑셀 파일이 정확히 언제 생성되었는지 표시
+
+### 시트 헤더 형식
+```
+📊 출처: sampleDB DB
+🕒 생성일시: 2024년 10월 5일 토요일 오후 11:30:25
+```
+
+### 타임스탬프 형식
+생성 타임스탬프는 한국 로케일 형식을 사용합니다:
+- **날짜**: `2024년 10월 5일` (한국어로 년월일)
+- **요일**: `토요일` (한국어 요일 이름)
+- **시간**: `오후 11:30:25` (한국어 오전/오후와 함께 12시간 형식)
+
+### 이점
+1. **데이터 신선도**: 사용자는 데이터가 얼마나 최신인지 즉시 확인 가능
+2. **감사 추적**: 보고서가 언제 생성되었는지 명확한 문서화 제공
+3. **버전 관리**: 동일한 보고서의 다른 버전을 구별하는 데 도움
+4. **규정 준수**: 생성된 모든 데이터에 타임스탬프를 기록하여 감사 요구사항 지원
+
+### 시각적 스타일링
+- **데이터베이스 소스**: 흰색 굵은 글씨의 파란색 배경
+- **생성 타임스탬프**: 흰색 굵은 글씨의 파란색 배경
+- **일관된 형식**: 통합 문서의 모든 시트에 적용
+
+### 사용 예제
+엑셀 파일을 생성하면 각 시트에 자동으로 다음이 포함됩니다:
+```
+📊 출처: customerDB DB
+🕒 생성일시: 2024년 10월 5일 토요일 오후 11:30:25
+
+[여기에서 데이터 테이블이 시작됩니다]
+```
+
+이 기능은 자동으로 작동합니다 - 구성이 필요하지 않습니다!
+
+## 🎨 고급 기능
+
+### 1. 엑셀 스타일링
+
+#### 글꼴 스타일링
+```xml
+<font name="Arial" size="12" color="FFFFFF" bold="true" italic="false"/>
+```
+
+#### 채우기 스타일링
+```xml
+<fill color="4F81BD" patternType="solid"/>
+```
+
+#### 테두리 스타일링
+```xml
+<border>
+  <top style="thin" color="000000"/>
+  <bottom style="thin" color="000000"/>
+  <left style="thin" color="000000"/>
+  <right style="thin" color="000000"/>
+</border>
+```
+
+#### 정렬
+```xml
+<alignment horizontal="center" vertical="center" wrapText="true"/>
+```
+
+### 2. 쿼리 재사용
+
+#### 기본 쿼리 재사용
+```xml
+<queryDefs>
+  <queryDef id="customer_base" description="기본 고객 쿼리">
+    <![CDATA[
+      SELECT CustomerID, CustomerName, Email, Phone
+      FROM Customers WHERE IsActive = 1
+    ]]>
+  </queryDef>
+</queryDefs>
+
+<sheets>
+  <sheet name="CustomerList" use="true">
+    <queryRef ref="customer_base"/>
+  </sheet>
+</sheets>
+```
+
+#### 파라미터 오버라이드 기능
+
+동일한 쿼리 정의를 여러 시트에서 사용하면서 각각 다른 파라미터 값을 적용할 수 있습니다.
+
+##### XML에서 파라미터 오버라이드
+```xml
+<queryDefs>
+  <queryDef id="customer_base" description="기본 고객 쿼리">
+    <![CDATA[
+      SELECT CustomerID, CustomerName, Email, Phone, Region
+      FROM Customers 
+      WHERE IsActive = 1 
+        AND Region IN (${regionList})
+        AND CreatedDate >= '${startDate}'
+    ]]>
+  </queryDef>
+</queryDefs>
+
+<sheets>
+  <!-- 서울 고객 -->
+  <sheet name="SeoulCustomers" use="true" queryRef="customer_base">
+    <params>
+      <param name="regionList">["Seoul"]</param>
+      <param name="startDate">2024-01-01</param>
+    </params>
+  </sheet>
+  
+  <!-- 부산 고객 -->
+  <sheet name="BusanCustomers" use="true" queryRef="customer_base">
+    <params>
+      <param name="regionList">["Busan"]</param>
+      <param name="startDate">2024-03-01</param>
+    </params>
+  </sheet>
+  
+  <!-- 모든 지역 고객 -->
+  <sheet name="AllCustomers" use="true" queryRef="customer_base">
+    <params>
+      <param name="regionList">["Seoul", "Busan", "Daegu", "Incheon"]</param>
+      <param name="startDate">2024-01-01</param>
+    </params>
+  </sheet>
+</sheets>
+```
+
+##### JSON에서 파라미터 오버라이드
+```json
+{
+  "queryDefs": {
+    "customer_base": {
+      "name": "customer_base",
+      "description": "기본 고객 쿼리",
+      "query": "SELECT CustomerID, CustomerName, Email, Phone, Region FROM Customers WHERE IsActive = 1 AND Region IN (${regionList}) AND CreatedDate >= '${startDate}'"
+    }
+  },
+  "sheets": [
+    {
+      "name": "SeoulCustomers",
+      "use": true,
+      "queryRef": "customer_base",
+      "params": {
+        "regionList": ["Seoul"],
+        "startDate": "2024-01-01"
+      }
+    },
+    {
+      "name": "BusanCustomers",
+      "use": true,
+      "queryRef": "customer_base",
+      "params": {
+        "regionList": ["Busan"],
+        "startDate": "2024-03-01"
+      }
+    }
+  ]
+}
+```
+
+##### 파라미터 우선순위
+1. **시트별 파라미터** (최우선)
+2. **전역 변수** (vars 섹션)
+3. **기본값** (쿼리 정의에 하드코딩됨)
+
+##### 지원되는 파라미터 유형
+- **문자열**: `"Seoul"`
+- **숫자**: `1000`
+- **배열**: `["Seoul", "Busan"]`
+- **부울**: `true`, `false`
+- **날짜**: `"2024-01-01"`
+
+
+### 3. 별도 목차
+
+독립 실행 TOC 파일 생성:
+
+#### XML 구성
+```xml
+<queries>
+  <excel db="sampleDB" output="output/Report.xlsx">
+```
+
+#### CLI 옵션
+```bash
+node src/excel-cli.js export --xml queries.xml
+```
+
+### 4. 파일 유효성 검사
+
+도구는 파일 이름을 자동으로 유효성 검사하고 한글 문자에 대해 경고합니다:
+
+```
+⚠️  경고: 파일명에 한글이 포함되어 있습니다: 샘플쿼리.xml
+   💡 권장사항: 파일명을 영문으로 변경하세요.
+   💡 예시: "샘플쿼리.xml" → "sample-query.xml"
+```
+
+### 5. 데이터베이스 소스 정보
+
+각 시트에는 데이터베이스 소스 정보가 포함됩니다:
+
+```
+📊 출처: sampleDB DB
+```
+
+## 📦 빌드 및 배포
+
+### 독립 실행 파일 빌드
+
+#### 1. 단일 실행 파일 빌드
+```bash
+# 버전이 포함된 실행 파일 빌드 (예: sql2excel-v1.2.5.exe)
+npm run build
+```
+
+이것은 `dist/` 디렉토리에 다음을 포함하는 독립 실행 파일을 생성합니다:
+- 모든 Node.js 의존성
+- 소스 코드
+- 구성 템플릿
+- 스타일 템플릿
+- **버전이 포함된 파일명**: `package.json`의 현재 버전이 자동으로 포함됩니다
+- **에셋 번들링**: 엑셀 템플릿과 스타일 파일이 실행 파일 내에 번들됩니다
+
+#### 2. 릴리스 패키지 생성
+```bash
+# 다국어 지원과 함께 완전한 릴리스 패키지 생성
+npm run release
+```
+
+이것은 다음을 포함하는 포괄적인 릴리스 패키지를 생성합니다:
+
+**한국어 릴리스 패키지** (`sql2excel-v{version}-ko/`):
+- 독립 실행 파일 (`sql2excel-v{version}.exe`)
+- 한국어 대화형 배치 파일 (`sql2excel.bat`)
+- 구성 파일 (`config/dbinfo.json`)
+- 샘플 쿼리 파일 (`queries/`)
+- 스타일 템플릿 (`templates/`)
+- 한국어 문서 (`user_manual/`)
+- 한국어 배포 정보 (`배포정보.txt`)
+- 라이센스 및 변경 이력
+
+**영어 릴리스 패키지** (`sql2excel-v{version}-en/`):
+- 독립 실행 파일 (`sql2excel-v{version}.exe`)
+- 영어 대화형 배치 파일 (`sql2excel.bat`)
+- 구성 파일 (`config/dbinfo.json`)
+- 샘플 쿼리 파일 (`queries/`)
+- 스타일 템플릿 (`templates/`)
+- 영어 문서 (`user_manual/`)
+- 영어 배포 정보 (`RELEASE_README.txt`)
+- 라이센스 및 변경 이력
+
+#### 3. 빌드 아티팩트 정리
+```bash
+# 모든 빌드 아티팩트 및 릴리스 패키지 제거
+npm run clean
+```
+
+### 릴리스 패키지 구조
+
+```
+sql2excel-v{version}/
+├── sql2excel.exe          # 독립 실행 파일
+├── sql2excel.bat                  # 대화형 배치 인터페이스
+├── config/
+│   └── dbinfo.json               # 데이터베이스 구성
+├── queries/                      # 샘플 쿼리 파일
+│   ├── queries-sample.xml
+│   ├── queries-sample.json
+│   └── ...
+├── templates/
+│   └── excel-styles.xml          # 스타일 템플릿
+├── user_manual/
+│   ├── USER_MANUAL_KR.md         # 이 매뉴얼
+│   └── CHANGELOG_KR.md           # 버전 히스토리
+├── README_KR.md                  # 빠른 시작 가이드
+├── 배포정보.txt                   # 릴리스 정보
+└── LICENSE                       # 라이센스 파일
+```
+
+### 배포 옵션
+
+#### 옵션 1: 독립 실행 패키지
+- **대상**: Node.js 없는 최종 사용자
+- **내용**: 완전한 실행 파일 패키지
+- **사용법**: `sql2excel.bat` 실행 또는 `sql2excel-v{version}.exe` 직접 사용
+
+#### 옵션 2: 소스 코드 패키지
+- **대상**: 개발자 및 고급 사용자
+- **내용**: Node.js 의존성이 있는 전체 소스 코드
+- **사용법**: `npm install` 후 npm 스크립트 또는 Node.js 명령 사용
+
+### 다국어 지원
+
+릴리스 시스템은 다국어 패키지를 지원합니다:
+
+#### 한국어 패키지 (`sql2excel-v{version}-ko/`)
+- 한국어 배치 인터페이스
+- 한국어 문서 (`배포정보.txt`)
+- 한국어 오류 메시지 및 프롬프트
+
+#### 영어 패키지 (`sql2excel-v{version}-en/`)
+- 영어 배치 인터페이스
+- 영어 문서 (`RELEASE_INFO.txt`)
+- 영어 오류 메시지 및 프롬프트
+
+## 🔧 CLI 명령 참조
+
+### 주요 명령
+
+| 명령 | 설명 | 옵션 |
+|------|------|------|
+| `export` | 엑셀 파일 생성 | `--xml`, `--query`, `--style`, `--var` |
+| `validate` | 구성 파일 유효성 검사 | `--xml`, `--query` |
+| `list-dbs` | 사용 가능한 데이터베이스 목록 | 없음 |
+| `list-styles` | 사용 가능한 템플릿 스타일 목록 | 없음 |
+
+### 내보내기 옵션
+
+| 옵션 | 설명 | 예제 |
+|------|------|------|
+| `--xml <file>` | XML 쿼리 정의 파일 | `--xml queries.xml` |
+| `--query <file>` | JSON 쿼리 정의 파일 | `--query queries.json` |
+| `--style <style>` | 사용할 템플릿 스타일 | `--style modern` |
+| `--var <key=value>` | 변수 값 설정 | `--var "year=2024"` |
+| `--config <file>` | 데이터베이스 구성 파일 | `--config config/dbinfo.json` |
+| `--db <dbname>` | 기본 데이터베이스 | `--db sampleDB` |
+
+### 예제
+
+#### 개발 환경
+```bash
+# XML을 사용한 기본 내보내기
+node src/excel-cli.js export --xml queries/sales.xml
+
+# 템플릿 스타일과 함께 내보내기
+node src/excel-cli.js export --xml queries/sales.xml --style business
+
+# 변수와 함께 내보내기
+node src/excel-cli.js export --xml queries/sales.xml --var "year=2024" --var "region=North"
+
+# 구성 유효성 검사
+node src/excel-cli.js validate --xml queries/sales.xml
+
+# 사용 가능한 스타일 목록
+node src/excel-cli.js list-styles
+```
+
+#### 독립 실행 파일
+```bash
+# XML을 사용한 기본 내보내기
+sql2excel.exe export --xml queries/sales.xml
+
+# 템플릿 스타일과 함께 내보내기
+sql2excel.exe export --xml queries/sales.xml --style business
+
+# 변수와 함께 내보내기
+sql2excel.exe export --xml queries/sales.xml --var "year=2024" --var "region=North"
+
+# 구성 유효성 검사
+sql2excel.exe validate --xml queries/sales.xml
+
+# 사용 가능한 스타일 목록
+sql2excel.exe list-styles
+```
+
+#### 대화형 배치 파일
+```bash
+# 대화형 메뉴 실행
+sql2excel.bat
+
+# 프롬프트를 따르세요:
+# 1. 옵션 선택 (1-5)
+# 2. 프롬프트가 나타나면 파일 경로 입력
+# 3. 결과 검토
+```
+
+## 📊 예제
+
+### 완전한 XML 예제
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<queries maxRows="5000">
+  <excel db="sampleDB" output="output/SalesReport.xlsx" style="business">
+  </excel>
+  
+  <vars>
+    <var name="year">2024</var>
+    <var name="startDate">2024-01-01</var>
+    <var name="endDate">2024-12-31</var>
+  </vars>
+  
+  <dynamicVars>
+    <dynamicVar name="activeCustomers" description="활성 고객 목록">
+      <![CDATA[
+        SELECT CustomerID, CustomerName, Region 
+        FROM Customers 
+        WHERE IsActive = 1 AND Region IN ('North', 'South')
+      ]]>
+    </dynamicVar>
+    <dynamicVar name="productCategories" type="key_value_pairs" description="제품 카테고리">
+      <![CDATA[
+        SELECT CategoryID, CategoryName 
+        FROM Categories 
+        WHERE IsActive = 1
+      ]]>
+    </dynamicVar>
+  </dynamicVars>
+  
+  <sheets>
+    <sheet name="MonthlySales" use="true" aggregateColumn="Month" limit="1000">
+      <![CDATA[
+        SELECT 
+          MONTH(OrderDate) as Month,
+          SUM(TotalAmount) as Sales,
+          COUNT(*) as OrderCount,
+          AVG(TotalAmount) as AvgOrderValue
+        FROM Orders 
+        WHERE YEAR(OrderDate) = ${year}
+          AND CustomerID IN (${activeCustomers.CustomerID})
+        GROUP BY MONTH(OrderDate)
+        ORDER BY Month
+      ]]>
+    </sheet>
+    
+    <sheet name="CustomerAnalysis" use="true" style="modern">
+      <![CDATA[
+        SELECT 
+          c.CustomerID,
+          c.CustomerName,
+          c.Region,
+          COUNT(o.OrderID) as TotalOrders,
+          SUM(o.TotalAmount) as TotalSpent,
+          AVG(o.TotalAmount) as AvgOrderValue
+        FROM Customers c
+        LEFT JOIN Orders o ON c.CustomerID = o.CustomerID
+        WHERE c.CustomerID IN (${activeCustomers.CustomerID})
+          AND (o.OrderDate IS NULL OR YEAR(o.OrderDate) = ${year})
+        GROUP BY c.CustomerID, c.CustomerName, c.Region
+        ORDER BY TotalSpent DESC
+      ]]>
+    </sheet>
+    
+    <sheet name="ProductSummary" use="true" limit="500">
+      <![CDATA[
+        SELECT 
+          p.ProductID,
+          p.ProductName,
+          pc.CategoryName,
+          SUM(od.Quantity) as TotalSold,
+          SUM(od.Quantity * od.UnitPrice) as TotalRevenue
+        FROM Products p
+        JOIN Categories pc ON p.CategoryID = pc.CategoryID
+        LEFT JOIN OrderDetails od ON p.ProductID = od.ProductID
+        LEFT JOIN Orders o ON od.OrderID = o.OrderID
+        WHERE pc.CategoryID IN (${productCategories.CategoryID})
+          AND (o.OrderDate IS NULL OR YEAR(o.OrderDate) = ${year})
+        GROUP BY p.ProductID, p.ProductName, pc.CategoryName
+        ORDER BY TotalRevenue DESC
+      ]]>
+    </sheet>
+  </sheets>
+</queries>
+```
+
+### 완전한 JSON 예제
+```json
+{
+  "excel": {
+    "db": "sampleDB",
+    "output": "output/SalesReport.xlsx",
+    "style": "business",
+    "maxRows": 5000
+  },
+  "vars": {
+    "year": "2024",
+    "startDate": "2024-01-01",
+    "endDate": "2024-12-31"
+  },
+  "dynamicVars": [
+    {
+      "name": "activeCustomers",
+      "description": "활성 고객 목록",
+      "query": "SELECT CustomerID, CustomerName FROM Customers WHERE IsActive = 1"
+    },
+    {
+      "name": "productCategories",
+      "type": "key_value_pairs",
+      "description": "제품 카테고리",
+      "query": "SELECT CategoryID, CategoryName FROM Categories WHERE IsActive = 1"
+    }
+  ],
+  "sheets": [
+    {
+      "name": "MonthlySales",
+      "use": true,
+      "aggregateColumn": "Month",
+      "limit": 1000,
+      "query": "SELECT MONTH(OrderDate) as Month, SUM(TotalAmount) as Sales FROM Orders WHERE YEAR(OrderDate) = ${year} GROUP BY MONTH(OrderDate)"
+    },
+    {
+      "name": "CustomerAnalysis",
+      "use": true,
+      "style": "modern",
+      "query": "SELECT CustomerID, CustomerName, COUNT(OrderID) as TotalOrders FROM Customers c LEFT JOIN Orders o ON c.CustomerID = o.CustomerID WHERE YEAR(o.OrderDate) = ${year} GROUP BY CustomerID, CustomerName"
+    }
+  ]
+}
+```
+
+## 🔧 문제 해결
+
+### 일반적인 문제
+
+#### 1. 연결 오류
+**문제**: 데이터베이스에 연결할 수 없음
+**해결 방법**: 
+- `config/dbinfo.json` 구성 확인
+- 네트워크 연결 확인
+- 적절한 데이터베이스 권한 확인
+
+#### 2. 변수 해석 오류
+**문제**: 변수가 올바르게 해석되지 않음
+**해결 방법**:
+- 변수 구문 확인 (${varName})
+- 변수 이름이 정확히 일치하는지 확인
+- 변수 참조의 오타 확인
+- 디버그 모드 활성화: `DEBUG_VARIABLES=true`
+
+#### 3. 동적 변수 오류
+**문제**: 동적 변수가 해석되지 않음
+**해결 방법**:
+- 변수 쿼리 구문 확인
+- 사용 시 변수 이름 확인
+- 변수 쿼리에 대한 데이터베이스 권한 확인
+- 변수 유형 구성 검토
+
+#### 4. 파일 권한 오류
+**문제**: 출력 파일을 작성할 수 없음
+**해결 방법**:
+- 출력 디렉토리 권한 확인
+- 출력 디렉토리가 존재하는지 확인
+- 열린 엑셀 파일 닫기
+
+#### 5. 메모리 문제
+**문제**: 대용량 데이터셋에서 메모리 부족 오류
+**해결 방법**:
+- `limit` 속성을 사용하여 행 개수 제한
+- 더 작은 청크로 데이터 처리
+- Node.js 메모리 제한 증가
+
+#### 6. 한글 파일 이름 경고
+**문제**: 파일 이름에 한글 문자 포함
+**해결 방법**:
+- 파일 이름을 영어 문자만 사용하도록 변경
+- 설명적인 영어 이름 사용
+- 파일 이름에 특수 문자 사용 금지
+
+#### 7. 템플릿 스타일을 찾을 수 없음
+**문제**: 템플릿 스타일이 로드되지 않음
+**해결 방법**:
+- `templates/excel-styles.xml` 파일이 존재하는지 확인
+- 스타일 ID 철자 확인
+- `list-styles` 명령을 사용하여 사용 가능한 스타일 확인
+
+#### 8. 실행 파일을 찾을 수 없음 (독립 실행)
+**문제**: `sql2excel-v*.exe 파일을 찾을 수 없음` 오류
+**해결 방법**:
+- 실행 파일이 `sql2excel.bat`와 동일한 디렉토리에 있는지 확인
+- 실행 파일 이름이 버전과 일치하는지 확인 (예: `sql2excel.exe`)
+- 파일이 누락된 경우 릴리스 패키지를 다시 압축 해제
+
+#### 9. PowerShell 실행 정책 (Windows)
+**문제**: PowerShell 실행 정책이 배치 파일 실행을 방지함
+**해결 방법**:
+- 관리자 권한으로 명령 프롬프트 실행
+- PowerShell 대신 `cmd` 사용
+- 또는 PowerShell 실행 정책 설정: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+#### 10. 의존성 누락 (개발)
+**문제**: 개발 중 모듈을 찾을 수 없음 오류
+**해결 방법**:
+- `npm install`을 실행하여 의존성 설치
+- Node.js 버전 확인 (16.0+ 필요)
+- npm 캐시 정리: `npm cache clean --force`
+
+#### 11. DateTime 변수가 작동하지 않음
+**문제**: `${KST_NOW}`와 같은 DateTime 변수가 엑셀에 값을 표시하지 않음
+**해결 방법**:
+- 변수 구문 확인 (문서의 정확한 변수 이름 사용)
+- 변수가 변수 정의가 아닌 쿼리에서 사용되는지 확인
+- 변수 치환을 확인하려면 디버그 모드 활성화: `DEBUG_VARIABLES=true`
+- 변수 처리 순서가 올바른지 확인
+
+#### 12. 파일 경로 입력 문제 (배치 인터페이스)
+**문제**: 배치 인터페이스 사용 시 "파일을 찾을 수 없음" 오류
+**해결 방법**:
+- 파일 경로에서 앞뒤 공백 제거
+- 탭 완성 또는 복사-붙여넣기를 사용하여 오타 방지
+- 파일 확장자 확인 (.xml vs .json)
+- 지정된 위치에 파일이 존재하는지 확인
+
+#### 13. 목차에서 SQL 쿼리 포맷팅 문제
+**문제**: SQL 쿼리가 목차에서 단일 줄로 나타남
+**해결 방법**:
+- 이것은 v1.2.4+에서 자동으로 유지됩니다
+- 줄바꿈이 있는 원본 SQL 포맷이 유지됩니다
+- 구성이 필요 없습니다 - 자동으로 작동합니다
+
+#### 14. 생성 타임스탬프가 나타나지 않음
+**문제**: 엑셀 시트에 생성 타임스탬프가 표시되지 않음
+**해결 방법**:
+- 이 기능은 v1.2.4+에서 자동입니다
+- 최신 버전을 사용하고 있는지 확인
+- 타임스탬프는 각 시트 상단에 자동으로 나타납니다
+- 구성이 필요 없습니다
+
+### 디버그 모드
+자세한 변수 치환을 확인하려면 디버그 모드를 활성화하세요:
+
+#### 개발 환경
+```bash
+DEBUG_VARIABLES=true node src/excel-cli.js export --xml ./queries/sample.xml
+```
+
+#### 독립 실행 파일
+```bash
+# 환경 변수 설정 후 실행
+set DEBUG_VARIABLES=true
+sql2excel.exe export --xml ./queries/sample.xml
+```
+
+### 오류 복구
+1. **로그 확인**: 오류 세부 정보에 대한 콘솔 출력 검토
+2. **구성 유효성 검사**: `validate` 명령 사용
+3. **연결 테스트**: `list-dbs` 명령 사용
+4. **쿼리 단순화**: 먼저 간단한 쿼리로 테스트
+5. **파일 권한 확인**: 적절한 파일 액세스 권한 확인
+
+## 📞 지원
+
+- **문서**: 프로젝트 문서 참조
+- **이슈**: GitHub를 통해 이슈 보고
+- **이메일**: sql2excel.nodejs@gmail.com
+- **웹사이트**: www.sql2excel.com
+
