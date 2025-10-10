@@ -14,8 +14,8 @@ console.log(`현재 버전: ${version}`);
 console.log();
 
 // 배포 디렉토리 설정
-const releaseDir = `release/sql2excel-v${version}`;
-const zipName = `sql2excel-v${version}.zip`;
+const releaseDir = `release/sql2excel-v${version}-bin`;
+const zipName = `sql2excel-v${version}-bin.zip`;
 
 console.log(`배포 디렉토리: ${releaseDir}`);
 console.log(`압축 파일명: ${zipName}`);
@@ -197,12 +197,33 @@ const fileCount = countFiles(releaseDir);
 console.log(`총 ${fileCount}개 파일이 복사되었습니다.`);
 console.log();
 
+// ZIP 파일 생성
+console.log('================================================================================');
+console.log('  ZIP 파일 생성 중...');
+console.log('================================================================================');
+
+const zipPath = `release/${zipName}`;
+const releaseDirName = path.basename(releaseDir);
+
+try {
+    // PowerShell을 사용하여 ZIP 파일 생성
+    const compressCommand = `powershell -Command "Compress-Archive -Path '${releaseDir}' -DestinationPath '${zipPath}' -Force"`;
+    console.log(`압축 중: ${zipPath}`);
+    execSync(compressCommand, { stdio: 'inherit' });
+    console.log(`✅ ZIP 파일 생성 완료: ${zipPath}`);
+} catch (error) {
+    console.error('❌ ZIP 파일 생성 실패:', error.message);
+}
+
+console.log();
+
 // 완료 메시지
 console.log('================================================================================');
 console.log('  배포판 생성 완료!');
 console.log('================================================================================');
 console.log();
 console.log(`📁 배포 디렉토리: ${releaseDir}`);
+console.log(`📦 압축 파일: ${zipPath}`);
 console.log();
 console.log('배포판 생성이 완료되었습니다.');
 console.log('release 폴더를 확인해주세요.');
