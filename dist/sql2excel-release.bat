@@ -59,29 +59,65 @@ echo =========================================
 echo.
 echo Available query definition files:
 echo.
+
+:: Build file list with numbers
+set file_count=0
+set "file_list="
+
+:: List XML files
 if exist "queries\*.xml" (
-    for %%f in (queries\*.xml) do echo   - %%f
+    for %%f in (queries\*.xml) do (
+        set /a file_count+=1
+        set "file_!file_count!=%%f"
+        echo   !file_count!. %%f
+    )
 )
+
+:: List JSON files
 if exist "queries\*.json" (
-    for %%f in (queries\*.json) do echo   - %%f
+    for %%f in (queries\*.json) do (
+        set /a file_count+=1
+        set "file_!file_count!=%%f"
+        echo   !file_count!. %%f
+    )
 )
+
+if %file_count% equ 0 (
+    echo   (No query definition files found)
+    echo.
+    pause
+    goto MENU
+)
+
 echo.
+set /p file_num=Select file number (1-%file_count%): 
 
-echo Enter the query file path (e.g., queries/my-queries.xml):
-set /p query_file=
-if "%query_file%"=="" (
-    echo File path not entered.
+:: Validate input
+if "%file_num%"=="" (
+    echo File number not entered.
     echo.
     pause
     goto MENU
 )
 
-if not exist "%query_file%" (
-    echo File not found: %query_file%
+:: Check if number is in valid range
+if %file_num% lss 1 (
+    echo Invalid file number.
     echo.
     pause
     goto MENU
 )
+if %file_num% gtr %file_count% (
+    echo Invalid file number.
+    echo.
+    pause
+    goto MENU
+)
+
+:: Get selected file
+call set query_file=%%file_%file_num%%%
+echo.
+echo Selected file: %query_file%
 
 :: Determine file type by extension
 set file_type=json
@@ -141,28 +177,54 @@ echo =========================================
 echo.
 echo Available XML query definition files:
 echo.
+
+:: Build XML file list with numbers
+set xml_count=0
+
 if exist "queries\*.xml" (
-    for %%f in (queries\*.xml) do echo   - %%f
+    for %%f in (queries\*.xml) do (
+        set /a xml_count+=1
+        set "xml_file_!xml_count!=%%f"
+        echo   !xml_count!. %%f
+    )
 ) else (
     echo   (No XML files found)
 )
+
+if %xml_count% equ 0 (
+    echo.
+    pause
+    goto MENU
+)
+
 echo.
+set /p xml_num=Select XML file number (1-%xml_count%): 
 
-echo Enter XML file path (e.g., queries/my-queries.xml):
-set /p xml_file=
-if "%xml_file%"=="" (
-    echo File path not entered.
+:: Validate input
+if "%xml_num%"=="" (
+    echo File number not entered.
     echo.
     pause
     goto MENU
 )
 
-if not exist "%xml_file%" (
-    echo File not found: %xml_file%
+if %xml_num% lss 1 (
+    echo Invalid file number.
     echo.
     pause
     goto MENU
 )
+if %xml_num% gtr %xml_count% (
+    echo Invalid file number.
+    echo.
+    pause
+    goto MENU
+)
+
+:: Get selected file
+call set xml_file=%%xml_file_%xml_num%%%
+echo.
+echo Selected file: %xml_file%
 
 echo.
 echo Generating Excel file...
@@ -195,28 +257,54 @@ echo =========================================
 echo.
 echo Available JSON query definition files:
 echo.
+
+:: Build JSON file list with numbers
+set json_count=0
+
 if exist "queries\*.json" (
-    for %%f in (queries\*.json) do echo   - %%f
+    for %%f in (queries\*.json) do (
+        set /a json_count+=1
+        set "json_file_!json_count!=%%f"
+        echo   !json_count!. %%f
+    )
 ) else (
     echo   (No JSON files found)
 )
+
+if %json_count% equ 0 (
+    echo.
+    pause
+    goto MENU
+)
+
 echo.
+set /p json_num=Select JSON file number (1-%json_count%): 
 
-echo Enter JSON file path (e.g., queries/my-queries.json):
-set /p json_file=
-if "%json_file%"=="" (
-    echo File path not entered.
+:: Validate input
+if "%json_num%"=="" (
+    echo File number not entered.
     echo.
     pause
     goto MENU
 )
 
-if not exist "%json_file%" (
-    echo File not found: %json_file%
+if %json_num% lss 1 (
+    echo Invalid file number.
     echo.
     pause
     goto MENU
 )
+if %json_num% gtr %json_count% (
+    echo Invalid file number.
+    echo.
+    pause
+    goto MENU
+)
+
+:: Get selected file
+call set json_file=%%json_file_%json_num%%%
+echo.
+echo Selected file: %json_file%
 
 echo.
 echo Generating Excel file...
