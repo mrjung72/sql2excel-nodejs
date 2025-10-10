@@ -65,8 +65,11 @@ const filesToCopy = [
     
     // 문서 파일 (USER_MANUAL.md는 버전별로 명령어 교체)
     { src: 'README.md', dest: `${releaseDir}/README.md` },
+    { src: 'README_KR.md', dest: `${releaseDir}/README_KR.md` },
     { src: 'USER_MANUAL.md', dest: `${releaseDir}/user_manual/USER_MANUAL.md`},
+    { src: 'USER_MANUAL_KR.md', dest: `${releaseDir}/user_manual/USER_MANUAL_KR.md`},
     { src: 'CHANGELOG.md', dest: `${releaseDir}/user_manual/CHANGELOG.md` },
+    { src: 'CHANGELOG_KR.md', dest: `${releaseDir}/user_manual/CHANGELOG_KR.md` },
     { src: 'LICENSE', dest: `${releaseDir}/LICENSE` }
 ];
 
