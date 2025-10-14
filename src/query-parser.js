@@ -52,6 +52,141 @@ class QueryParser {
   }
 
   /**
+   * XML 구조 검증 (element명과 속성명)
+   * @param {Object} parsed - 파싱된 XML 객체
+   * @returns {Object} { valid: boolean, errors: string[] }
+   */
+  validateXMLStructure(parsed) {
+    const errors = [];
+    
+    // 허용되는 최상위 element
+    const allowedRootElements = ['queries'];
+    
+    // 허용되는 element와 그 속성 정의
+    const allowedElements = {
+      queries: ['excel', 'vars', 'dynamicVars', 'queryDefs', 'sheet'],
+      excel: [], // 자식 element 없음
+      vars: ['var'],
+      var: [], // 자식 element 없음
+      dynamicVars: ['dynamicVar'],
+      dynamicVar: [], // 자식 element 없음
+      queryDefs: ['queryDef'],
+      queryDef: [], // 자식 element 없음
+      sheet: ['params'],
+      params: ['param'],
+      param: [] // 자식 element 없음
+    };
+    
+    // 허용되는 속성 정의
+    const allowedAttributes = {
+      excel: ['db', 'output', 'maxRows', 'style', 'aggregateInfoTemplate'],
+      var: ['name'],
+      dynamicVar: ['name', 'description', 'type', 'database'],
+      queryDef: ['id', 'description'],
+      sheet: ['name', 'use', 'queryRef', 'aggregateColumn', 'aggregateInfoTemplate', 'maxRows', 'db', 'style'],
+      param: ['name']
+    };
+    
+    // 최상위 element 검증
+    const rootElementNames = Object.keys(parsed);
+    const invalidRootElements = rootElementNames.filter(name => !allowedRootElements.includes(name));
+    if (invalidRootElements.length > 0) {
+      errors.push(`허용되지 않는 최상위 element: ${invalidRootElements.join(', ')}`);
+    }
+    
+    // queries element 검증
+    if (parsed.queries) {
+      const queries = parsed.queries;
+      const queryKeys = Object.keys(queries);
+      const invalidElements = queryKeys.filter(key => !allowedElements.queries.includes(key));
+      if (invalidElements.length > 0) {
+        errors.push(`queries 내 허용되지 않는 element: ${invalidElements.join(', ')}`);
+      }
+      
+      // excel element 속성 검증
+      if (queries.excel && queries.excel[0] && queries.excel[0].$) {
+        const excelAttrs = Object.keys(queries.excel[0].$);
+        const invalidAttrs = excelAttrs.filter(attr => !allowedAttributes.excel.includes(attr));
+        if (invalidAttrs.length > 0) {
+          errors.push(`excel element의 허용되지 않는 속성: ${invalidAttrs.join(', ')}`);
+        }
+      }
+      
+      // var elements 검증
+      if (queries.vars && queries.vars[0] && queries.vars[0].var) {
+        queries.vars[0].var.forEach((v, i) => {
+          if (v.$) {
+            const attrs = Object.keys(v.$);
+            const invalidAttrs = attrs.filter(attr => !allowedAttributes.var.includes(attr));
+            if (invalidAttrs.length > 0) {
+              errors.push(`var element #${i + 1}의 허용되지 않는 속성: ${invalidAttrs.join(', ')}`);
+            }
+          }
+        });
+      }
+      
+      // dynamicVar elements 검증
+      if (queries.dynamicVars && queries.dynamicVars[0] && queries.dynamicVars[0].dynamicVar) {
+        queries.dynamicVars[0].dynamicVar.forEach((dv, i) => {
+          if (dv.$) {
+            const attrs = Object.keys(dv.$);
+            const invalidAttrs = attrs.filter(attr => !allowedAttributes.dynamicVar.includes(attr));
+            if (invalidAttrs.length > 0) {
+              errors.push(`dynamicVar element #${i + 1}의 허용되지 않는 속성: ${invalidAttrs.join(', ')}`);
+            }
+          }
+        });
+      }
+      
+      // queryDef elements 검증
+      if (queries.queryDefs && queries.queryDefs[0] && queries.queryDefs[0].queryDef) {
+        queries.queryDefs[0].queryDef.forEach((qd, i) => {
+          if (qd.$) {
+            const attrs = Object.keys(qd.$);
+            const invalidAttrs = attrs.filter(attr => !allowedAttributes.queryDef.includes(attr));
+            if (invalidAttrs.length > 0) {
+              errors.push(`queryDef element #${i + 1}의 허용되지 않는 속성: ${invalidAttrs.join(', ')}`);
+            }
+          }
+        });
+      }
+      
+      // sheet elements 검증
+      if (queries.sheet) {
+        const sheets = Array.isArray(queries.sheet) ? queries.sheet : [queries.sheet];
+        sheets.forEach((sheet, i) => {
+          if (sheet.$) {
+            const attrs = Object.keys(sheet.$);
+            const invalidAttrs = attrs.filter(attr => !allowedAttributes.sheet.includes(attr));
+            if (invalidAttrs.length > 0) {
+              errors.push(`sheet element #${i + 1}의 허용되지 않는 속성: ${invalidAttrs.join(', ')}`);
+            }
+          }
+          
+          // params 검증
+          if (sheet.params && sheet.params[0] && sheet.params[0].param) {
+            const params = Array.isArray(sheet.params[0].param) ? sheet.params[0].param : [sheet.params[0].param];
+            params.forEach((param, j) => {
+              if (param.$) {
+                const attrs = Object.keys(param.$);
+                const invalidAttrs = attrs.filter(attr => !allowedAttributes.param.includes(attr));
+                if (invalidAttrs.length > 0) {
+                  errors.push(`sheet #${i + 1}의 param element #${j + 1}의 허용되지 않는 속성: ${invalidAttrs.join(', ')}`);
+                }
+              }
+            });
+          }
+        });
+      }
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors
+    };
+  }
+
+  /**
    * XML 파일에서 쿼리 로드
    * @param {string} xmlPath - XML 파일 경로
    * @returns {Promise<Object>} 파싱된 쿼리 객체
@@ -62,6 +197,16 @@ class QueryParser {
     const parsed = await xml2js.parseStringPromise(xml, { trim: true });
     if (!parsed.queries || !parsed.queries.sheet) throw new Error('Invalid XML format');
     
+    // XML 구조 검증
+    const structureValidation = this.validateXMLStructure(parsed);
+    if (!structureValidation.valid) {
+      console.error('\n❌ XML 구조 검증 실패:');
+      structureValidation.errors.forEach(error => {
+        console.error(`   - ${error}`);
+      });
+      throw new Error('XML 구조 검증 실패');
+    }
+    
     // 쿼리 정의 파싱
     let queryDefs = {};
     if (parsed.queries.queryDefs && parsed.queries.queryDefs[0] && parsed.queries.queryDefs[0].queryDef) {
@@ -70,16 +215,22 @@ class QueryParser {
           const queryName = queryDef.$.id || queryDef.$.name;
           const queryText = (queryDef._ || queryDef['#text'] || queryDef.__cdata || '').toString().trim();
           
+          console.log(`[DEBUG] queryDef 파싱: id="${queryName}", queryText 길이=${queryText.length}`);
+          
           if (queryText) {
             queryDefs[queryName] = {
               name: queryName,
               description: queryDef.$.description || '',
               query: queryText
             };
+            console.log(`[DEBUG] queryDef 추가됨: ${queryName}`);
+          } else {
+            console.warn(`[WARN] queryDef "${queryName}"의 쿼리 텍스트가 비어있습니다.`);
           }
         }
       }
     }
+    console.log(`[DEBUG] 총 ${Object.keys(queryDefs).length}개의 queryDef 로드됨: ${Object.keys(queryDefs).join(', ')}`);
     
     // 전역 변수 파싱
     let globalVars = {};
@@ -188,17 +339,6 @@ class QueryParser {
         }
       }
       
-      // 시트명 검증
-      const sheetNameValidation = this.validateSheetName(s.$.name, i);
-      if (!sheetNameValidation.valid) {
-        console.error(`\n❌ 시트명 검증 실패 (시트 #${i + 1}):`);
-        console.error(`   시트명: "${s.$.name}"`);
-        sheetNameValidation.errors.forEach(error => {
-          console.error(`   - ${error}`);
-        });
-        throw new Error(`시트명 검증 실패: "${s.$.name}"`);
-      }
-      
       // queryRef 속성이 있으면 쿼리 정의에서 참조
       if (s.$.queryRef) {
         const queryRef = s.$.queryRef;
@@ -256,17 +396,6 @@ class QueryParser {
     const sheets = (queries.sheets || []).map((sheet, i) => {
       let query = sheet.query || '';
       let sheetParams = sheet.params || {};
-      
-      // 시트명 검증
-      const sheetNameValidation = this.validateSheetName(sheet.name, i);
-      if (!sheetNameValidation.valid) {
-        console.error(`\n❌ 시트명 검증 실패 (시트 #${i + 1}):`);
-        console.error(`   시트명: "${sheet.name}"`);
-        sheetNameValidation.errors.forEach(error => {
-          console.error(`   - ${error}`);
-        });
-        throw new Error(`시트명 검증 실패: "${sheet.name}"`);
-      }
       
       // queryRef가 있으면 쿼리 정의에서 참조
       if (sheet.queryRef) {

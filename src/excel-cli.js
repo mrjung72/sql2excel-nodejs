@@ -7,6 +7,46 @@ const yargs = require('yargs');
 const args = process.argv.slice(2);
 const command = args[0];
 
+/**
+ * 시트명 유효성 검증
+ * @param {string} sheetName - 검증할 시트명
+ * @param {boolean} skipLengthCheck - 길이 검증 건너뛰기 (변수 포함 시)
+ * @returns {Object} { valid: boolean, errors: string[] }
+ */
+function validateSheetName(sheetName, skipLengthCheck = false) {
+    const errors = [];
+    
+    // Excel 시트명에 사용할 수 없는 문자
+    const invalidChars = ['\\', '/', '*', '?', '[', ']', ':'];
+    
+    // 1. 빈 문자열 체크
+    if (!sheetName || sheetName.trim() === '') {
+        errors.push('시트명이 비어있습니다.');
+        return { valid: false, errors };
+    }
+    
+    // 2. 최대 길이 체크 (31자) - 변수 포함 시 건너뛰기
+    if (!skipLengthCheck && sheetName.length > 31) {
+        errors.push(`시트명이 너무 깁니다 (최대 31자, 현재: ${sheetName.length}자)`);
+    }
+    
+    // 3. 허용되지 않는 문자 체크
+    const foundInvalidChars = invalidChars.filter(char => sheetName.includes(char));
+    if (foundInvalidChars.length > 0) {
+        errors.push(`허용되지 않는 문자 포함: ${foundInvalidChars.join(', ')}`);
+    }
+    
+    // 4. 시트명 시작/끝 공백 체크
+    if (sheetName !== sheetName.trim()) {
+        errors.push('시트명 앞뒤에 공백이 있습니다.');
+    }
+    
+    return {
+        valid: errors.length === 0,
+        errors
+    };
+}
+
 // 도움말 표시
 function showHelp() {
     console.log(`
@@ -271,18 +311,39 @@ async function validateQueryFile(options) {
                 // 쿼리 정의 수집
                 const queryDefArray = Array.isArray(parsed.queries.queryDefs[0].queryDef) ? parsed.queries.queryDefs[0].queryDef : [parsed.queries.queryDefs[0].queryDef];
                 queryDefArray.forEach(def => {
-                    if (def.$ && def.$.name) {
-                        queryDefs[def.$.name] = true;
+                    if (def.$ && (def.$.id || def.$.name)) {
+                        const queryId = def.$.id || def.$.name;
+                        queryDefs[queryId] = true;
+                        console.log(`   [DEBUG] queryDef 발견: ${queryId}`);
                     }
                 });
+                console.log(`   [DEBUG] 총 ${Object.keys(queryDefs).length}개의 queryDef: ${Object.keys(queryDefs).join(', ')}`);
                 
-                // 쿼리 참조 검증
+                // 쿼리 참조 검증 및 시트명 검증
                 for (const sheet of sheets) {
-                    if (sheet.$ && sheet.$.queryRef) {
-                        if (!queryDefs[sheet.$.queryRef]) {
-                            throw new Error(`시트 "${sheet.$.name}"에서 참조하는 쿼리 정의 "${sheet.$.queryRef}"를 찾을 수 없습니다.`);
+                    if (sheet.$) {
+                        // 시트명 검증 (변수 치환 전이므로 변수 포함 가능)
+                        const sheetName = sheet.$.name || '';
+                        
+                        // 시트명 검증 (변수 포함 시 길이 검증만 건너뛰기)
+                        const hasVariables = sheetName.includes('${');
+                        const sheetNameValidation = validateSheetName(sheetName, hasVariables);
+                        if (!sheetNameValidation.valid) {
+                            console.error(`\n❌ 시트명 검증 실패:`);
+                            console.error(`   시트명: "${sheetName}"`);
+                            sheetNameValidation.errors.forEach(error => {
+                                console.error(`   - ${error}`);
+                            });
+                            throw new Error(`시트명 검증 실패: "${sheetName}"`);
                         }
-                        console.log(`   ✅ 시트 "${sheet.$.name}" -> 쿼리 정의 "${sheet.$.queryRef}" 참조 확인`);
+                        
+                        // 쿼리 참조 검증
+                        if (sheet.$.queryRef) {
+                            if (!queryDefs[sheet.$.queryRef]) {
+                                throw new Error(`시트 "${sheetName}"에서 참조하는 쿼리 정의 "${sheet.$.queryRef}"를 찾을 수 없습니다.`);
+                            }
+                            console.log(`   ✅ 시트 "${sheetName}" -> 쿼리 정의 "${sheet.$.queryRef}" 참조 확인`);
+                        }
                     }
                 }
             }
@@ -303,13 +364,28 @@ async function validateQueryFile(options) {
                 const queryDefCount = Object.keys(parsed.queryDefs).length;
                 console.log(`   쿼리 정의 개수: ${queryDefCount}개`);
                 
-                // 쿼리 참조 검증
+                // 쿼리 참조 검증 및 시트명 검증
                 for (const sheet of parsed.sheets) {
+                    const sheetName = sheet.name || '';
+                    
+                    // 시트명 검증 (변수 포함 시 길이 검증만 건너뛰기)
+                    const hasVariables = sheetName.includes('${');
+                    const sheetNameValidation = validateSheetName(sheetName, hasVariables);
+                    if (!sheetNameValidation.valid) {
+                        console.error(`\n❌ 시트명 검증 실패:`);
+                        console.error(`   시트명: "${sheetName}"`);
+                        sheetNameValidation.errors.forEach(error => {
+                            console.error(`   - ${error}`);
+                        });
+                        throw new Error(`시트명 검증 실패: "${sheetName}"`);
+                    }
+                    
+                    // 쿼리 참조 검증
                     if (sheet.queryRef) {
                         if (!parsed.queryDefs[sheet.queryRef]) {
-                            throw new Error(`시트 "${sheet.name}"에서 참조하는 쿼리 정의 "${sheet.queryRef}"를 찾을 수 없습니다.`);
+                            throw new Error(`시트 "${sheetName}"에서 참조하는 쿼리 정의 "${sheet.queryRef}"를 찾을 수 없습니다.`);
                         }
-                        console.log(`   ✅ 시트 "${sheet.name}" -> 쿼리 정의 "${sheet.queryRef}" 참조 확인`);
+                        console.log(`   ✅ 시트 "${sheetName}" -> 쿼리 정의 "${sheet.queryRef}" 참조 확인`);
                     }
                 }
             }
@@ -332,7 +408,10 @@ async function validateQueryFile(options) {
 // main 함수
 async function main() {
     try {
+        console.log('[DEBUG] args:', args);
+        console.log('[DEBUG] command:', command);
         const options = parseOptions(args.slice(1));
+        console.log('[DEBUG] options:', options);
         
         // 명령어 정보 출력
         if (command !== 'list-dbs') {

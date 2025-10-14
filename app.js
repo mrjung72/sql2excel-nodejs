@@ -174,11 +174,7 @@ function question(query) {
 function pause() {
     return new Promise(resolve => {
         console.log(`\n${msg.pressAnyKey}`);
-        process.stdin.setRawMode(true);
-        process.stdin.resume();
-        process.stdin.once('data', () => {
-            process.stdin.setRawMode(false);
-            process.stdin.pause();
+        rl.question('', () => {
             resolve();
         });
     });

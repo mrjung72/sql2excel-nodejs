@@ -188,6 +188,17 @@ async function main() {
     let sql = variableProcessor.substituteVars(sheetDef.query, mergedVars, sheetDef.params || {});
     const sheetName = variableProcessor.substituteVars(sheetDef.name, mergedVars, sheetDef.params || {});
     
+    // 시트명 검증 (변수 치환 후)
+    const sheetNameValidation = queryParser.validateSheetName(sheetName, i);
+    if (!sheetNameValidation.valid) {
+      console.error(`\n❌ 시트명 검증 실패 (시트 #${i + 1}):`);
+      console.error(`   시트명: "${sheetName}"`);
+      sheetNameValidation.errors.forEach(error => {
+        console.error(`   - ${error}`);
+      });
+      throw new Error(`시트명 검증 실패: "${sheetName}"`);
+    }
+    
     // maxRows 제한 적용 (개별 시트 설정 > 전역 설정 우선)
     const effectiveMaxRows = sheetDef.maxRows || globalMaxRows;
     if (effectiveMaxRows && effectiveMaxRows > 0) {
