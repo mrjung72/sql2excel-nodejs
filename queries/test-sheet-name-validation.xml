@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries>
+  <excel db="sampleDB" output="d:/temp/시트명검증_테스트.xlsx">
+  </excel>
+  
+  <!-- 정상적인 시트명 -->
+  <sheet name="정상_시트명" use="true">
+    <![CDATA[
+      SELECT '정상' as 상태
+    ]]>
+  </sheet>
+  
+  <!-- 허용되지 않는 문자 포함: 백슬래시 -->
+  <sheet name="잘못된\시트명" use="true">
+    <![CDATA[
+      SELECT '백슬래시 포함' as 상태
+    ]]>
+  </sheet>
+  
+  <!-- 허용되지 않는 문자 포함: 슬래시 -->
+  <sheet name="잘못된/시트명" use="true">
+    <![CDATA[
+      SELECT '슬래시 포함' as 상태
+    ]]>
+  </sheet>
+  
+  <!-- 허용되지 않는 문자 포함: 콜론 -->
+  <sheet name="잘못된:시트명" use="true">
+    <![CDATA[
+      SELECT '콜론 포함' as 상태
+    ]]>
+  </sheet>
+  
+  <!-- 허용되지 않는 문자 포함: 별표 -->
+  <sheet name="잘못된*시트명" use="true">
+    <![CDATA[
+      SELECT '별표 포함' as 상태
+    ]]>
+  </sheet>
+  
+  <!-- 허용되지 않는 문자 포함: 물음표 -->
+  <sheet name="잘못된?시트명" use="true">
+    <![CDATA[
+      SELECT '물음표 포함' as 상태
+    ]]>
+  </sheet>
+  
+  <!-- 허용되지 않는 문자 포함: 대괄호 -->
+  <sheet name="잘못된[시트명]" use="true">
+    <![CDATA[
+      SELECT '대괄호 포함' as 상태
+    ]]>
+  </sheet>
+  
+  <!-- 31자 초과 -->
+  <sheet name="이것은매우긴시트명으로31자를초과합니다" use="true">
+    <![CDATA[
+      SELECT '31자 초과' as 상태
+    ]]>
+  </sheet>
+  
+  <!-- 앞뒤 공백 -->
+  <sheet name="  앞뒤공백  " use="true">
+    <![CDATA[
+      SELECT '앞뒤 공백' as 상태
+    ]]>
+  </sheet>
+  
+  <!-- 정상적인 시트명 (한글) -->
+  <sheet name="한글_시트명_테스트" use="true">
+    <![CDATA[
+      SELECT '한글 정상' as 상태
+    ]]>
+  </sheet>
+  
+  <!-- 정상적인 시트명 (숫자 포함) -->
+  <sheet name="시트_123" use="true">
+    <![CDATA[
+      SELECT '숫자 포함' as 상태
+    ]]>
+  </sheet>
+</queries>
+

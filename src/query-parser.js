@@ -12,6 +12,46 @@ class QueryParser {
   }
 
   /**
+   * 시트명 유효성 검증
+   * @param {string} sheetName - 검증할 시트명
+   * @param {number} sheetIndex - 시트 인덱스 (에러 메시지용)
+   * @returns {Object} { valid: boolean, errors: string[] }
+   */
+  validateSheetName(sheetName, sheetIndex = 0) {
+    const errors = [];
+    
+    // Excel 시트명에 사용할 수 없는 문자
+    const invalidChars = ['\\', '/', '*', '?', '[', ']', ':'];
+    
+    // 1. 빈 문자열 체크
+    if (!sheetName || sheetName.trim() === '') {
+      errors.push('시트명이 비어있습니다.');
+      return { valid: false, errors };
+    }
+    
+    // 2. 최대 길이 체크 (31자)
+    if (sheetName.length > 31) {
+      errors.push(`시트명이 너무 깁니다 (최대 31자, 현재: ${sheetName.length}자)`);
+    }
+    
+    // 3. 허용되지 않는 문자 체크
+    const foundInvalidChars = invalidChars.filter(char => sheetName.includes(char));
+    if (foundInvalidChars.length > 0) {
+      errors.push(`허용되지 않는 문자 포함: ${foundInvalidChars.join(', ')}`);
+    }
+    
+    // 4. 시트명 시작/끝 공백 체크
+    if (sheetName !== sheetName.trim()) {
+      errors.push('시트명 앞뒤에 공백이 있습니다.');
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors
+    };
+  }
+
+  /**
    * XML 파일에서 쿼리 로드
    * @param {string} xmlPath - XML 파일 경로
    * @returns {Promise<Object>} 파싱된 쿼리 객체
@@ -148,6 +188,17 @@ class QueryParser {
         }
       }
       
+      // 시트명 검증
+      const sheetNameValidation = this.validateSheetName(s.$.name, i);
+      if (!sheetNameValidation.valid) {
+        console.error(`\n❌ 시트명 검증 실패 (시트 #${i + 1}):`);
+        console.error(`   시트명: "${s.$.name}"`);
+        sheetNameValidation.errors.forEach(error => {
+          console.error(`   - ${error}`);
+        });
+        throw new Error(`시트명 검증 실패: "${s.$.name}"`);
+      }
+      
       // queryRef 속성이 있으면 쿼리 정의에서 참조
       if (s.$.queryRef) {
         const queryRef = s.$.queryRef;
@@ -202,9 +253,20 @@ class QueryParser {
     const dynamicVars = queries.dynamicVars || [];
     
     // JSON 시트에서 queryRef 처리
-    const sheets = (queries.sheets || []).map(sheet => {
+    const sheets = (queries.sheets || []).map((sheet, i) => {
       let query = sheet.query || '';
       let sheetParams = sheet.params || {};
+      
+      // 시트명 검증
+      const sheetNameValidation = this.validateSheetName(sheet.name, i);
+      if (!sheetNameValidation.valid) {
+        console.error(`\n❌ 시트명 검증 실패 (시트 #${i + 1}):`);
+        console.error(`   시트명: "${sheet.name}"`);
+        sheetNameValidation.errors.forEach(error => {
+          console.error(`   - ${error}`);
+        });
+        throw new Error(`시트명 검증 실패: "${sheet.name}"`);
+      }
       
       // queryRef가 있으면 쿼리 정의에서 참조
       if (sheet.queryRef) {
