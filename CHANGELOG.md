@@ -1,6 +1,6 @@
 # SQL2Excel Version History
 
-## v1.2.6 - Validation & Structure Improvements (2025-01-XX)
+## v1.2.6 - Validation & Structure Improvements (2025-10-14)
 
 ### ✨ New Features
 - **Sheet Name Validation**: Added Excel sheet name validation logic
