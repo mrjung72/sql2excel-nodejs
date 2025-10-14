@@ -141,7 +141,7 @@ async function main() {
   const mssqlHelper = new MSSQLHelper();
   
   // 연결 설정 검증
-  for (const [dbKey, config] of Object.entries(configObj.dbs || {})) {
+  for (const [dbKey, config] of Object.entries(configObj || {})) {
     if (!mssqlHelper.validateConnectionConfig(config)) {
       throw new Error(`DB 연결 설정이 올바르지 않습니다: ${dbKey} (필수 필드: server, database, user, password)`);
     }
@@ -149,13 +149,13 @@ async function main() {
   
   // 기본 DB 연결 설정
   const defaultDbKey = argv.db || dbId || excelDb;
-  if (!configObj.dbs || !configObj.dbs[defaultDbKey]) {
+  if (!configObj || !configObj[defaultDbKey]) {
     throw new Error(`기본 DB 접속 ID를 찾을 수 없습니다: ${defaultDbKey}`);
   }
   
   // DB 연결 풀 생성 함수
   async function getDbPool(dbKey) {
-    return await mssqlHelper.createConnectionPool(configObj.dbs[dbKey], dbKey);
+    return await mssqlHelper.createConnectionPool(configObj[dbKey], dbKey);
   }
   
   // 기본 DB 연결

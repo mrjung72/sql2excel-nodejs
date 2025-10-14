@@ -138,11 +138,11 @@ function loadDatabaseConfig(configPath) {
         const configData = fs.readFileSync(configPath, 'utf8');
         const config = JSON.parse(configData);
 
-        if (!config.dbs || typeof config.dbs !== 'object') {
-            throw new Error('설정 파일에 dbs 섹션이 없거나 올바르지 않습니다.');
+        if (typeof config !== 'object' || !config) {
+            throw new Error('설정 파일 형식이 올바르지 않습니다.');
         }
 
-        return config.dbs;
+        return config;
     } catch (error) {
         throw new Error(`설정 파일 로드 실패: ${error.message}`);
     }

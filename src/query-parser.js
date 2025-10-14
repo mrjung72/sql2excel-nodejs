@@ -98,9 +98,18 @@ class QueryParser {
     if (parsed.queries) {
       const queries = parsed.queries;
       const queryKeys = Object.keys(queries);
-      const invalidElements = queryKeys.filter(key => !allowedElements.queries.includes(key));
+      // xml2js 내부 키 제외 ($, _ 등)
+      const xml2jsInternalKeys = ['$', '_', '#text', '__text', '__cdata', 'cdata', '#cdata-section', '$text', '$value', 'value'];
+      const actualElements = queryKeys.filter(key => !xml2jsInternalKeys.includes(key));
+      const invalidElements = actualElements.filter(key => !allowedElements.queries.includes(key));
       if (invalidElements.length > 0) {
+        console.error(`\n[DEBUG] queries 객체의 모든 키:`, queryKeys);
+        console.error(`[DEBUG] xml2js 내부 키 제외 후:`, actualElements);
+        console.error(`[DEBUG] 허용되는 element:`, allowedElements.queries);
+        console.error(`[DEBUG] 잘못된 element:`, invalidElements);
         errors.push(`queries 내 허용되지 않는 element: ${invalidElements.join(', ')}`);
+        errors.push(`   허용되는 element: ${allowedElements.queries.join(', ')}`);
+        errors.push(`   발견된 실제 element: ${actualElements.join(', ')}`);
       }
       
       // excel element 속성 검증
