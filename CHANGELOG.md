@@ -1,5 +1,40 @@
 # SQL2Excel Version History
 
+## v1.2.6 - Validation & Structure Improvements (2025-01-XX)
+
+### ✨ New Features
+- **Sheet Name Validation**: Added Excel sheet name validation logic
+  - Invalid character validation: `\`, `/`, `*`, `?`, `[`, `]`, `:`
+  - Maximum length validation: 31 character limit
+  - Leading/trailing whitespace validation
+  - Actual sheet name validation after variable substitution
+
+- **XML Structure Validation**: Added element and attribute name validation logic
+  - Allowed elements validation
+  - Allowed attributes validation
+  - Automatic exclusion of xml2js internal keys (`$`, `_`, etc.)
+  - Detailed error message output
+
+- **Interactive Menu System**: User-friendly menu system in sql2db style
+  - `app.js`: Multi-language menu system
+  - `run.bat`: English version launcher script
+  - `실행하기.bat`: Korean version launcher script
+
+### 🔧 Technical Improvements
+- **Improved dbinfo.json Structure**: Removed dbs wrapper
+  - Before: `{"dbs": {"sampleDB": {...}}}`
+  - After: `{"sampleDB": {...}}`
+  - More concise structure for better readability
+
+- **pkg Environment Path Handling**: Using APP_ROOT constant
+  - `mssql-connection-manager.js`: Added pkg environment path handling
+  - Unified all file paths based on APP_ROOT
+
+### 🐛 Bug Fixes
+- **queryDef validation error**: Improved id attribute recognition in queryDef
+- **Variable substitution sheet name validation**: Changed to validate after variable substitution
+- **validate command option parsing**: Improved --xml option recognition
+
 ## v1.2.5 - Batch Interface Improvements (2025-10-10)
 
 ### 🔧 Improvements
