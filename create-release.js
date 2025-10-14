@@ -14,8 +14,8 @@ console.log(`현재 버전: ${version}`);
 console.log();
 
 // 배포 디렉토리 설정
-const releaseDir = `release/sql2excel-v${version}-bin`;
-const zipName = `sql2excel-v${version}-bin.zip`;
+const releaseDir = `release/sql2excel-v${version}-win-x64`;
+const zipName = `sql2excel-v${version}-win-x64.zip`;
 
 console.log(`배포 디렉토리: ${releaseDir}`);
 console.log(`압축 파일명: ${zipName}`);
