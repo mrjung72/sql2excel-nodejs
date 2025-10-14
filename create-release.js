@@ -57,13 +57,10 @@ const filesToCopy = [
     // 실행 파일
     { src: `dist/sql2excel-v${version}.exe`, dest: `${releaseDir}/sql2excel-v${version}.exe` },
     
-    // 배치 파일 (버전별로 exe 파일명 교체)
-    { src: 'sql2excel.bat', dest: `${releaseDir}/sql2excel.bat`, replaceVersion: true },
-    
     // 설정 파일
     { src: 'config/dbinfo.json', dest: `${releaseDir}/config/dbinfo.json` },
     
-    // 문서 파일 (USER_MANUAL.md는 버전별로 명령어 교체)
+    // 문서 파일
     { src: 'README.md', dest: `${releaseDir}/README.md` },
     { src: 'README_KR.md', dest: `${releaseDir}/README_KR.md` },
     { src: 'USER_MANUAL.md', dest: `${releaseDir}/user_manual/USER_MANUAL.md`},
@@ -74,35 +71,55 @@ const filesToCopy = [
 ];
 
 // 파일 복사
-filesToCopy.forEach(({ src, dest, replaceVersion }) => {
+filesToCopy.forEach(({ src, dest }) => {
     if (fs.existsSync(src)) {
         console.log(`- ${path.basename(dest)} 복사...`);
-        
-        if (replaceVersion) {
-            let content = fs.readFileSync(src, 'utf8');
-            
-            if (src.endsWith('.bat')) {
-                // Node.js 체크 부분 제거 (16-24번 라인)
-                content = content.replace(
-                    /:: Check Node\.js installation[\s\S]*?exit \/b 1\s*\)/m,
-                    ':: Standalone executable - no Node.js check needed'
-                );
-                
-                // node src/excel-cli.js를 sql2excel-v{version}.exe로 교체
-                content = content.replace(/node src\/excel-cli\.js/g, `sql2excel-v${version}.exe`);
-                
-                console.log(`  → Node.js 체크 제거`);
-                console.log(`  → node src/excel-cli.js를 sql2excel-v${version}.exe로 교체`);
-            }
-            
-            fs.writeFileSync(dest, content);
-        } else {
-            fs.copyFileSync(src, dest);
-        }
+        fs.copyFileSync(src, dest);
     } else {
         console.warn(`⚠️  파일을 찾을 수 없습니다: ${src}`);
     }
 });
+
+// 배치 파일 생성
+console.log('- 배치 실행 파일 생성...');
+
+// run.bat (English version)
+const runBatContent = `@echo off
+chcp 65001 >nul
+cls
+
+echo.
+echo ══════════════════════════════════════════════════════════════════
+echo                     SQL2Excel Tool v${version}
+echo ══════════════════════════════════════════════════════════════════
+echo.
+
+sql2excel-v${version}.exe
+
+pause
+`;
+
+fs.writeFileSync(`${releaseDir}/run.bat`, runBatContent);
+console.log(`  ✅ run.bat 생성 완료 (English)`);
+
+// 실행하기.bat (Korean version)
+const runBatKrContent = `@echo off
+chcp 65001 >nul
+cls
+
+echo.
+echo ══════════════════════════════════════════════════════════════════
+echo                     SQL2Excel 도구 v${version}
+echo ══════════════════════════════════════════════════════════════════
+echo.
+
+sql2excel-v${version}.exe
+
+pause
+`;
+
+fs.writeFileSync(`${releaseDir}/실행하기.bat`, runBatKrContent);
+console.log(`  ✅ 실행하기.bat 생성 완료 (Korean)`);
 
 // 디렉토리 복사 함수
 function copyDirectory(src, dest) {
@@ -138,14 +155,15 @@ Build Date: ${new Date().toLocaleString('en-US')}
 
 Included Files:
 - sql2excel-v${version}.exe (Main executable file)
-- sql2excel.bat (Menu interface)
+- run.bat (Launcher script - English)
+- 실행하기.bat (Launcher script - Korean)
 - config/ (Database configuration)
 - queries/ (Query sample files)
 - templates/ (Excel style templates)
 - user_manual/ (Documentation files - README, User Manual, etc.)
 
 Usage:
-1. Run sql2excel.bat
+1. Run run.bat (English) or 실행하기.bat (Korean)
 2. Configure database connection settings in config/dbinfo.json
 3. Create queries by referring to sample files in queries/ folder
 4. Select desired function from the menu
@@ -166,7 +184,7 @@ System Requirements:
 Quick Start:
 1. Extract all files to a folder
 2. Edit config/dbinfo.json with your database connection details
-3. Run sql2excel.bat to start the interactive menu
+3. Run run.bat (English) or 실행하기.bat (Korean) to start the interactive menu
 4. Choose option 3 or 4 to generate Excel files from sample queries
 
 For detailed instructions, please refer to the user manual files in the user_manual/ folder.`;
