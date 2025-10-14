@@ -1,0 +1,25 @@
+@echo off
+chcp 65001 > nul
+color 0F
+
+echo.
+echo ══════════════════════════════════════════════════════════════════
+echo                        SQL2Excel 도구 v1.2
+echo ══════════════════════════════════════════════════════════════════
+echo.
+
+:: Node.js 설치 확인
+node --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Node.js가 설치되지 않았습니다.
+    echo https://nodejs.org 에서 Node.js를 설치해주세요.
+    echo.
+    pause
+    exit /b 1
+)
+
+:: 프로그램 실행 (한글 모드)
+node app.js --lang=kr
+
+pause
+
