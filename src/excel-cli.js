@@ -515,8 +515,6 @@ async function main() {
                     const originalArgv = process.argv;
                     process.argv = ['node', 'src/index.js', ...exportArgs];
                     
-                    console.log(`실행 명령어: node src/index.js ${exportArgs.join(' ')}\n`);
-                    
                     // index.js의 main 함수를 직접 호출
                     await indexMain();
                     

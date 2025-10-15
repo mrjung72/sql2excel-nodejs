@@ -25,8 +25,6 @@ async function main() {
     .option('list-styles', { describe: '사용 가능한 스타일 템플릿 목록 출력', boolean: true })
     .help().argv;
 
-  FileUtils.printAvailableXmlFiles();
-
   // 스타일 목록 출력 옵션 처리
   if (argv['list-styles']) {
     await styleManager.listAvailableStyles();

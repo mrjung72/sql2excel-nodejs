@@ -57,26 +57,6 @@ class FileUtils {
   }
 
   /**
-   * 사용 가능한 XML 파일 목록 출력
-   * @param {string} directory - 검색할 디렉토리 (기본값: 'queries')
-   */
-  static printAvailableXmlFiles(directory = 'queries') {
-    const dir = path.join(APP_ROOT, directory);
-    if (!fs.existsSync(dir)) return;
-    
-    const files = fs.readdirSync(dir).filter(f => f.endsWith('.xml'));
-    if (files.length > 0) {
-      console.log('-------------------------------------------------------------------------------');
-      console.log(`[INFO] 사용 가능한 XML 쿼리 정의 파일 목록:`);
-      console.log('-------------------------------------------------------------------------------');
-      files.forEach(f => console.log(`  - ${directory}/` + f));
-      console.log('-------------------------------------------------------------------------------');
-    } else {
-      console.log(`[INFO] ${directory} 폴더에 XML 쿼리 정의 파일이 없습니다.`);
-    }
-  }
-
-  /**
    * 파일 존재 여부 확인
    * @param {string} filepath - 파일 경로
    * @returns {boolean} 존재 여부
