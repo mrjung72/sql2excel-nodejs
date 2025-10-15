@@ -513,14 +513,6 @@ class QueryParser {
     return FileUtils.getExtension(filePath);
   }
 
-  /**
-   * 쿼리 파일 검증
-   * @param {string} filePath - 파일 경로
-   * @returns {boolean} 유효성 여부
-   */
-  validateQueryFile(filePath) {
-    return FileUtils.validateFilename(filePath);
-  }
 }
 
 module.exports = QueryParser;

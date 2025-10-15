@@ -40,8 +40,6 @@ async function main() {
   
   // 쿼리 파일 로드
   if (argv.xml && FileUtils.exists(FileUtils.resolvePath(argv.xml))) {
-    // 파일명 검증
-    queryParser.validateQueryFile(argv.xml);
     const xmlResult = await queryParser.loadQueriesFromXML(FileUtils.resolvePath(argv.xml));
     globalVars = xmlResult.globalVars;
     sheets = xmlResult.sheets;
@@ -50,8 +48,6 @@ async function main() {
     queryDefs = xmlResult.queryDefs || {};
     dynamicVars = xmlResult.dynamicVars || [];
   } else if (argv.query && FileUtils.exists(FileUtils.resolvePath(argv.query))) {
-    // 파일명 검증
-    queryParser.validateQueryFile(argv.query);
     const jsonResult = queryParser.loadQueriesFromJSON(FileUtils.resolvePath(argv.query));
     globalVars = jsonResult.globalVars;
     sheets = jsonResult.sheets;

@@ -16,7 +16,6 @@ A Node.js-based tool for generating Excel files from SQL query results.
 - 🖥️ **CLI Interface**: Simple command-line tool execution
 - 🪟 **Windows Batch Files**: Interactive batch files for Windows users
 - 📄 **XML/JSON Support**: Flexible configuration file format support
-- 🔍 **File Validation**: Automatic filename validation and Korean character warnings
 - 🎯 **Sheet-specific Styling**: Apply different styles to individual sheets
 - 📦 **Standalone Executable**: Generate standalone .exe files for distribution without Node.js dependency
 - 🌐 **Multi-language Support**: Korean and English release packages

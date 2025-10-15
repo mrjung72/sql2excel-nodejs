@@ -9,32 +9,6 @@ const APP_ROOT = process.pkg ? path.dirname(process.execPath) : process.cwd();
  */
 class FileUtils {
   /**
-   * 파일명에 한글이 포함되어 있는지 확인
-   * @param {string} filepath - 파일 경로
-   * @returns {boolean} 한글 포함 여부
-   */
-  static hasKoreanInFilename(filepath) {
-    const filename = path.basename(filepath);
-    const koreanRegex = /[가-힣]/;
-    return koreanRegex.test(filename);
-  }
-
-  /**
-   * 파일명 검증 및 경고
-   * @param {string} filepath - 파일 경로
-   * @returns {boolean} 유효성 여부
-   */
-  static validateFilename(filepath) {
-    if (this.hasKoreanInFilename(filepath)) {
-      console.warn(`⚠️  경고: 파일명에 한글이 포함되어 있습니다: ${path.basename(filepath)}`);
-      console.warn(`   💡 권장사항: 파일명을 영문으로 변경하세요.`);
-      console.warn(`   💡 예시: "${path.basename(filepath)}" → "${path.basename(filepath).replace(/[가-힣]/g, '')}"`);
-      return false;
-    }
-    return true;
-  }
-
-  /**
    * 안전한 파일 읽기 (인코딩 문제 해결)
    * @param {string} filepath - 파일 경로
    * @param {string} encoding - 인코딩 (기본값: 'utf8')
@@ -46,9 +20,7 @@ class FileUtils {
     } catch (error) {
       console.warn(`⚠️  파일 읽기 실패: ${filepath}`);
       console.warn(`   오류: ${error.message}`);
-      console.warn(`   💡 해결방법: 파일명에 한글이 포함되어 있다면 영문으로 변경해주세요.`);
-      console.warn(`   💡 예시: "queries-sample - 복사본.xml" → "queries-sample-copy.xml"`);
-      throw new Error(`파일을 읽을 수 없습니다: ${filepath}\n파일명에 한글이 포함되어 있으면 영문으로 변경해주세요.`);
+      throw new Error(`파일을 읽을 수 없습니다: ${filepath}`);
     }
   }
 

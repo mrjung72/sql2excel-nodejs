@@ -33,7 +33,6 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 - 🖥️ **CLI Interface**: Simple command-line tool execution
 - 🪟 **Windows Batch Files**: Interactive batch files for Windows users
 - 📄 **XML/JSON Support**: Flexible configuration file format support
-- 🔍 **File Validation**: Automatic filename validation and Korean character warnings
 - 🎯 **Sheet-specific Styling**: Apply different styles to individual sheets
 - 📦 **Standalone Executable**: Generate standalone .exe files for distribution without Node.js dependency
 - 🌐 **Multi-language Support**: Korean and English release packages
@@ -736,17 +735,7 @@ Generate a standalone TOC file:
 node src/excel-cli.js export --xml queries.xml
 ```
 
-### 4. File Validation
-
-The tool automatically validates filenames and warns about Korean characters:
-
-```
-⚠️  경고: 파일명에 한글이 포함되어 있습니다: 샘플쿼리.xml
-   💡 권장사항: 파일명을 영문으로 변경하세요.
-   💡 예시: "샘플쿼리.xml" → "sample-query.xml"
-```
-
-### 5. Database Source Information
+### 4. Database Source Information
 
 Each sheet includes database source information:
 
@@ -1099,35 +1088,28 @@ sql2excel.bat
 - Process data in smaller chunks
 - Increase Node.js memory limit
 
-#### 6. Korean Filename Warnings
-**Problem**: Filename contains Korean characters
-**Solution**:
-- Rename files to use English characters only
-- Use descriptive English names
-- Avoid special characters in filenames
-
-#### 7. Template Style Not Found
+#### 6. Template Style Not Found
 **Problem**: Template style not loading
 **Solution**:
 - Check `templates/excel-styles.xml` file exists
 - Verify style ID spelling
 - Use `list-styles` command to see available styles
 
-#### 8. Executable Not Found (Standalone)
+#### 7. Executable Not Found (Standalone)
 **Problem**: `sql2excel-v*.exe file not found` error
 **Solution**:
 - Ensure the executable file is in the same directory as `sql2excel.bat`
 - Check that the executable name matches the version (e.g., `sql2excel.exe`)
 - Re-extract the release package if files are missing
 
-#### 9. PowerShell Execution Policy (Windows)
+#### 8. PowerShell Execution Policy (Windows)
 **Problem**: PowerShell execution policy prevents batch file execution
 **Solution**:
 - Run Command Prompt as Administrator
 - Use `cmd` instead of PowerShell
 - Or set PowerShell execution policy: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
-#### 10. Missing Dependencies (Development)
+#### 9. Missing Dependencies (Development)
 **Problem**: Module not found errors during development
 **Solution**:
 - Run `npm install` to install dependencies
