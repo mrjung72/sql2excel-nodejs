@@ -80,6 +80,12 @@
   - Detailed failure reasons: Specify which rules were violated
   - Database list: Display detailed info including server, DB name, user, permissions
 
+- **Fixed Character Corruption on Batch File Execution**
+  - Execute `cls` immediately after `@echo off` to clear initial screen
+  - Redirect stderr with `chcp 65001 >nul 2>&1`
+  - Execute `cls` again after code page change to remove corrupted characters
+  - Provide clean screen on batch file startup
+
 ### 📦 Distribution Improvements (2025-10-15)
 - **Auto-generate Batch Files**: Generate language-specific batch files in `create-release.js`
   - `run.bat`: Automatically includes `--lang=en`

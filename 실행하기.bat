@@ -1,5 +1,7 @@
 @echo off
-chcp 65001 > nul
+cls
+chcp 65001 >nul 2>&1
+cls
 color 0F
 
 echo.
