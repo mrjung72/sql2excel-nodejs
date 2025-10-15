@@ -5,34 +5,34 @@
     "style": "business"
   },
   "vars": {
-    "reportTitle": "시각 변수 사용 예제 (JSON)",
-    "department": "개발팀"
+    "reportTitle": "DateTime Variables Example (JSON)",
+    "department": "Development"
   },
   "sheets": [
     {
-      "name": "기본시각함수",
+      "name": "BasicTimeFunctions",
       "use": true,
-      "query": "SELECT '${reportTitle}' as 리포트제목, '${CURRENT_TIMESTAMP}' as 현재시각_UTC, '${NOW}' as 현재시각_NOW, '${CURRENT_DATE}' as 현재날짜, '${CURRENT_TIME}' as 현재시간, '${GETDATE}' as SQL서버형식"
+      "query": "SELECT '${reportTitle}' as ReportTitle, '${CURRENT_TIMESTAMP}' as CurrentTime_UTC, '${NOW}' as CurrentTime_NOW, '${CURRENT_DATE}' as CurrentDate, '${CURRENT_TIME}' as CurrentTime, '${GETDATE}' as SQLServerFormat"
     },
     {
-      "name": "한국시간대",
+      "name": "KoreanTimeZone",
       "use": true,
-      "query": "SELECT '${KST_NOW}' as 한국현재시각, '${KST_DATE}' as 한국현재날짜, '${KST_TIME}' as 한국현재시간, '${KST_DATETIME}' as 한국날짜시간, '${KST_ISO_TIMESTAMP}' as 한국ISO형식"
+      "query": "SELECT '${KST_NOW}' as KST_Now, '${KST_DATE}' as KST_Date, '${KST_TIME}' as KST_Time, '${KST_DATETIME}' as KST_DateTime, '${KST_ISO_TIMESTAMP}' as KST_ISO_Format"
     },
     {
-      "name": "한국식날짜형식",
+      "name": "KoreanDateFormat",
       "use": true,
-      "query": "SELECT '${KOREAN_DATE}' as 한국식날짜, '${KOREAN_DATETIME}' as 한국식날짜시간, '${KOREAN_DATE_SHORT}' as 한국식날짜짧은형식, '${WEEKDAY_KR}' as 한국어요일, '${MONTH_KR}' as 한국어월, '${YEAR_KR}' as 한국어년도"
+      "query": "SELECT '${KOREAN_DATE}' as KoreanDate, '${KOREAN_DATETIME}' as KoreanDateTime, '${KOREAN_DATE_SHORT}' as KoreanDateShort, '${WEEKDAY_KR}' as WeekdayKorean, '${MONTH_KR}' as MonthKorean, '${YEAR_KR}' as YearKorean"
     },
     {
-      "name": "파일명생성예제",
+      "name": "FilenameExample",
       "use": true,
-      "query": "SELECT '${department}' as 부서명, 'Report_${DATE_YYYYMMDD}_${department}.xlsx' as 추천파일명, '${KOREAN_DATE} ${WEEKDAY_KR} 리포트' as 제목예시, 'WHERE created_date >= ''${DATE_YYYY_MM_DD}'' AND department = ''${department}''' as 쿼리조건예시"
+      "query": "SELECT '${department}' as Department, 'Report_${DATE_YYYYMMDD}_${department}.xlsx' as RecommendedFilename, '${KOREAN_DATE} ${WEEKDAY_KR} Report' as TitleExample, 'WHERE created_date >= ''${DATE_YYYY_MM_DD}'' AND department = ''${department}''' as QueryConditionExample"
     },
     {
-      "name": "타임스탬프활용",
+      "name": "TimestampUsage",
       "use": true,
-      "query": "SELECT '${UNIX_TIMESTAMP}' as 유닉스타임스탬프, '${TIMESTAMP_MS}' as 밀리초타임스탬프, '${ISO_TIMESTAMP}' as ISO형식, '${DATETIME_YYYYMMDD_HHMMSS}' as 파일명용시각, 'backup_${DATE_YYYYMMDD}_${department}' as 백업파일명예시"
+      "query": "SELECT '${UNIX_TIMESTAMP}' as UnixTimestamp, '${TIMESTAMP_MS}' as MillisecondTimestamp, '${ISO_TIMESTAMP}' as ISOFormat, '${DATETIME_YYYYMMDD_HHMMSS}' as FilenameDateTime, 'backup_${DATE_YYYYMMDD}_${department}' as BackupFilenameExample"
     }
   ]
 }
