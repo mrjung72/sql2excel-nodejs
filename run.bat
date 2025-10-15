@@ -18,8 +18,8 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-:: 프로그램 실행
-node app.js
+:: 프로그램 실행 (영문 모드)
+node app.js --lang=en
 
 pause
 

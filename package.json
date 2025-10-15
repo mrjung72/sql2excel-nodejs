@@ -10,11 +10,12 @@
     "validate": "node src/excel-cli.js validate",
     "list-dbs": "node src/excel-cli.js list-dbs",
     "help": "node src/excel-cli.js help",
-    "build": "node -e \"const pkg = require('./package.json'); const { execSync } = require('child_process'); execSync(`pkg . --public --no-native-build --output dist/sql2excel-v${pkg.version}.exe`, { stdio: 'inherit' });\"",
-    "release": "node create-release.js",
-    "clean": "if exist release rmdir /s /q release && if exist dist\\sql2excel-v*.exe del dist\\sql2excel-v*.exe"
+    "build": "node -e \"const pkg = require('./package.json'); const { execSync } = require('child_process'); execSync(`pkg app.js --public --compress GZip --target node18-win-x64 --output dist/sql2excel-v${pkg.version}.exe`, { stdio: 'inherit' });\"",
+    "release": "node create-release.js"
   },
-  "bin": "src/excel-cli.js",
+  "bin": {
+    "sql2excel": "app.js"
+  },
   "pkg": {
     "scripts": [
       "app.js",
@@ -25,7 +26,9 @@
       "queries/**/*.json",
       "config/**/*.json",
       "templates/**/*.xml",
-      ".env"
+      ".env",
+      "node_modules/mssql/**/*",
+      "node_modules/tedious/**/*"
     ],
     "targets": [
       "node18-win-x64"

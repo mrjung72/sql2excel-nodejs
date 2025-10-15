@@ -94,7 +94,7 @@ echo                     SQL2Excel Tool v${version}
 echo ══════════════════════════════════════════════════════════════════
 echo.
 
-sql2excel-v${version}.exe
+sql2excel-v${version}.exe --lang=en
 
 pause
 `;
@@ -113,7 +113,7 @@ echo                     SQL2Excel 도구 v${version}
 echo ══════════════════════════════════════════════════════════════════
 echo.
 
-sql2excel-v${version}.exe
+sql2excel-v${version}.exe --lang=kr
 
 pause
 `;
