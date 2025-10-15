@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// pkg 실행 파일 경로 처리
+const APP_ROOT = process.pkg ? path.dirname(process.execPath) : process.cwd();
+
 /**
  * 파일 관련 유틸리티 함수들을 담당하는 모듈
  */
@@ -57,7 +60,7 @@ class FileUtils {
   static resolvePath(p) {
     if (!p) return '';
     if (path.isAbsolute(p)) return p;
-    return path.join(process.cwd(), p);
+    return path.join(APP_ROOT, p);
   }
 
   /**
@@ -86,7 +89,7 @@ class FileUtils {
    * @param {string} directory - 검색할 디렉토리 (기본값: 'queries')
    */
   static printAvailableXmlFiles(directory = 'queries') {
-    const dir = path.join(process.cwd(), directory);
+    const dir = path.join(APP_ROOT, directory);
     if (!fs.existsSync(dir)) return;
     
     const files = fs.readdirSync(dir).filter(f => f.endsWith('.xml'));

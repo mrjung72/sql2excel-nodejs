@@ -11,42 +11,42 @@
   </sheet>
   
   <!-- 허용되지 않는 문자 포함: 백슬래시 -->
-  <sheet name="잘못된\시트명" use="true">
+  <sheet name="잘못된\시트명1" use="true">
     <![CDATA[
       SELECT '백슬래시 포함' as 상태
     ]]>
   </sheet>
   
   <!-- 허용되지 않는 문자 포함: 슬래시 -->
-  <sheet name="잘못된/시트명" use="true">
+  <sheet name="잘못된/시트명2" use="true">
     <![CDATA[
       SELECT '슬래시 포함' as 상태
     ]]>
   </sheet>
   
   <!-- 허용되지 않는 문자 포함: 콜론 -->
-  <sheet name="잘못된:시트명" use="true">
+  <sheet name="잘못된:시트명3" use="true">
     <![CDATA[
       SELECT '콜론 포함' as 상태
     ]]>
   </sheet>
   
   <!-- 허용되지 않는 문자 포함: 별표 -->
-  <sheet name="잘못된*시트명" use="true">
+  <sheet name="잘못된*시트명4" use="true">
     <![CDATA[
       SELECT '별표 포함' as 상태
     ]]>
   </sheet>
   
   <!-- 허용되지 않는 문자 포함: 물음표 -->
-  <sheet name="잘못된?시트명" use="true">
+  <sheet name="잘못된?시트명5" use="true">
     <![CDATA[
       SELECT '물음표 포함' as 상태
     ]]>
   </sheet>
   
   <!-- 허용되지 않는 문자 포함: 대괄호 -->
-  <sheet name="잘못된[시트명]" use="true">
+  <sheet name="잘못된[시트명]6" use="true">
     <![CDATA[
       SELECT '대괄호 포함' as 상태
     ]]>

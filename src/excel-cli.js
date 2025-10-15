@@ -3,10 +3,6 @@ const path = require('path');
 const mssql = require('mssql');
 const yargs = require('yargs');
 
-// 명령줄 인수 파싱
-const args = process.argv.slice(2);
-const command = args[0];
-
 /**
  * 시트명 유효성 검증
  * @param {string} sheetName - 검증할 시트명
@@ -121,6 +117,15 @@ function parseOptions(args) {
                     }
                     i++;
                 }
+                break;
+            case '--lang':
+                // 언어 옵션은 무시 (app.js에서만 사용)
+                if (nextArg && !nextArg.startsWith('-')) {
+                    i++;
+                }
+                break;
+            default:
+                // 알 수 없는 옵션은 조용히 무시
                 break;
         }
     }
@@ -297,55 +302,73 @@ async function validateQueryFile(options) {
             }
             
             console.log('✅ XML 형식 검증');
-            console.log(`   시트 개수: ${Array.isArray(parsed.queries.sheet) ? parsed.queries.sheet.length : 1}개`);
+            
+            const sheets = Array.isArray(parsed.queries.sheet) ? parsed.queries.sheet : [parsed.queries.sheet];
+            console.log(`   시트 개수: ${sheets.length}개`);
+            
+            // 시트 목록 및 검증 결과 출력
+            console.log('\n📋 시트 목록 및 검증:');
+            let hasValidationErrors = false;
+            let sheetIndex = 0;
+            
+            for (const sheet of sheets) {
+                if (sheet.$) {
+                    sheetIndex++;
+                    const sheetName = sheet.$.name || '';
+                    
+                    // 시트명 검증 (변수 포함 시 길이 검증만 건너뛰기)
+                    const hasVariables = sheetName.includes('${');
+                    const sheetNameValidation = validateSheetName(sheetName, hasVariables);
+                    
+                    if (sheetNameValidation.valid) {
+                        console.log(`   ✅ 시트 #${sheetIndex}: "${sheetName}"`);
+                    } else {
+                        console.error(`   ❌ 시트 #${sheetIndex}: "${sheetName}"`);
+                        sheetNameValidation.errors.forEach(error => {
+                            console.error(`      - ${error}`);
+                        });
+                        console.error(`      💡 실행 시에는 자동으로 수정되어 처리됩니다.`);
+                        hasValidationErrors = true;
+                    }
+                }
+            }
             
             // 쿼리 정의 확인
             if (parsed.queries.queryDefs && parsed.queries.queryDefs[0] && parsed.queries.queryDefs[0].queryDef) {
                 const queryDefCount = Array.isArray(parsed.queries.queryDefs[0].queryDef) ? parsed.queries.queryDefs[0].queryDef.length : 1;
-                console.log(`   쿼리 정의 개수: ${queryDefCount}개`);
-                
-                // 쿼리 참조 검증
-                const sheets = Array.isArray(parsed.queries.sheet) ? parsed.queries.sheet : [parsed.queries.sheet];
-                const queryDefs = {};
+                console.log(`\n📋 쿼리 정의 개수: ${queryDefCount}개`);
                 
                 // 쿼리 정의 수집
+                const queryDefs = {};
                 const queryDefArray = Array.isArray(parsed.queries.queryDefs[0].queryDef) ? parsed.queries.queryDefs[0].queryDef : [parsed.queries.queryDefs[0].queryDef];
                 queryDefArray.forEach(def => {
                     if (def.$ && (def.$.id || def.$.name)) {
                         const queryId = def.$.id || def.$.name;
                         queryDefs[queryId] = true;
-                        console.log(`   [DEBUG] queryDef 발견: ${queryId}`);
                     }
                 });
-                console.log(`   [DEBUG] 총 ${Object.keys(queryDefs).length}개의 queryDef: ${Object.keys(queryDefs).join(', ')}`);
                 
-                // 쿼리 참조 검증 및 시트명 검증
+                // 쿼리 참조 검증
                 for (const sheet of sheets) {
                     if (sheet.$) {
-                        // 시트명 검증 (변수 치환 전이므로 변수 포함 가능)
                         const sheetName = sheet.$.name || '';
                         
-                        // 시트명 검증 (변수 포함 시 길이 검증만 건너뛰기)
-                        const hasVariables = sheetName.includes('${');
-                        const sheetNameValidation = validateSheetName(sheetName, hasVariables);
-                        if (!sheetNameValidation.valid) {
-                            console.error(`\n❌ 시트명 검증 실패:`);
-                            console.error(`   시트명: "${sheetName}"`);
-                            sheetNameValidation.errors.forEach(error => {
-                                console.error(`   - ${error}`);
-                            });
-                            throw new Error(`시트명 검증 실패: "${sheetName}"`);
-                        }
-                        
-                        // 쿼리 참조 검증
                         if (sheet.$.queryRef) {
                             if (!queryDefs[sheet.$.queryRef]) {
-                                throw new Error(`시트 "${sheetName}"에서 참조하는 쿼리 정의 "${sheet.$.queryRef}"를 찾을 수 없습니다.`);
+                                console.error(`   ❌ 시트 "${sheetName}"에서 참조하는 쿼리 정의 "${sheet.$.queryRef}"를 찾을 수 없습니다.`);
+                                hasValidationErrors = true;
+                            } else {
+                                console.log(`   ✅ 시트 "${sheetName}" -> 쿼리 정의 "${sheet.$.queryRef}" 참조 확인`);
                             }
-                            console.log(`   ✅ 시트 "${sheetName}" -> 쿼리 정의 "${sheet.$.queryRef}" 참조 확인`);
                         }
                     }
                 }
+            }
+            
+            // 시트명 검증 오류가 있으면 검증 실패
+            if (hasValidationErrors) {
+                console.error('\n❌ 검증 실패: 시트명 또는 쿼리 참조에 오류가 있습니다.');
+                return false;
             }
             
         } else if (fileType === 'JSON') {
@@ -359,42 +382,75 @@ async function validateQueryFile(options) {
             console.log('✅ JSON 형식 검증');
             console.log(`   시트 개수: ${parsed.sheets.length}개`);
             
+            // 시트 목록 및 검증 결과 출력
+            console.log('\n📋 시트 목록 및 검증:');
+            let hasValidationErrors = false;
+            let sheetIndex = 0;
+            
+            for (const sheet of parsed.sheets) {
+                sheetIndex++;
+                const sheetName = sheet.name || '';
+                
+                // 시트명 검증 (변수 포함 시 길이 검증만 건너뛰기)
+                const hasVariables = sheetName.includes('${');
+                const sheetNameValidation = validateSheetName(sheetName, hasVariables);
+                
+                if (sheetNameValidation.valid) {
+                    console.log(`   ✅ 시트 #${sheetIndex}: "${sheetName}"`);
+                } else {
+                    console.error(`   ❌ 시트 #${sheetIndex}: "${sheetName}"`);
+                    sheetNameValidation.errors.forEach(error => {
+                        console.error(`      - ${error}`);
+                    });
+                    console.error(`      💡 실행 시에는 자동으로 수정되어 처리됩니다.`);
+                    hasValidationErrors = true;
+                }
+            }
+            
             // 쿼리 정의 확인
             if (parsed.queryDefs) {
                 const queryDefCount = Object.keys(parsed.queryDefs).length;
-                console.log(`   쿼리 정의 개수: ${queryDefCount}개`);
+                console.log(`\n📋 쿼리 정의 개수: ${queryDefCount}개`);
                 
-                // 쿼리 참조 검증 및 시트명 검증
+                // 쿼리 참조 검증
                 for (const sheet of parsed.sheets) {
                     const sheetName = sheet.name || '';
                     
-                    // 시트명 검증 (변수 포함 시 길이 검증만 건너뛰기)
-                    const hasVariables = sheetName.includes('${');
-                    const sheetNameValidation = validateSheetName(sheetName, hasVariables);
-                    if (!sheetNameValidation.valid) {
-                        console.error(`\n❌ 시트명 검증 실패:`);
-                        console.error(`   시트명: "${sheetName}"`);
-                        sheetNameValidation.errors.forEach(error => {
-                            console.error(`   - ${error}`);
-                        });
-                        throw new Error(`시트명 검증 실패: "${sheetName}"`);
-                    }
-                    
-                    // 쿼리 참조 검증
                     if (sheet.queryRef) {
                         if (!parsed.queryDefs[sheet.queryRef]) {
-                            throw new Error(`시트 "${sheetName}"에서 참조하는 쿼리 정의 "${sheet.queryRef}"를 찾을 수 없습니다.`);
+                            console.error(`   ❌ 시트 "${sheetName}"에서 참조하는 쿼리 정의 "${sheet.queryRef}"를 찾을 수 없습니다.`);
+                            hasValidationErrors = true;
+                        } else {
+                            console.log(`   ✅ 시트 "${sheetName}" -> 쿼리 정의 "${sheet.queryRef}" 참조 확인`);
                         }
-                        console.log(`   ✅ 시트 "${sheetName}" -> 쿼리 정의 "${sheet.queryRef}" 참조 확인`);
                     }
                 }
+            }
+            
+            // 시트명 검증 오류가 있으면 검증 실패
+            if (hasValidationErrors) {
+                console.error('\n❌ 검증 실패: 시트명 또는 쿼리 참조에 오류가 있습니다.');
+                return false;
             }
         }
         
         // 데이터베이스 설정 확인
         const databases = loadDatabaseConfig(options.configFilePath);
-        console.log('✅ 데이터베이스 설정 로드');
+        console.log('\n✅ 데이터베이스 설정 로드');
         console.log(`   설정된 DB 개수: ${Object.keys(databases).length}개`);
+        
+        // 데이터베이스 목록 출력
+        console.log('\n📋 데이터베이스 목록:');
+        for (const [dbId, dbConfig] of Object.entries(databases)) {
+            console.log(`   ✅ ${dbId}:`);
+            console.log(`      서버: ${dbConfig.server}`);
+            console.log(`      데이터베이스: ${dbConfig.database}`);
+            console.log(`      사용자: ${dbConfig.user}`);
+            console.log(`      쓰기 권한: ${dbConfig.isWritable ? '있음' : '없음'}`);
+            if (dbConfig.description) {
+                console.log(`      설명: ${dbConfig.description}`);
+            }
+        }
         
         console.log('\n✅ 모든 검증이 완료되었습니다.');
         return true;
@@ -408,10 +464,11 @@ async function validateQueryFile(options) {
 // main 함수
 async function main() {
     try {
-        console.log('[DEBUG] args:', args);
-        console.log('[DEBUG] command:', command);
+        // 명령줄 인수를 매번 새로 읽기 (app.js에서 process.argv를 동적으로 변경할 수 있음)
+        const args = process.argv.slice(2);
+        const command = args[0];
+        
         const options = parseOptions(args.slice(1));
-        console.log('[DEBUG] options:', options);
         
         // 명령어 정보 출력
         if (command !== 'list-dbs') {

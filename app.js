@@ -6,6 +6,9 @@ const { execSync } = require('child_process');
 // pkg 실행 파일 경로 처리
 const APP_ROOT = process.pkg ? path.dirname(process.execPath) : __dirname;
 
+// pkg 환경에서 excel-cli 모듈 직접 로드
+const excelCli = process.pkg ? require('./src/excel-cli') : null;
+
 // ANSI 색상 코드
 const colors = {
     reset: '\x1b[0m',
@@ -276,15 +279,36 @@ async function validateQuery() {
     console.log();
     
     try {
-        const command = file.type === 'XML' 
-            ? `node src/excel-cli.js validate --xml "${file.path}"`
-            : `node src/excel-cli.js validate --query "${file.path}"`;
-        
-        execSync(command, { 
-            cwd: APP_ROOT, 
-            stdio: 'inherit',
-            encoding: 'utf8'
-        });
+        if (process.pkg) {
+            // pkg 환경: 직접 모듈 사용
+            const options = {
+                configFilePath: path.join(APP_ROOT, 'config', 'dbinfo.json'),
+                variables: {}
+            };
+            
+            if (file.type === 'XML') {
+                options.xmlFilePath = file.path;
+            } else {
+                options.queryFilePath = file.path;
+            }
+            
+            const isValid = await excelCli.validateQueryFile(options);
+            
+            if (!isValid) {
+                throw new Error('Validation failed');
+            }
+        } else {
+            // Node.js 환경: CLI 실행
+            const command = file.type === 'XML' 
+                ? `node src/excel-cli.js validate --xml "${file.path}"`
+                : `node src/excel-cli.js validate --query "${file.path}"`;
+            
+            execSync(command, { 
+                cwd: APP_ROOT, 
+                stdio: 'inherit',
+                encoding: 'utf8'
+            });
+        }
         
         console.log();
         console.log(colors.green + `  ${msg.validationCompleted}` + colors.reset);
@@ -309,11 +333,18 @@ async function testConnection() {
     console.log();
     
     try {
-        execSync('node src/excel-cli.js list-dbs', { 
-            cwd: APP_ROOT, 
-            stdio: 'inherit',
-            encoding: 'utf8'
-        });
+        if (process.pkg) {
+            // pkg 환경: 직접 모듈 사용
+            const configPath = path.join(APP_ROOT, 'config', 'dbinfo.json');
+            await excelCli.testAllDatabaseConnections(configPath);
+        } else {
+            // Node.js 환경: CLI 실행
+            execSync('node src/excel-cli.js list-dbs', { 
+                cwd: APP_ROOT, 
+                stdio: 'inherit',
+                encoding: 'utf8'
+            });
+        }
         
         console.log();
         console.log(colors.green + `  ${msg.connectionSuccess}` + colors.reset);
@@ -372,11 +403,36 @@ async function exportExcelXML() {
     const startTime = new Date();
     
     try {
-        execSync(`node src/excel-cli.js export --xml "${selectedFile.path}"`, { 
-            cwd: APP_ROOT, 
-            stdio: 'inherit',
-            encoding: 'utf8'
-        });
+        if (process.pkg) {
+            // pkg 환경: 직접 모듈 사용
+            const originalArgv = process.argv;
+            const originalExit = process.exit;
+
+            // process.exit를 무효화하여 프로그램이 종료되지 않도록 함
+            process.exit = (code) => {
+                if (code !== 0) {
+                    throw new Error(`Process exited with code ${code}`);
+                }
+            };
+
+            // --lang 옵션을 제외하고 재구성
+            const filteredArgs = originalArgv.slice(2).filter(arg => !arg.startsWith('--lang='));
+            process.argv = ['node', 'src/excel-cli.js', 'export', '--xml', selectedFile.path, ...filteredArgs];
+
+            try {
+                await excelCli.main();
+            } finally {
+                process.argv = originalArgv;
+                process.exit = originalExit;
+            }
+        } else {
+            // Node.js 환경: CLI 실행
+            execSync(`node src/excel-cli.js export --xml "${selectedFile.path}"`, { 
+                cwd: APP_ROOT, 
+                stdio: 'inherit',
+                encoding: 'utf8'
+            });
+        }
         
         const endTime = new Date();
         
@@ -438,11 +494,36 @@ async function exportExcelJSON() {
     const startTime = new Date();
     
     try {
-        execSync(`node src/excel-cli.js export --query "${selectedFile.path}"`, { 
-            cwd: APP_ROOT, 
-            stdio: 'inherit',
-            encoding: 'utf8'
-        });
+        if (process.pkg) {
+            // pkg 환경: 직접 모듈 사용
+            const originalArgv = process.argv;
+            const originalExit = process.exit;
+
+            // process.exit를 무효화하여 프로그램이 종료되지 않도록 함
+            process.exit = (code) => {
+                if (code !== 0) {
+                    throw new Error(`Process exited with code ${code}`);
+                }
+            };
+
+            // --lang 옵션을 제외하고 재구성
+            const filteredArgs = originalArgv.slice(2).filter(arg => !arg.startsWith('--lang='));
+            process.argv = ['node', 'src/excel-cli.js', 'export', '--query', selectedFile.path, ...filteredArgs];
+
+            try {
+                await excelCli.main();
+            } finally {
+                process.argv = originalArgv;
+                process.exit = originalExit;
+            }
+        } else {
+            // Node.js 환경: CLI 실행
+            execSync(`node src/excel-cli.js export --query "${selectedFile.path}"`, { 
+                cwd: APP_ROOT, 
+                stdio: 'inherit',
+                encoding: 'utf8'
+            });
+        }
         
         const endTime = new Date();
         

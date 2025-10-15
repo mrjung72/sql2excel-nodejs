@@ -103,10 +103,6 @@ class QueryParser {
       const actualElements = queryKeys.filter(key => !xml2jsInternalKeys.includes(key));
       const invalidElements = actualElements.filter(key => !allowedElements.queries.includes(key));
       if (invalidElements.length > 0) {
-        console.error(`\n[DEBUG] queries 객체의 모든 키:`, queryKeys);
-        console.error(`[DEBUG] xml2js 내부 키 제외 후:`, actualElements);
-        console.error(`[DEBUG] 허용되는 element:`, allowedElements.queries);
-        console.error(`[DEBUG] 잘못된 element:`, invalidElements);
         errors.push(`queries 내 허용되지 않는 element: ${invalidElements.join(', ')}`);
         errors.push(`   허용되는 element: ${allowedElements.queries.join(', ')}`);
         errors.push(`   발견된 실제 element: ${actualElements.join(', ')}`);
@@ -224,22 +220,18 @@ class QueryParser {
           const queryName = queryDef.$.id || queryDef.$.name;
           const queryText = (queryDef._ || queryDef['#text'] || queryDef.__cdata || '').toString().trim();
           
-          console.log(`[DEBUG] queryDef 파싱: id="${queryName}", queryText 길이=${queryText.length}`);
-          
           if (queryText) {
             queryDefs[queryName] = {
               name: queryName,
               description: queryDef.$.description || '',
               query: queryText
             };
-            console.log(`[DEBUG] queryDef 추가됨: ${queryName}`);
           } else {
             console.warn(`[WARN] queryDef "${queryName}"의 쿼리 텍스트가 비어있습니다.`);
           }
         }
       }
     }
-    console.log(`[DEBUG] 총 ${Object.keys(queryDefs).length}개의 queryDef 로드됨: ${Object.keys(queryDefs).join(', ')}`);
     
     // 전역 변수 파싱
     let globalVars = {};

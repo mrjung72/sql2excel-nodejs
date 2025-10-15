@@ -1,6 +1,6 @@
 # SQL2Excel Version History
 
-## v1.2.6 - Validation & Structure Improvements (2025-10-14)
+## v1.2.6 - Validation & Structure Improvements (2025-10-15)
 
 ### ✨ New Features
 - **Sheet Name Validation**: Added Excel sheet name validation logic
@@ -17,8 +17,13 @@
 
 - **Interactive Menu System**: User-friendly menu system in sql2db style
   - `app.js`: Multi-language menu system
-  - `run.bat`: English version launcher script
-  - `실행하기.bat`: Korean version launcher script
+  - `run.bat`: English version launcher script (`--lang=en`)
+  - `실행하기.bat`: Korean version launcher script (`--lang=kr`)
+
+- **Multi-language Support**: Language selection via command line arguments
+  - `--lang=en`: English interface
+  - `--lang=kr`: Korean interface
+  - Multi-language support for menus, messages, and errors
 
 ### 🔧 Technical Improvements
 - **Improved dbinfo.json Structure**: Removed dbs wrapper
@@ -30,10 +35,57 @@
   - `mssql-connection-manager.js`: Added pkg environment path handling
   - Unified all file paths based on APP_ROOT
 
+- **pkg Build Optimization** (2025-10-15)
+  - Removed `--no-native-build` option: Improved native module compatibility
+  - Explicit native module inclusion: Added `mssql`, `tedious` to assets
+  - Explicit entry point: Specified as `pkg app.js` format
+  - Explicit target: Specified `--target node18-win-x64`
+  - Added compression: Optimized file size with `--compress GZip`
+
+- **pkg Environment Support** (2025-10-15)
+  - Detect pkg environment and call modules directly in `app.js`
+  - Directly require `excel-cli.js` module for functionality
+  - Automatic branching between Node.js and pkg environments
+  - Dynamic reconstruction of `process.argv` for module calls
+  - `excel-cli.js`: Dynamically read args and command within main() function
+  - `file-utils.js`: APP_ROOT-based path handling (pkg environment support)
+  - `index.js`: Create new yargs instance each time with explicit process.argv
+
+- **Improved Option Parsing** (2025-10-15)
+  - Added `--lang` option handling in `excel-cli.js`
+  - Added unknown option ignore functionality (`default` case)
+  - Enhanced option parser stability
+  - Improved `yargs` usage: Changed to `require('yargs/yargs')`
+  - Explicit `process.argv.slice(2)` passing for pkg environment compatibility
+
 ### 🐛 Bug Fixes
 - **queryDef validation error**: Improved id attribute recognition in queryDef
 - **Variable substitution sheet name validation**: Changed to validate after variable substitution
 - **validate command option parsing**: Improved --xml option recognition
+- **Fixed "i is not defined" error** (2025-10-15)
+  - `index.js`: Added `sheetIndex` variable in for-of loop
+  - Improved index tracking logic in sheet processing loop
+  - Fixed passing correct index to sheet name validation function
+
+- **Fixed sheet name validation not applied during file validation** (2025-10-15)
+  - `excel-cli.js`: Moved sheet name validation logic outside queryDefs block
+  - Improved structure to ensure validation always runs
+  - Returns `false` with clear error messages on validation failure
+  - Auto-correction during query execution, validation failure during file validation
+
+### 🎨 UI/UX Improvements (2025-10-15)
+- **Detailed Validation Output**
+  - Sheet list: Display full list instead of just count
+  - Per-sheet validation results: Show ✅ success / ❌ failure for each
+  - Detailed failure reasons: Specify which rules were violated
+  - Database list: Display detailed info including server, DB name, user, permissions
+
+### 📦 Distribution Improvements (2025-10-15)
+- **Auto-generate Batch Files**: Generate language-specific batch files in `create-release.js`
+  - `run.bat`: Automatically includes `--lang=en`
+  - `실행하기.bat`: Automatically includes `--lang=kr`
+- **Optimized Executable Size**: Reduced size by ~40% through compression
+- **Native Module Inclusion**: Guaranteed proper operation of DB connection libraries
 
 ## v1.2.5 - Batch Interface Improvements (2025-10-10)
 

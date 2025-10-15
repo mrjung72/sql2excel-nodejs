@@ -1,4 +1,4 @@
-const yargs = require('yargs');
+const yargs = require('yargs/yargs');
 const JSON5 = require('json5');
 const FileUtils = require('./file-utils');
 const VariableProcessor = require('./variable-processor');
@@ -15,7 +15,8 @@ const queryParser = new QueryParser();
 const excelGenerator = new ExcelGenerator();
 
 async function main() {
-  const argv = yargs
+  // yargs를 매번 새로 생성하여 process.argv를 명시적으로 전달
+  const argv = yargs(process.argv.slice(2))
     .option('query', { alias: 'q', describe: '쿼리 정의 파일 경로 (JSON)', default: '' })
     .option('xml', { alias: 'x', describe: '쿼리 정의 파일 경로 (XML)', default: '' })
     .option('config', { alias: 'c', describe: 'DB 접속 정보 파일', default: 'config/dbinfo.json' })
@@ -178,6 +179,7 @@ async function main() {
   const processedSheets = [];
 
   // 시트 처리
+  let sheetIndex = 0;
   for (const sheetDef of sheets) {
     // robust use 속성 체크
     if (!styleManager.isSheetEnabled(sheetDef)) {
@@ -186,17 +188,29 @@ async function main() {
     }
     
     let sql = variableProcessor.substituteVars(sheetDef.query, mergedVars, sheetDef.params || {});
-    const sheetName = variableProcessor.substituteVars(sheetDef.name, mergedVars, sheetDef.params || {});
+    let sheetName = variableProcessor.substituteVars(sheetDef.name, mergedVars, sheetDef.params || {});
     
-    // 시트명 검증 (변수 치환 후)
-    const sheetNameValidation = queryParser.validateSheetName(sheetName, i);
+    // 시트명 자동 수정 (변수 치환 후)
+    const sheetNameValidation = queryParser.validateSheetName(sheetName, sheetIndex);
     if (!sheetNameValidation.valid) {
-      console.error(`\n❌ 시트명 검증 실패 (시트 #${i + 1}):`);
-      console.error(`   시트명: "${sheetName}"`);
-      sheetNameValidation.errors.forEach(error => {
-        console.error(`   - ${error}`);
+      console.warn(`\n⚠️  시트명 자동 수정 (시트 #${sheetIndex + 1}):`);
+      console.warn(`   원래 시트명: "${sheetName}"`);
+      
+      // 허용되지 않는 문자 제거
+      const invalidChars = ['\\', '/', '*', '?', '[', ']', ':'];
+      invalidChars.forEach(char => {
+        sheetName = sheetName.replace(new RegExp('\\' + char, 'g'), '_');
       });
-      throw new Error(`시트명 검증 실패: "${sheetName}"`);
+      
+      // 앞뒤 공백 제거
+      sheetName = sheetName.trim();
+      
+      // 31자로 제한
+      if (sheetName.length > 31) {
+        sheetName = sheetName.substring(0, 31);
+      }
+      
+      console.warn(`   수정된 시트명: "${sheetName}"`);
     }
     
     // maxRows 제한 적용 (개별 시트 설정 > 전역 설정 우선)
@@ -282,6 +296,8 @@ async function main() {
       console.log(`\n\nSQL: ${sql}`);
       console.log('\n-------------------------------------------------------------------------------');
     }
+    
+    sheetIndex++;
   }
   
   // 엑셀 파일 생성
