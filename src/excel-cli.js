@@ -439,17 +439,94 @@ async function validateQueryFile(options) {
         console.log('\n✅ 데이터베이스 설정 로드');
         console.log(`   설정된 DB 개수: ${Object.keys(databases).length}개`);
         
-        // 데이터베이스 목록 출력
-        console.log('\n📋 데이터베이스 목록:');
-        for (const [dbId, dbConfig] of Object.entries(databases)) {
-            console.log(`   ✅ ${dbId}:`);
-            console.log(`      서버: ${dbConfig.server}`);
-            console.log(`      데이터베이스: ${dbConfig.database}`);
-            console.log(`      사용자: ${dbConfig.user}`);
-            console.log(`      쓰기 권한: ${dbConfig.isWritable ? '있음' : '없음'}`);
-            if (dbConfig.description) {
-                console.log(`      설명: ${dbConfig.description}`);
+        // 쿼리 파일에서 사용되는 DB 수집
+        const usedDatabases = new Set();
+        
+        if (fileType === 'XML') {
+            const xml2js = require('xml2js');
+            const parsed = await xml2js.parseStringPromise(fileContent, { trim: true });
+            
+            // excel 태그의 db 속성 확인
+            if (parsed.queries.excel && parsed.queries.excel[0] && parsed.queries.excel[0].$ && parsed.queries.excel[0].$.db) {
+                usedDatabases.add(parsed.queries.excel[0].$.db);
             }
+            
+            // 각 시트의 db 속성 확인
+            const sheets = Array.isArray(parsed.queries.sheet) ? parsed.queries.sheet : [parsed.queries.sheet];
+            for (const sheet of sheets) {
+                if (sheet.$ && sheet.$.db) {
+                    usedDatabases.add(sheet.$.db);
+                }
+            }
+            
+            // dynamicVars의 database 속성 확인
+            if (parsed.queries.dynamicVars && parsed.queries.dynamicVars[0] && parsed.queries.dynamicVars[0].dynamicVar) {
+                const dynamicVars = Array.isArray(parsed.queries.dynamicVars[0].dynamicVar) 
+                    ? parsed.queries.dynamicVars[0].dynamicVar 
+                    : [parsed.queries.dynamicVars[0].dynamicVar];
+                for (const dv of dynamicVars) {
+                    if (dv.$ && dv.$.database) {
+                        usedDatabases.add(dv.$.database);
+                    }
+                }
+            }
+        } else if (fileType === 'JSON') {
+            const JSON5 = require('json5');
+            const parsed = JSON5.parse(fileContent);
+            
+            // excel.db 확인
+            if (parsed.excel && parsed.excel.db) {
+                usedDatabases.add(parsed.excel.db);
+            }
+            
+            // 각 시트의 db 확인
+            if (parsed.sheets) {
+                for (const sheet of parsed.sheets) {
+                    if (sheet.db) {
+                        usedDatabases.add(sheet.db);
+                    }
+                }
+            }
+            
+            // dynamicVars의 database 확인
+            if (parsed.dynamicVars) {
+                for (const dv of parsed.dynamicVars) {
+                    if (dv.database) {
+                        usedDatabases.add(dv.database);
+                    }
+                }
+            }
+        }
+        
+        // 사용되는 데이터베이스 목록만 출력
+        let dbValidationErrors = false;
+        if (usedDatabases.size > 0) {
+            console.log(`\n📋 이 쿼리 파일에서 사용하는 데이터베이스 (${usedDatabases.size}개):`);
+            for (const dbId of usedDatabases) {
+                if (databases[dbId]) {
+                    const dbConfig = databases[dbId];
+                    console.log(`   ✅ ${dbId}:`);
+                    console.log(`      서버: ${dbConfig.server}`);
+                    console.log(`      데이터베이스: ${dbConfig.database}`);
+                    console.log(`      사용자: ${dbConfig.user}`);
+                    console.log(`      쓰기 권한: ${dbConfig.isWritable ? '있음' : '없음'}`);
+                    if (dbConfig.description) {
+                        console.log(`      설명: ${dbConfig.description}`);
+                    }
+                } else {
+                    console.error(`   ❌ ${dbId}: 설정 파일에서 찾을 수 없습니다.`);
+                    dbValidationErrors = true;
+                }
+            }
+        } else {
+            console.log('\n📋 데이터베이스 사용 정보:');
+            console.log('   ℹ️  쿼리 파일에서 명시적으로 지정된 DB가 없습니다.');
+            console.log('   💡 기본 DB가 사용됩니다.');
+        }
+        
+        if (dbValidationErrors) {
+            console.error('\n❌ 검증 실패: 설정 파일에서 찾을 수 없는 DB가 있습니다.');
+            return false;
         }
         
         console.log('\n✅ 모든 검증이 완료되었습니다.');
