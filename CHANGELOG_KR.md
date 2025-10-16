@@ -1,5 +1,40 @@
 # SQL2Excel 버전 히스토리
 
+## v1.2.7 - 인코딩 및 검증 개선 (2025-10-16)
+
+### 🔧 개선사항
+- **파일명 한글 검증 제거**: 파일명 한글 문자 검증 로직 제거
+  - `file-utils.js`: `hasKoreanInFilename()` 및 `validateFilename()` 함수 제거
+  - `query-parser.js`: `validateQueryFile()` 함수 제거
+  - `index.js`: `validateQueryFile()` 호출 제거
+  - 문서: 모든 한글 파일명 검증 관련 내용 제거
+
+- **쿼리 파일 검증 개선**: 해당 쿼리 파일에서 사용하는 데이터베이스만 표시
+  - `excel-cli.js`: `validateQueryFile()` 함수 개선
+  - `<excel>`, `<sheet>`, `<dynamicVar>` 요소에서 DB ID 수집
+  - 실제 사용하는 데이터베이스만 표시
+  - 설정 파일에 없는 DB 참조 시 에러 표시
+
+- **배포판 인코딩 수정**: 배포판 배치 파일 문자 깨짐 현상 해결
+  - `create-release.js`: 배치 파일에서 한글 텍스트 제거
+  - `app.js`: Windows용 UTF-8 인코딩 설정 추가
+  - 배치 파일은 영문 메시지만 표시
+  - Node.js 애플리케이션 시작 후 한글 인터페이스 정상 표시
+
+- **쿼리 샘플 파일 영문화**: 모든 쿼리 샘플 파일을 영문으로 변환
+  - `queries/queries-sample-orders.json`: 영문으로 변환
+  - `queries/queries-sample-orders.xml`: 영문으로 변환
+  - `queries/datetime-variables-example.json`: 영문으로 변환
+  - `queries/datetime-variables-example.xml`: 영문으로 변환
+  - `queries/queries-with-dynamic-variables.json`: 영문으로 변환
+  - `queries/queries-with-dynamic-variables.xml`: 영문으로 변환
+  - `queries/queries-with-template.xml`: 영문으로 변환
+  - `queries/test-sheet-name-validation.xml`: 영문으로 변환
+
+### 📝 문서
+- 파일명 검증 기능 제거 내용 README에 반영
+- 최신 변경사항을 USER_MANUAL에 업데이트
+
 ## v1.2.6 - 검증 및 구조 개선 (2025-10-15)
 
 ### ✨ 새로운 기능

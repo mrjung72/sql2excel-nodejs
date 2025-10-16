@@ -1,5 +1,40 @@
 # SQL2Excel Version History
 
+## v1.2.7 - Encoding & Validation Improvements (2025-10-16)
+
+### 🔧 Improvements
+- **Removed Korean Filename Validation**: Removed filename Korean character validation logic
+  - `file-utils.js`: Removed `hasKoreanInFilename()` and `validateFilename()` functions
+  - `query-parser.js`: Removed `validateQueryFile()` function
+  - `index.js`: Removed `validateQueryFile()` calls
+  - Documentation: Removed all Korean filename validation related content
+
+- **Query File Validation Enhancement**: Show only databases used in the query file
+  - `excel-cli.js`: Enhanced `validateQueryFile()` function
+  - Collects DB IDs from `<excel>`, `<sheet>`, and `<dynamicVar>` elements
+  - Displays only databases actually used in the query file
+  - Shows error if referenced DB is not found in config file
+
+- **Release Package Encoding Fix**: Fixed character corruption in release batch files
+  - `create-release.js`: Removed Korean text from batch files
+  - `app.js`: Added UTF-8 encoding settings for Windows
+  - Batch files now display English messages only
+  - Korean interface displays properly after Node.js application starts
+
+- **Query Sample Files Localization**: Converted all query sample files to English
+  - `queries/queries-sample-orders.json`: Converted to English
+  - `queries/queries-sample-orders.xml`: Converted to English
+  - `queries/datetime-variables-example.json`: Converted to English
+  - `queries/datetime-variables-example.xml`: Converted to English
+  - `queries/queries-with-dynamic-variables.json`: Converted to English
+  - `queries/queries-with-dynamic-variables.xml`: Converted to English
+  - `queries/queries-with-template.xml`: Converted to English
+  - `queries/test-sheet-name-validation.xml`: Converted to English
+
+### 📝 Documentation
+- Updated README files to reflect removal of filename validation feature
+- Updated USER_MANUAL files with latest changes
+
 ## v1.2.6 - Validation & Structure Improvements (2025-10-15)
 
 ### ✨ New Features
