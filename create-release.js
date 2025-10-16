@@ -85,14 +85,15 @@ console.log('- 배치 실행 파일 생성...');
 
 // run.bat (English version)
 const runBatContent = `@echo off
-cls
+setlocal enabledelayedexpansion
 chcp 65001 >nul 2>&1
 cls
+color 0F
 
 echo.
-echo ══════════════════════════════════════════════════════════════════
-echo                     SQL2Excel Tool v${version}
-echo ══════════════════════════════════════════════════════════════════
+echo ================================================================
+echo                   SQL2Excel Tool v${version}
+echo ================================================================
 echo.
 
 sql2excel-v${version}.exe --lang=en
@@ -100,19 +101,22 @@ sql2excel-v${version}.exe --lang=en
 pause
 `;
 
-fs.writeFileSync(`${releaseDir}/run.bat`, runBatContent);
+fs.writeFileSync(`${releaseDir}/run.bat`, runBatContent, 'utf8');
 console.log(`  ✅ run.bat 생성 완료 (English)`);
 
-// 실행하기.bat (Korean version)
+// 실행하기.bat (Korean version) - 배치 파일에서는 영문만 사용
 const runBatKrContent = `@echo off
-cls
+setlocal enabledelayedexpansion
 chcp 65001 >nul 2>&1
 cls
+color 0F
 
 echo.
-echo ══════════════════════════════════════════════════════════════════
-echo                     SQL2Excel 도구 v${version}
-echo ══════════════════════════════════════════════════════════════════
+echo ================================================================
+echo                   SQL2Excel Tool v${version}
+echo ================================================================
+echo.
+echo Starting SQL2Excel Tool in Korean mode...
 echo.
 
 sql2excel-v${version}.exe --lang=kr
@@ -120,7 +124,7 @@ sql2excel-v${version}.exe --lang=kr
 pause
 `;
 
-fs.writeFileSync(`${releaseDir}/실행하기.bat`, runBatKrContent);
+fs.writeFileSync(`${releaseDir}/실행하기.bat`, runBatKrContent, 'utf8');
 console.log(`  ✅ 실행하기.bat 생성 완료 (Korean)`);
 
 // 디렉토리 복사 함수

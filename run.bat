@@ -1,27 +1,26 @@
 @echo off
-cls
+setlocal enabledelayedexpansion
 chcp 65001 >nul 2>&1
 cls
 color 0F
 
 echo.
-echo ══════════════════════════════════════════════════════════════════
-echo                        SQL2Excel Tool v1.2
-echo ══════════════════════════════════════════════════════════════════
+echo ================================================================
+echo                     SQL2Excel Tool v1.2
+echo ================================================================
 echo.
 
-:: Node.js 설치 확인
+:: Check Node.js installation
 node --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo Node.js가 설치되지 않았습니다.
-    echo https://nodejs.org 에서 Node.js를 설치해주세요.
+    echo [ERROR] Node.js is not installed.
+    echo Please install Node.js from https://nodejs.org
     echo.
     pause
     exit /b 1
 )
 
-:: 프로그램 실행 (영문 모드)
+:: Run application (English mode)
 node app.js --lang=en
 
 pause
-
