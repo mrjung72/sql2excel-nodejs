@@ -243,7 +243,7 @@ async function selectFile() {
     console.log();
     
     files.forEach((file, index) => {
-        console.log(`  ${colors.cyan}${index + 1}.${colors.reset} ${file.name} (${file.type})`);
+        console.log(`  ${colors.cyan}${index + 1}.${colors.reset} ${file.name}`);
     });
     
     console.log();
