@@ -21,6 +21,7 @@ if %errorlevel% neq 0 (
 )
 
 :: Run application (English mode)
-node app.js --lang=en
+set LANGUAGE=en
+node app.js
 
 pause

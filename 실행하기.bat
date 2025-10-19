@@ -21,6 +21,7 @@ if %errorlevel% neq 0 (
 )
 
 :: 프로그램 실행 (한글 모드)
-node app.js --lang=kr
+set LANGUAGE=kr
+node app.js
 
 pause

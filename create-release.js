@@ -85,8 +85,9 @@ console.log('- 배치 실행 파일 생성...');
 
 // run.bat (English version)
 const runBatContent = `@echo off
+set LANGUAGE=en
 
-sql2excel-v${version}.exe --lang=en
+sql2excel-v${version}.exe
 
 pause
 `;
@@ -96,8 +97,9 @@ console.log(`  ✅ run.bat 생성 완료 (English)`);
 
 // 실행하기.bat (Korean version) - 배치 파일에서는 영문만 사용
 const runBatKrContent = `@echo off
+set LANGUAGE=kr
 
-sql2excel-v${version}.exe --lang=kr
+sql2excel-v${version}.exe
 
 pause
 `;
