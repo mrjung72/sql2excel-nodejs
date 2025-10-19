@@ -4,7 +4,7 @@ const mssql = require('mssql');
 const yargs = require('yargs');
 
 // 언어 설정
-const LANGUAGE = process.env.LANGUAGE || 'kr';
+const LANGUAGE = process.env.LANGUAGE || 'en';
 
 // 다국어 메시지
 const messages = {

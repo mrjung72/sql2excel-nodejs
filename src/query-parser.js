@@ -3,10 +3,8 @@ const xml2js = require('xml2js');
 const JSON5 = require('json5');
 const FileUtils = require('./file-utils');
 
-// 언어 설정 (명령줄 인수에서 가져오기)
-const args = process.argv.slice(2);
-const langArg = args.find(arg => arg.startsWith('--lang='));
-const LANGUAGE = langArg ? langArg.split('=')[1] : 'en';
+// 언어 설정 (환경 변수 사용, 기본값 영어)
+const LANGUAGE = process.env.LANGUAGE || 'en';
 
 // 다국어 메시지
 const messages = {
