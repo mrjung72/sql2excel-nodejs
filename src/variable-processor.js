@@ -1,12 +1,102 @@
 const MSSQLHelper = require('./mssql-helper');
 
+// 언어 설정 (명령줄 인수에서 가져오기)
+const args = process.argv.slice(2);
+const langArg = args.find(arg => arg.startsWith('--lang='));
+const LANGUAGE = langArg ? langArg.split('=')[1] : 'en';
+
+// 다국어 메시지
+const messages = {
+    en: {
+        dynamicVarSet: 'Dynamic variable set:',
+        dynamicVarProcessStart: '\n🔄 Dynamic variable processing started',
+        dynamicVarProcessing: '\n📊 Processing dynamic variable:',
+        noDesc: 'no description',
+        database: '   Database:',
+        dynamicVarSpecified: 'dynamic variable specified',
+        default: 'default',
+        keyValuePairs: '   ✅',
+        keyValuePairsText: 'key-value pairs',
+        keyValuePairsNeedMin2Cols: '   ⚠️',
+        keyValuePairsNeedMin2ColsText: 'key_value_pairs type requires at least 2 columns',
+        columnsRows: '   ✅',
+        columnsText: 'columns,',
+        rowsText: 'rows',
+        noResults: '   ⚠️',
+        noResultsText: 'No query results',
+        processError: '   ❌',
+        processErrorText: 'Error during processing:',
+        dynamicVarProcessComplete: '\n✅ Dynamic variable processing completed',
+        variableSubstStart: 'Variable substitution started:',
+        dynamicVarSub: 'Dynamic variable',
+        substituted: 'substituted:',
+        array: 'array',
+        toInClause: '→ IN clause',
+        objectType: 'object type',
+        errorDuring: 'Error during',
+        substitution: 'substitution:',
+        timestampFunc: 'Timestamp function',
+        generalVar: 'General variable',
+        envVar: 'Environment variable',
+        simpleString: '(simple string)',
+        skipped: 'skipped: already processed variable',
+        unresolvedVars: 'Unresolved variables:',
+        unresolvedDynamicVar: 'Unresolved dynamic variable',
+        replacedWith: '→ replaced with',
+        unresolvedVar: 'Unresolved variable',
+        emptyString: '→ replaced with empty string'
+    },
+    kr: {
+        dynamicVarSet: '동적 변수 설정:',
+        dynamicVarProcessStart: '\n🔄 동적 변수 처리 시작',
+        dynamicVarProcessing: '\n📊 동적 변수 처리 중:',
+        noDesc: '설명 없음',
+        database: '   데이터베이스:',
+        dynamicVarSpecified: '동적변수 지정',
+        default: '기본값',
+        keyValuePairs: '   ✅',
+        keyValuePairsText: '개 키-값 쌍',
+        keyValuePairsNeedMin2Cols: '   ⚠️',
+        keyValuePairsNeedMin2ColsText: 'key_value_pairs 타입은 최소 2개 컬럼이 필요합니다',
+        columnsRows: '   ✅',
+        columnsText: '개 컬럼,',
+        rowsText: '개 행',
+        noResults: '   ⚠️',
+        noResultsText: '조회 결과가 없습니다',
+        processError: '   ❌',
+        processErrorText: '처리 중 오류:',
+        dynamicVarProcessComplete: '\n✅ 동적 변수 처리 완료',
+        variableSubstStart: '변수 치환 시작:',
+        dynamicVarSub: '동적 변수',
+        substituted: '치환:',
+        array: '배열',
+        toInClause: '→ IN절',
+        objectType: '객체 타입',
+        errorDuring: '중 오류:',
+        substitution: '치환',
+        timestampFunc: '시각 함수',
+        generalVar: '일반 변수',
+        envVar: '환경 변수',
+        simpleString: '(단순 문자열)',
+        skipped: '건너뜀: 이미 처리된 변수',
+        unresolvedVars: '치환되지 않은 변수들:',
+        unresolvedDynamicVar: '치환되지 않은 동적 변수',
+        replacedWith: '→',
+        emptyString: '로 대체',
+        unresolvedVar: '치환되지 않은 변수'
+    }
+};
+
+const msg = messages[LANGUAGE] || messages.en;
+
 /**
  * 변수 처리 관련 함수들을 담당하는 모듈
  */
 class VariableProcessor {
   constructor() {
     this.dynamicVariables = {};
-    this.mssqlHelper = new MSSQLHelper();
+    this.mssqlHelper = new MSSQLHelper(LANGUAGE);
+    this.msg = msg;
   }
 
   /**
@@ -16,7 +106,7 @@ class VariableProcessor {
    */
   setDynamicVariable(key, value) {
     this.dynamicVariables[key] = value;
-    console.log(`동적 변수 설정: ${key} = ${Array.isArray(value) ? `[${value.join(', ')}]` : value}`);
+    console.log(`${this.msg.dynamicVarSet} ${key} = ${Array.isArray(value) ? `[${value.join(', ')}]` : value}`);
   }
 
   /**
@@ -32,19 +122,19 @@ class VariableProcessor {
     this.dynamicVariables = {};
     
     if (dynamicVars && Array.isArray(dynamicVars) && dynamicVars.length > 0) {
-      console.log(`\n🔄 동적 변수 처리 시작 (${dynamicVars.length}개)`);
+      console.log(`${this.msg.dynamicVarProcessStart} (${dynamicVars.length}개)`);
       
       for (const dynamicVar of dynamicVars) {
         if (dynamicVar.name && dynamicVar.query) {
           try {
-            console.log(`\n📊 동적 변수 처리 중: ${dynamicVar.name} (${dynamicVar.description || '설명 없음'})`);
+            console.log(`${this.msg.dynamicVarProcessing} ${dynamicVar.name} (${dynamicVar.description || this.msg.noDesc})`);
             
             // 쿼리에서 변수 치환 (기존 변수들로)
             const processedQuery = this.substituteVars(dynamicVar.query, globalVars);
             
             // 동적 변수에 지정된 데이터베이스 사용 (있으면), 없으면 기본값 사용
             const targetDbKey = dynamicVar.database || dbKey;
-            console.log(`   데이터베이스: ${targetDbKey} (${dynamicVar.database ? '동적변수 지정' : '기본값'})`);
+            console.log(`${this.msg.database} ${targetDbKey} (${dynamicVar.database ? this.msg.dynamicVarSpecified : this.msg.default})`);
             
             // DB에서 데이터 조회
             const pool = await mssqlHelper.createConnectionPool(configObj[targetDbKey], targetDbKey);
@@ -80,9 +170,9 @@ class VariableProcessor {
                   });
                   
                   this.setDynamicVariable(dynamicVar.name, keyValueData);
-                  console.log(`   ✅ ${dynamicVar.name}: ${Object.keys(keyValueData).length}개 키-값 쌍`);
+                  console.log(`${this.msg.keyValuePairs} ${dynamicVar.name}: ${Object.keys(keyValueData).length}${this.msg.keyValuePairsText}`);
                 } else {
-                  console.warn(`   ⚠️ ${dynamicVar.name}: key_value_pairs 타입은 최소 2개 컬럼이 필요합니다`);
+                  console.warn(`${this.msg.keyValuePairsNeedMin2Cols} ${dynamicVar.name}: ${this.msg.keyValuePairsNeedMin2ColsText}`);
                 }
                 
               } else {
@@ -95,21 +185,21 @@ class VariableProcessor {
                 });
                 
                 this.setDynamicVariable(dynamicVar.name, columnData);
-                console.log(`   ✅ ${dynamicVar.name}: ${columns.length}개 컬럼, ${data.length}개 행`);
+                console.log(`${this.msg.columnsRows} ${dynamicVar.name}: ${columns.length}${this.msg.columnsText} ${data.length}${this.msg.rowsText}`);
               }
             } else {
-              console.warn(`   ⚠️ ${dynamicVar.name}: 조회 결과가 없습니다`);
+              console.warn(`${this.msg.noResults} ${dynamicVar.name}: ${this.msg.noResultsText}`);
               this.setDynamicVariable(dynamicVar.name, []);
             }
             
           } catch (error) {
-            console.error(`   ❌ ${dynamicVar.name} 처리 중 오류: ${error.message}`);
+            console.error(`${this.msg.processError} ${dynamicVar.name} ${this.msg.processErrorText} ${error.message}`);
             this.setDynamicVariable(dynamicVar.name, []);
           }
         }
       }
       
-      console.log(`\n✅ 동적 변수 처리 완료`);
+      console.log(this.msg.dynamicVarProcessComplete);
     }
   }
 
@@ -125,7 +215,7 @@ class VariableProcessor {
     const debugVariables = process.env.DEBUG_VARIABLES === 'true';
     
     if (debugVariables) {
-      console.log(`변수 치환 시작: ${str.substring(0, 200)}${str.length > 200 ? '...' : ''}`);
+      console.log(`${this.msg.variableSubstStart} ${str.substring(0, 200)}${str.length > 200 ? '...' : ''}`);
     }
     
     // 시트별 파라미터를 전역 변수에 병합 (우선순위 높음)
@@ -143,7 +233,7 @@ class VariableProcessor {
           result = result.replace(pattern, inClause);
           
           if (debugVariables && beforeReplace !== result) {
-            console.log(`동적 변수 [${key}] 치환: 배열 ${value.length}개 → IN절`);
+            console.log(`${this.msg.dynamicVarSub} [${key}] ${this.msg.substituted} ${this.msg.array} ${value.length}개 ${this.msg.toInClause}`);
           }
         } 
         // 객체 타입인 경우 (column_identified 또는 key_value_pairs)
@@ -171,7 +261,7 @@ class VariableProcessor {
             }
             
             if (debugVariables && beforeKeyReplace !== result) {
-              console.log(`동적 변수 [${key}.${keyName}] 치환: ${Array.isArray(keyValue) ? `배열 ${keyValue.length}개` : keyValue}`);
+              console.log(`${this.msg.dynamicVarSub} [${key}.${keyName}] ${this.msg.substituted} ${Array.isArray(keyValue) ? `${this.msg.array} ${keyValue.length}개` : keyValue}`);
             }
           });
           
@@ -189,18 +279,18 @@ class VariableProcessor {
           }
           
           if (debugVariables && beforeReplace !== result) {
-            console.log(`동적 변수 [${key}] 치환: 객체 타입`);
+            console.log(`${this.msg.dynamicVarSub} [${key}] ${this.msg.substituted} ${this.msg.objectType}`);
           }
         } 
         else {
           result = result.replace(pattern, value);
           
           if (debugVariables && beforeReplace !== result) {
-            console.log(`동적 변수 [${key}] 치환: ${value}`);
+            console.log(`${this.msg.dynamicVarSub} [${key}] ${this.msg.substituted} ${value}`);
           }
         }
       } catch (error) {
-        console.log(`동적 변수 [${key}] 치환 중 오류: ${error.message}`);
+        console.log(`${this.msg.dynamicVarSub} [${key}] ${this.msg.substitution} ${this.msg.errorDuring} ${error.message}`);
         // 오류 발생 시 원본 유지
       }
     });
@@ -217,10 +307,10 @@ class VariableProcessor {
         result = result.replace(pattern, funcImpl());
         
         if (debugVariables && beforeReplace !== result) {
-          console.log(`시각 함수 [${funcName}] 치환: ${funcImpl()}`);
+          console.log(`${this.msg.timestampFunc} [${funcName}] ${this.msg.substituted} ${funcImpl()}`);
         }
       } catch (error) {
-        console.log(`시각 함수 [${funcName}] 치환 중 오류: ${error.message}`);
+        console.log(`${this.msg.timestampFunc} [${funcName}] ${this.msg.substitution} ${this.msg.errorDuring} ${error.message}`);
         // 오류 발생 시 원본 유지
       }
     });
@@ -235,13 +325,13 @@ class VariableProcessor {
         const inClause = this.mssqlHelper.createInClause(value);
         
         if (debugVariables) {
-          console.log(`일반 변수 [${v}] 치환: 배열 ${value.length}개 → IN절`);
+          console.log(`${this.msg.generalVar} [${v}] ${this.msg.substituted} ${this.msg.array} ${value.length}개 ${this.msg.toInClause}`);
         }
         return inClause;
       } else {
         // 기존 방식: 단일 값 치환
         if (debugVariables) {
-          console.log(`일반 변수 [${v}] 치환: ${value}`);
+          console.log(`${this.msg.generalVar} [${v}] ${this.msg.substituted} ${value}`);
         }
         return value;
       }
@@ -272,13 +362,13 @@ class VariableProcessor {
             result = result.replace(fullMatch, inClause);
             
             if (debugVariables) {
-              console.log(`환경 변수 [${varName}] 치환: 배열 ${parsed.length}개 → IN절`);
+              console.log(`${this.msg.envVar} [${varName}] ${this.msg.substituted} ${this.msg.array} ${parsed.length}개 ${this.msg.toInClause}`);
             }
           } else {
             result = result.replace(fullMatch, envValue);
             
             if (debugVariables) {
-              console.log(`환경 변수 [${varName}] 치환: ${envValue}`);
+              console.log(`${this.msg.envVar} [${varName}] ${this.msg.substituted} ${envValue}`);
             }
           }
         } catch (e) {
@@ -286,11 +376,11 @@ class VariableProcessor {
           result = result.replace(fullMatch, envValue);
           
           if (debugVariables) {
-            console.log(`환경 변수 [${varName}] 치환: ${envValue} (단순 문자열)`);
+            console.log(`${this.msg.envVar} [${varName}] ${this.msg.substituted} ${envValue} ${this.msg.simpleString}`);
           }
         }
       } else if (debugVariables && process.env[varName]) {
-        console.log(`환경 변수 [${varName}] 건너뜀: 이미 처리된 변수`);
+        console.log(`${this.msg.envVar} [${varName}] ${this.msg.skipped}`);
       }
     });
     
@@ -298,7 +388,7 @@ class VariableProcessor {
     const unresolvedVariables = [...result.matchAll(/\$\{(\w+(?:\.\w+)?)\}/g)];
     if (unresolvedVariables.length > 0) {
       if (debugVariables) {
-        console.log(`치환되지 않은 변수들: ${unresolvedVariables.map(m => m[1]).join(', ')}`);
+        console.log(`${this.msg.unresolvedVars} ${unresolvedVariables.map(m => m[1]).join(', ')}`);
       }
       
       // 치환되지 않은 변수를 빈 문자열로 대체하여 SQL 오류 방지
@@ -310,13 +400,13 @@ class VariableProcessor {
         if (this.dynamicVariables.hasOwnProperty(varName.split('.')[0])) {
           result = result.replace(fullMatch, "'^-_'");
           if (debugVariables) {
-            console.log(`치환되지 않은 동적 변수 [${varName}] → '^-_'로 대체`);
+            console.log(`${this.msg.unresolvedDynamicVar} [${varName}] ${this.msg.replacedWith} '^-_'${this.msg.emptyString}`);
           }
         } else {
           // 일반 변수의 경우 빈 문자열로 대체
           result = result.replace(fullMatch, "''");
           if (debugVariables) {
-            console.log(`치환되지 않은 변수 [${varName}] → 빈 문자열로 대체`);
+            console.log(`${this.msg.unresolvedVar} [${varName}] ${this.msg.replacedWith} ''${this.msg.emptyString}`);
           }
         }
       });

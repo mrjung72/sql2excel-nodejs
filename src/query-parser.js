@@ -3,12 +3,68 @@ const xml2js = require('xml2js');
 const JSON5 = require('json5');
 const FileUtils = require('./file-utils');
 
+// 언어 설정 (명령줄 인수에서 가져오기)
+const args = process.argv.slice(2);
+const langArg = args.find(arg => arg.startsWith('--lang='));
+const LANGUAGE = langArg ? langArg.split('=')[1] : 'en';
+
+// 다국어 메시지
+const messages = {
+    en: {
+        sheetNameEmpty: 'Sheet name is empty.',
+        sheetNameTooLong: 'Sheet name is too long (maximum 31 characters, current:',
+        characters: 'characters)',
+        sheetNameInvalidChars: 'Contains invalid characters:',
+        sheetNameWhitespace: 'Sheet name has leading or trailing whitespace.',
+        xmlStructureValidationFailed: '\n❌ XML structure validation failed:',
+        xmlValidationFailed: 'XML structure validation failed',
+        queryDefWarn: '[WARN] queryDef',
+        queryTextEmpty: 'query text is empty.',
+        queryRef: '[Query Reference] Sheet',
+        referencesQueryDef: 'references query definition',
+        paramOverride: '[Parameter Override] Sheet',
+        paramOverrideText: 'overrides parameters:',
+        queryDefNotFound: 'Query definition not found:',
+        forSheet: '(sheet:',
+        dynamicVarFound: 'Dynamic variable definition found:',
+        type: 'type:',
+        desc: 'description:',
+        db: 'database:',
+        defaultDb: 'default'
+    },
+    kr: {
+        sheetNameEmpty: '시트명이 비어있습니다.',
+        sheetNameTooLong: '시트명이 너무 깁니다 (최대 31자, 현재:',
+        characters: '자)',
+        sheetNameInvalidChars: '허용되지 않는 문자 포함:',
+        sheetNameWhitespace: '시트명 앞뒤에 공백이 있습니다.',
+        xmlStructureValidationFailed: '\n❌ XML 구조 검증 실패:',
+        xmlValidationFailed: 'XML 구조 검증 실패',
+        queryDefWarn: '[WARN] queryDef',
+        queryTextEmpty: '의 쿼리 텍스트가 비어있습니다.',
+        queryRef: '[쿼리 참조] 시트',
+        referencesQueryDef: '이(가) 쿼리 정의',
+        paramOverride: '[파라미터 재설정] 시트',
+        paramOverrideText: '에서 파라미터 재설정:',
+        queryDefNotFound: '쿼리 정의를 찾을 수 없습니다:',
+        forSheet: '(시트:',
+        dynamicVarFound: '동적 변수 정의 발견:',
+        type: '타입:',
+        desc: '설명:',
+        db: '데이터베이스:',
+        defaultDb: '기본값'
+    }
+};
+
+const msg = messages[LANGUAGE] || messages.en;
+
 /**
  * 쿼리 파싱 관련 함수들을 담당하는 모듈
  */
 class QueryParser {
   constructor() {
     this.fileUtils = FileUtils;
+    this.msg = msg;
   }
 
   /**
@@ -25,24 +81,24 @@ class QueryParser {
     
     // 1. 빈 문자열 체크
     if (!sheetName || sheetName.trim() === '') {
-      errors.push('시트명이 비어있습니다.');
+      errors.push(this.msg.sheetNameEmpty);
       return { valid: false, errors };
     }
     
     // 2. 최대 길이 체크 (31자)
     if (sheetName.length > 31) {
-      errors.push(`시트명이 너무 깁니다 (최대 31자, 현재: ${sheetName.length}자)`);
+      errors.push(`${this.msg.sheetNameTooLong} ${sheetName.length}${this.msg.characters}`);
     }
     
     // 3. 허용되지 않는 문자 체크
     const foundInvalidChars = invalidChars.filter(char => sheetName.includes(char));
     if (foundInvalidChars.length > 0) {
-      errors.push(`허용되지 않는 문자 포함: ${foundInvalidChars.join(', ')}`);
+      errors.push(`${this.msg.sheetNameInvalidChars} ${foundInvalidChars.join(', ')}`);
     }
     
     // 4. 시트명 시작/끝 공백 체크
     if (sheetName !== sheetName.trim()) {
-      errors.push('시트명 앞뒤에 공백이 있습니다.');
+      errors.push(this.msg.sheetNameWhitespace);
     }
     
     return {
@@ -205,11 +261,11 @@ class QueryParser {
     // XML 구조 검증
     const structureValidation = this.validateXMLStructure(parsed);
     if (!structureValidation.valid) {
-      console.error('\n❌ XML 구조 검증 실패:');
+      console.error(this.msg.xmlStructureValidationFailed);
       structureValidation.errors.forEach(error => {
         console.error(`   - ${error}`);
       });
-      throw new Error('XML 구조 검증 실패');
+      throw new Error(this.msg.xmlValidationFailed);
     }
     
     // 쿼리 정의 파싱
@@ -227,7 +283,7 @@ class QueryParser {
               query: queryText
             };
           } else {
-            console.warn(`[WARN] queryDef "${queryName}"의 쿼리 텍스트가 비어있습니다.`);
+            console.warn(`${this.msg.queryDefWarn} "${queryName}"${this.msg.queryTextEmpty}`);
           }
         }
       }
@@ -292,7 +348,7 @@ class QueryParser {
             database: database
           });
           
-          console.log(`동적 변수 정의 발견: ${dv.$.name} (타입: ${type}, 설명: ${description}, 데이터베이스: ${database || '기본값'})`);
+          console.log(`${this.msg.dynamicVarFound} ${dv.$.name} (${this.msg.type} ${type}, ${this.msg.desc} ${description}, ${this.msg.db} ${database || this.msg.defaultDb})`);
         }
       }
     }
@@ -345,14 +401,14 @@ class QueryParser {
         const queryRef = s.$.queryRef;
         if (queryDefs[queryRef]) {
           query = queryDefs[queryRef].query;
-          console.log(`[쿼리 참조] 시트 "${s.$.name}"이(가) 쿼리 정의 "${queryRef}"을(를) 참조합니다.`);
+          console.log(`${this.msg.queryRef} "${s.$.name}"${this.msg.referencesQueryDef} "${queryRef}"을(를) 참조합니다.`);
           
           // 시트별 파라미터가 있으면 로그 출력
           if (Object.keys(sheetParams).length > 0) {
-            console.log(`[파라미터 재설정] 시트 "${s.$.name}"에서 파라미터 재설정:`, sheetParams);
+            console.log(`${this.msg.paramOverride} "${s.$.name}"${this.msg.paramOverrideText}`, sheetParams);
           }
         } else {
-          throw new Error(`쿼리 정의를 찾을 수 없습니다: ${queryRef} (시트: ${s.$.name})`);
+          throw new Error(`${this.msg.queryDefNotFound} ${queryRef} ${this.msg.forSheet} ${s.$.name})`);
         }
       } else {
         // 직접 쿼리가 있으면 사용
@@ -402,14 +458,14 @@ class QueryParser {
       if (sheet.queryRef) {
         if (queryDefs[sheet.queryRef]) {
           query = queryDefs[sheet.queryRef].query || queryDefs[sheet.queryRef];
-          console.log(`[쿼리 참조] 시트 "${sheet.name}"이(가) 쿼리 정의 "${sheet.queryRef}"을(를) 참조합니다.`);
+          console.log(`${msg.queryRef} "${sheet.name}"${msg.referencesQueryDef} "${sheet.queryRef}"을(를) 참조합니다.`);
           
           // 시트별 파라미터가 있으면 로그 출력
           if (Object.keys(sheetParams).length > 0) {
-            console.log(`[파라미터 재설정] 시트 "${sheet.name}"에서 파라미터 재설정:`, sheetParams);
+            console.log(`${msg.paramOverride} "${sheet.name}"${msg.paramOverrideText}`, sheetParams);
           }
         } else {
-          throw new Error(`쿼리 정의를 찾을 수 없습니다: ${sheet.queryRef} (시트: ${sheet.name})`);
+          throw new Error(`${msg.queryDefNotFound} ${sheet.queryRef} ${msg.forSheet} ${sheet.name})`);
         }
       }
       

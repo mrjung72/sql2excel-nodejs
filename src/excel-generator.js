@@ -2,6 +2,59 @@ const ExcelJS = require('exceljs');
 const excelStyleHelper = require('./excel-style-helper');
 const FileUtils = require('./file-utils');
 
+// 언어 설정 (명령줄 인수에서 가져오기)
+const args = process.argv.slice(2);
+const langArg = args.find(arg => arg.startsWith('--lang='));
+const LANGUAGE = langArg ? langArg.split('=')[1] : 'en';
+
+// 다국어 메시지
+const messages = {
+    en: {
+        startWork: 'START WORK',
+        skipSheet: 'Sheet',
+        isDisabled: 'is disabled (use=false)',
+        tocSheetName: 'Table of Contents',
+        tocCreated: 'Created as first sheet',
+        sheetTruncated: 'Sheet name truncated:',
+        dbSource: '📊 Source:',
+        db: 'DB',
+        createdTime: '🕒 Created:',
+        dbInfoComplete: 'DB source displayed',
+        createdTimeComplete: 'Creation time displayed',
+        noData: 'No data',
+        noDataSuffix: '',
+        rowsSelected: 'rows were selected',
+        tocPopulated: 'Table of contents populated (total',
+        sheets: 'sheets)',
+        generatingExcel: 'Generating excel file ...',
+        waitingSeconds: 'Waiting a few seconds ...',
+        excelCreated: 'Excel file created'
+    },
+    kr: {
+        startWork: '작업 시작',
+        skipSheet: '시트',
+        isDisabled: '비활성화됨 (use=false)',
+        tocSheetName: '목차',
+        tocCreated: '맨 첫 번째 시트로 생성됨',
+        sheetTruncated: '시트명이 잘렸습니다:',
+        dbSource: '📊 출처:',
+        db: 'DB',
+        createdTime: '🕒 생성일시:',
+        dbInfoComplete: 'DB 출처 표시 완료',
+        createdTimeComplete: '표시 완료',
+        noData: '데이터가 없습니다',
+        noDataSuffix: '.',
+        rowsSelected: '행이 선택됨',
+        tocPopulated: '목차 내용 채우기 완료 (총',
+        sheets: '개 시트)',
+        generatingExcel: '엑셀 파일을 생성하고 있습니다 ...',
+        waitingSeconds: '몇 초만 기다려주세요 ...',
+        excelCreated: '엑셀 파일이 생성되었습니다'
+    }
+};
+
+const msg = messages[LANGUAGE] || messages.en;
+
 /**
  * 엑셀 생성 관련 함수들을 담당하는 모듈
  */
@@ -24,7 +77,7 @@ class ExcelGenerator {
     } = options;
 
     console.log('-------------------------------------------------------------------------------');
-    console.log(`[${outputPath}] START WORK`);
+    console.log(`[${outputPath}] ${msg.startWork}`);
     console.log('-------------------------------------------------------------------------------');
     
     const workbook = new ExcelJS.Workbook();
@@ -36,14 +89,14 @@ class ExcelGenerator {
     for (const sheetDef of sheets) {
       // robust use 속성 체크
       if (!this.isSheetEnabled(sheetDef)) {
-        console.log(`[SKIP] Sheet '${sheetDef.name}' is disabled (use=false)`);
+        console.log(`[SKIP] ${msg.skipSheet} '${sheetDef.name}' ${msg.isDisabled}`);
         continue;
       }
       
       // 첫 번째 활성 시트일 때 목차 시트 생성
       if (!tocSheet) {
-        tocSheet = workbook.addWorksheet('목차');
-        console.log(`[목차] 맨 첫 번째 시트로 생성됨`);
+        tocSheet = workbook.addWorksheet(msg.tocSheetName);
+        console.log(`[${msg.tocSheetName}] ${msg.tocCreated}`);
       }
       
       const sheet = workbook.addWorksheet(sheetDef.name);
@@ -68,7 +121,7 @@ class ExcelGenerator {
       
       // 시트명이 잘렸는지 확인하고 로그 출력
       if (sheetDef.name !== actualSheetName) {
-        console.log(`\t[WARN] Sheet name truncated: '${sheetDef.name}' → '${actualSheetName}'`);
+        console.log(`\t[WARN] ${msg.sheetTruncated} '${sheetDef.name}' → '${actualSheetName}'`);
       }
       
       // 현재 날짜와 시간 생성
@@ -88,8 +141,8 @@ class ExcelGenerator {
         excelStyleHelper.applySheetStyle(sheet, sheetDef.data, sheetDef.style, 1);
         
         // 데이터 추가 후 맨 앞에 정보 행들 삽입
-        sheet.spliceRows(1, 0, [`📊 출처: ${sheetDef.dbKey} DB`]);
-        sheet.spliceRows(2, 0, [`🕒 생성일시: ${creationDateTime}`]);
+        sheet.spliceRows(1, 0, [`${msg.dbSource} ${sheetDef.dbKey} ${msg.db}`]);
+        sheet.spliceRows(2, 0, [`${msg.createdTime} ${creationDateTime}`]);
         sheet.spliceRows(3, 0, []);  // 빈 행 추가
         
         // DB 정보 셀 스타일링
@@ -102,14 +155,14 @@ class ExcelGenerator {
         dateTimeCell.font = { bold: true, size: 11, color: { argb: 'FFFFFF' } };
         dateTimeCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '4472C4' } };
         
-        console.log(`\t[DB정보] ${sheetDef.dbKey} DB 출처 표시 완료`);
-        console.log(`\t[생성일시] ${creationDateTime} 표시 완료`);
+        console.log(`\t[${msg.dbSource}] ${sheetDef.dbKey} ${msg.db} ${msg.dbInfoComplete}`);
+        console.log(`\t[${msg.createdTime}] ${creationDateTime} ${msg.createdTimeComplete}`);
       } else {
         // 데이터가 없는 경우
-        sheet.addRow([`📊 출처: ${sheetDef.dbKey} DB`]);
-        sheet.addRow([`🕒 생성일시: ${creationDateTime}`]);
+        sheet.addRow([`${msg.dbSource} ${sheetDef.dbKey} ${msg.db}`]);
+        sheet.addRow([`${msg.createdTime} ${creationDateTime}`]);
         sheet.addRow([]);
-        sheet.addRow(['데이터가 없습니다.']);
+        sheet.addRow([`${msg.noData}${msg.noDataSuffix}`]);
         
         // 스타일링
         sheet.getCell('A1').font = { bold: true, size: 11, color: { argb: 'FFFFFF' } };
@@ -120,10 +173,10 @@ class ExcelGenerator {
         
         sheet.getCell('A4').font = { italic: true, color: { argb: '999999' } };
         
-        console.log(`\t[DB정보] ${sheetDef.dbKey} DB 출처 표시 완료 (데이터 없음)`);
-        console.log(`\t[생성일시] ${creationDateTime} 표시 완료 (데이터 없음)`);
+        console.log(`\t[${msg.dbSource}] ${sheetDef.dbKey} ${msg.db} ${msg.dbInfoComplete} (${msg.noData})`);
+        console.log(`\t[${msg.createdTime}] ${creationDateTime} ${msg.createdTimeComplete} (${msg.noData})`);
       }
-      console.log(`\t---> ${recordCount} rows were selected `);
+      console.log(`\t---> ${recordCount} ${msg.rowsSelected} `);
     }
     
     // 목차 시트에 내용 채우기
@@ -134,13 +187,13 @@ class ExcelGenerator {
       // 목차 시트를 첫 번째로 이동 (ExcelJS에서는 worksheets가 읽기 전용이므로 다른 방법 사용)
       // 목차 시트는 이미 첫 번째로 생성되었으므로 추가 조작 불필요
       
-      console.log(`[목차] 내용 채우기 완료 (총 ${createdSheets.length}개 시트)`);
+      console.log(`[${msg.tocSheetName}] ${msg.tocPopulated} ${createdSheets.length}${msg.sheets}`);
     }
     
-    console.log(`\nGenerating excel file ... `);
-    console.log(`Wating a few seconds ... `);
+    console.log(`\n${msg.generatingExcel}`);
+    console.log(`${msg.waitingSeconds}`);
     await workbook.xlsx.writeFile(outputPath);
-    console.log(`\n\n[${outputPath}] Excel file created `);
+    console.log(`\n\n[${outputPath}] ${msg.excelCreated} `);
     console.log('-------------------------------------------------------------------------------\n\n');
     
     return outputPath;

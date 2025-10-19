@@ -2,12 +2,42 @@ const fs = require('fs');
 const path = require('path');
 const xml2js = require('xml2js');
 
+// 언어 설정 (명령줄 인수에서 가져오기)
+const args = process.argv.slice(2);
+const langArg = args.find(arg => arg.startsWith('--lang='));
+const LANGUAGE = langArg ? langArg.split('=')[1] : 'en';
+
+// 다국어 메시지
+const messages = {
+    en: {
+        styleTemplatesLoaded: '📋 Style templates loaded:',
+        templates: 'templates',
+        styleTemplateLoadFailed: '⚠️  Style template load failed:',
+        error: '   Error:',
+        usingDefaultStyle: '   💡 Using default style.',
+        availableStyles: '\n📋 Available Excel style templates:',
+        separator: '─'
+    },
+    kr: {
+        styleTemplatesLoaded: '📋 로드된 스타일 템플릿:',
+        templates: '개',
+        styleTemplateLoadFailed: '⚠️  스타일 템플릿 로드 실패:',
+        error: '   오류:',
+        usingDefaultStyle: '   💡 기본 스타일을 사용합니다.',
+        availableStyles: '\n📋 사용 가능한 엑셀 스타일 템플릿:',
+        separator: '─'
+    }
+};
+
+const msg = messages[LANGUAGE] || messages.en;
+
 /**
  * 스타일 관리 관련 함수들을 담당하는 모듈
  */
 class StyleManager {
   constructor() {
     this.styleTemplates = null;
+    this.msg = msg;
   }
 
   /**
@@ -50,12 +80,12 @@ class StyleManager {
         }
       }
       
-      console.log(`📋 로드된 스타일 템플릿: ${Object.keys(this.styleTemplates).length}개`);
+      console.log(`${this.msg.styleTemplatesLoaded} ${Object.keys(this.styleTemplates).length}${this.msg.templates}`);
       return this.styleTemplates;
     } catch (error) {
-      console.warn(`⚠️  스타일 템플릿 로드 실패: ${templatePath}`);
-      console.warn(`   오류: ${error.message}`);
-      console.warn(`   💡 기본 스타일을 사용합니다.`);
+      console.warn(`${this.msg.styleTemplateLoadFailed} ${templatePath}`);
+      console.warn(`${this.msg.error} ${error.message}`);
+      console.warn(this.msg.usingDefaultStyle);
       return {};
     }
   }
@@ -135,13 +165,13 @@ class StyleManager {
   async listAvailableStyles() {
     const templates = await this.loadStyleTemplates();
     
-    console.log('\n📋 사용 가능한 엑셀 스타일 템플릿:');
-    console.log('─'.repeat(60));
+    console.log(this.msg.availableStyles);
+    console.log(this.msg.separator.repeat(60));
     
     for (const [id, style] of Object.entries(templates)) {
       console.log(`  ${id.padEnd(12)} | ${style.name.padEnd(15)} | ${style.description}`);
     }
-    console.log('─'.repeat(60));
+    console.log(this.msg.separator.repeat(60));
   }
 
   /**

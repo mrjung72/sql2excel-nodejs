@@ -92,7 +92,9 @@ const messages = {
         
         // Common
         pressAnyKey: 'Press any key to continue...',
-        goodbye: 'Thank you for using SQL2Excel Tool!'
+        goodbye: 'Thank you for using SQL2Excel Tool!',
+        error: 'Error:',
+        interrupted: 'Interrupted by user'
     },
     kr: {
         title: 'SQL2Excel 도구 v1.2.7',
@@ -156,7 +158,9 @@ const messages = {
         
         // Common
         pressAnyKey: '계속하려면 아무 키나 누르세요...',
-        goodbye: 'SQL2Excel 도구를 사용해주셔서 감사합니다!'
+        goodbye: 'SQL2Excel 도구를 사용해주셔서 감사합니다!',
+        error: '오류:',
+        interrupted: '사용자에 의해 중단됨'
     }
 };
 
@@ -618,7 +622,7 @@ async function main() {
     try {
         await mainMenu();
     } catch (error) {
-        console.error(colors.red + `\n  Error: ${error.message}` + colors.reset);
+        console.error(colors.red + `\n  ${msg.error} ${error.message}` + colors.reset);
         rl.close();
         process.exit(1);
     }
@@ -626,7 +630,7 @@ async function main() {
 
 // Ctrl+C 처리
 process.on('SIGINT', () => {
-    console.log(colors.yellow + '\n\n  Interrupted by user' + colors.reset);
+    console.log(colors.yellow + `\n\n  ${msg.interrupted}` + colors.reset);
     console.log(colors.green + `  ${msg.goodbye}` + colors.reset);
     console.log();
     rl.close();

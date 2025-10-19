@@ -7,6 +7,69 @@
 
 const path = require('path');
 
+// 언어 설정 (명령줄 인수에서 가져오기)
+const args = process.argv.slice(2);
+const langArg = args.find(arg => arg.startsWith('--lang='));
+const LANGUAGE = langArg ? langArg.split('=')[1] : 'en';
+
+// 다국어 메시지
+const messages = {
+    en: {
+        tableOfContents: 'Table of Contents',
+        truncatedNote: '(Truncated: over 31 chars)',
+        originalSheetName: 'Original sheet name:\n',
+        actualTabName: '\n\nActual tab name:\n',
+        sheetNameLimit: '\n\n※ Excel sheet names are limited to 31 characters.',
+        omittedMaxChars: '... omitted (limited to 10,000 characters) .....',
+        selectedDataRows: 'Selected data',
+        rows: 'rows',
+        and: 'and',
+        others: 'others',
+        hyperlinkFailed: '[WARN] Hyperlink creation failed for sheet:',
+        excelToc: '📊 Excel Sheet Table of Contents',
+        targetFile: '📁 Target File:',
+        sheetName: 'Sheet Name',
+        records: 'Records',
+        description: 'Description',
+        fileLink: 'File Link',
+        checkSheetData: 'sheet data',
+        openFile: '📂 Open File',
+        openFileText: 'Open File',
+        usage: '💡 Usage',
+        usageStep1: '   1. Click "Open File" link to open the main Excel file',
+        usageStep2: '   2. Click the desired sheet tab in the main file',
+        usageStep3: '   3. Each sheet is arranged in the order listed above'
+    },
+    kr: {
+        tableOfContents: '목차',
+        truncatedNote: '(31자 초과로 잘림)',
+        originalSheetName: '원본 시트명:\n',
+        actualTabName: '\n\n실제 탭명:\n',
+        sheetNameLimit: '\n\n※ Excel 시트명은 최대 31자까지 허용됩니다.',
+        omittedMaxChars: '... 이하 생략 (최대 10000자로 제한) .....',
+        selectedDataRows: '선택된 데이터',
+        rows: '행',
+        and: '그리고',
+        others: '개 더',
+        hyperlinkFailed: '[WARN] 하이퍼링크 생성 실패:',
+        excelToc: '📊 Excel 시트 목차',
+        targetFile: '📁 대상 파일:',
+        sheetName: '시트명',
+        records: '데이터 건수',
+        description: '설명',
+        fileLink: '파일 링크',
+        checkSheetData: '시트의 데이터를 확인하세요',
+        openFile: '📂 파일 열기',
+        openFileText: '파일 열기',
+        usage: '💡 사용법',
+        usageStep1: '   1. "파일 열기" 링크를 클릭하여 메인 엑셀 파일을 엽니다',
+        usageStep2: '   2. 메인 파일에서 원하는 시트 탭을 클릭합니다',
+        usageStep3: '   3. 각 시트는 위 목록의 순서대로 배치되어 있습니다'
+    }
+};
+
+const msg = messages[LANGUAGE] || messages.en;
+
 /**
  * border 객체를 ExcelJS 형식으로 변환
  * @param {Object} border - 테두리 설정 객체
@@ -285,16 +348,16 @@ function applySheetStyle(sheet, data, excelStyle, startRow = 1) {
  * @returns {Object} 생성된 목차 시트
  */
 function createTableOfContents(workbook, sheetNames) {
-  const tocSheet = workbook.addWorksheet('목차');
+  const tocSheet = workbook.addWorksheet(msg.tableOfContents);
   
   // 헤더 추가
-  tocSheet.addRow(['No', 'Sheet Name', 'Records', 'Note']);
+  tocSheet.addRow(['No', msg.sheetName, msg.records, 'Note']);
   
   // 시트 목록 추가
   sheetNames.forEach((obj, idx) => {
     // 시트명이 잘렸는지 확인
     const isTruncated = obj.originalName && obj.originalName !== obj.tabName;
-    const noteText = isTruncated ? '(31자 초과로 잘림)' : '';
+    const noteText = isTruncated ? msg.truncatedNote : '';
     
     const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0, noteText]);
     
@@ -328,7 +391,7 @@ function createTableOfContents(workbook, sheetNames) {
         row.getCell(2).font = { 
           color: { argb: '0563C1' } 
         };
-        console.warn(`[WARN] Hyperlink creation failed for sheet: ${obj.displayName}`);
+        console.warn(`${msg.hyperlinkFailed} ${obj.displayName}`);
       }
     }
     
@@ -350,11 +413,11 @@ function createTableOfContents(workbook, sheetNames) {
       // 원본 시트명을 셀 주석으로 추가
       row.getCell(2).note = {
         texts: [
-          { text: '원본 시트명:\n', font: { bold: true } },
+          { text: msg.originalSheetName, font: { bold: true } },
           { text: obj.originalName, font: { italic: true } },
-          { text: '\n\n실제 탭명:\n', font: { bold: true } },
+          { text: msg.actualTabName, font: { bold: true } },
           { text: obj.tabName, font: { color: { argb: 'FF0000' } } },
-          { text: '\n\n※ Excel 시트명은 최대 31자까지 허용됩니다.', font: { size: 9, color: { argb: '666666' } } }
+          { text: msg.sheetNameLimit, font: { size: 9, color: { argb: '666666' } } }
         ]
       };
     }
@@ -363,8 +426,8 @@ function createTableOfContents(workbook, sheetNames) {
   // 컬럼 설정
   tocSheet.columns = [
     { header: 'No', key: 'no', width: 6 },
-    { header: 'Sheet Name', key: 'name', width: 25 },
-    { header: 'Records', key: 'records', width: 12 },
+    { header: msg.sheetName, key: 'name', width: 25 },
+    { header: msg.records, key: 'records', width: 12 },
     { header: 'Aggregate Info', key: 'aggregate', width: 35 },
     { header: 'Note', key: 'note', width: 18 }
   ];
@@ -397,7 +460,7 @@ function populateTableOfContents(tocSheet, sheetNames) {
   tocSheet.spliceRows(1, tocSheet.rowCount);
   
   // 헤더 추가 (쿼리문 컬럼 추가)
-  tocSheet.addRow(['No', 'Sheet Name', 'Records', 'Aggregate Info', 'Query', 'Note']);
+  tocSheet.addRow(['No', msg.sheetName, msg.records, 'Aggregate Info', 'Query', 'Note']);
   
   // 시트 목록 추가
   sheetNames.forEach((obj, idx) => {
@@ -445,11 +508,11 @@ function populateTableOfContents(tocSheet, sheetNames) {
         const topItems = obj.aggregateData.slice(0, 4); // 상위 4개만 표시
         const detailInfo = `(${topItems.map(item => `${item.key}:${item.count}`).join(', ')}`;
         const finalDetailInfo = obj.aggregateData.length > 4 
-          ? detailInfo + ` and ${obj.aggregateData.length - 4} others)`
+          ? detailInfo + ` ${msg.and} ${obj.aggregateData.length - 4} ${msg.others})`
           : detailInfo + ')';
-        aggregateInfo = `Selected data ${obj.recordCount} rows ${finalDetailInfo}`;
+        aggregateInfo = `${msg.selectedDataRows} ${obj.recordCount} ${msg.rows} ${finalDetailInfo}`;
       } else {
-        aggregateInfo = `Selected data ${obj.recordCount} rows`;
+        aggregateInfo = `${msg.selectedDataRows} ${obj.recordCount} ${msg.rows}`;
       }
     }
     
@@ -458,7 +521,7 @@ function populateTableOfContents(tocSheet, sheetNames) {
     if (obj.query) {
       queryText = obj.query.trim(); // 앞뒤 공백만 제거, 줄바꿈과 들여쓰기 유지
       if (queryText.length > 10000) {
-        queryText = queryText.substring(0, 10000) + '... 이하 생략 (최대 10000자로 제한) .....';
+        queryText = queryText.substring(0, 10000) + msg.omittedMaxChars;
       }
     }
     
@@ -494,7 +557,7 @@ function populateTableOfContents(tocSheet, sheetNames) {
         row.getCell(2).font = { 
           color: { argb: '0563C1' } 
         };
-        console.warn(`[WARN] Hyperlink creation failed for sheet: ${obj.displayName}`);
+        console.warn(`${msg.hyperlinkFailed} ${obj.displayName}`);
       }
     }
     
@@ -605,11 +668,11 @@ function populateTableOfContents(tocSheet, sheetNames) {
       // 원본 시트명을 셀 주석으로 추가
       row.getCell(2).note = {
         texts: [
-          { text: '원본 시트명:\n', font: { bold: true } },
+          { text: msg.originalSheetName, font: { bold: true } },
           { text: obj.originalName, font: { italic: true } },
-          { text: '\n\n실제 탭명:\n', font: { bold: true } },
+          { text: msg.actualTabName, font: { bold: true } },
           { text: obj.tabName, font: { color: { argb: 'FF0000' } } },
-          { text: '\n\n※ Excel 시트명은 최대 31자까지 허용됩니다.', font: { size: 9, color: { argb: '666666' } } }
+          { text: msg.sheetNameLimit, font: { size: 9, color: { argb: '666666' } } }
         ]
       };
     }
@@ -618,8 +681,8 @@ function populateTableOfContents(tocSheet, sheetNames) {
   // 컬럼 설정 (쿼리문 컬럼 추가)
   tocSheet.columns = [
     { header: 'No', key: 'no', width: 6 },
-    { header: 'Sheet Name', key: 'name', width: 25 },
-    { header: 'Records', key: 'records', width: 12 },
+    { header: msg.sheetName, key: 'name', width: 25 },
+    { header: msg.records, key: 'records', width: 12 },
     { header: 'Aggregate Info', key: 'aggregate', width: 20 },
     { header: 'Query', key: 'query', width: 40 },
     { header: 'Note', key: 'note', width: 18 }
@@ -649,23 +712,23 @@ function populateTableOfContents(tocSheet, sheetNames) {
  * @returns {Object} 생성된 목차 시트
  */
 function createExternalTableOfContents(workbook, sheetNames, targetFileName) {
-  const tocSheet = workbook.addWorksheet('목차');
+  const tocSheet = workbook.addWorksheet(msg.tableOfContents);
   
   // 제목 및 안내사항 추가
-  const titleRow = tocSheet.addRow(['📊 Excel 시트 목차']);
+  const titleRow = tocSheet.addRow([msg.excelToc]);
   titleRow.getCell(1).font = { size: 16, bold: true, color: { argb: '2F5597' } };
   tocSheet.mergeCells(1, 1, 1, 4);
   
   tocSheet.addRow([]);
   
-  const fileInfoRow = tocSheet.addRow(['📁 대상 파일:', path.basename(targetFileName)]);
+  const fileInfoRow = tocSheet.addRow([msg.targetFile, path.basename(targetFileName)]);
   fileInfoRow.getCell(1).font = { bold: true };
   fileInfoRow.getCell(2).font = { color: { argb: '0563C1' } };
   
   tocSheet.addRow([]);
   
   // 헤더 추가
-  const headerRow = tocSheet.addRow(['No', 'Sheet Name', 'Records', 'Description', 'File Link']);
+  const headerRow = tocSheet.addRow(['No', msg.sheetName, msg.records, msg.description, msg.fileLink]);
   headerRow.font = { bold: true };
   headerRow.fill = {
     type: 'pattern',
@@ -679,8 +742,8 @@ function createExternalTableOfContents(workbook, sheetNames, targetFileName) {
       idx + 1, 
       obj.displayName, 
       obj.recordCount || 0,
-      `${obj.displayName} 시트의 데이터를 확인하세요`, 
-      '📂 파일 열기'
+      `${obj.displayName} ${msg.checkSheetData}`, 
+      msg.openFile
     ]);
     
     // 시트명 스타일링
@@ -706,7 +769,7 @@ function createExternalTableOfContents(workbook, sheetNames, targetFileName) {
     // 외부 파일 링크 설정
     try {
       row.getCell(5).value = {
-        text: '📂 파일 열기',
+        text: msg.openFile,
         hyperlink: targetFileName
       };
       row.getCell(5).font = { 
@@ -714,7 +777,7 @@ function createExternalTableOfContents(workbook, sheetNames, targetFileName) {
         underline: true 
       };
     } catch (error) {
-      row.getCell(5).value = '파일 열기';
+      row.getCell(5).value = msg.openFileText;
       row.getCell(5).font = { 
         color: { argb: '666666' } 
       };
@@ -724,21 +787,21 @@ function createExternalTableOfContents(workbook, sheetNames, targetFileName) {
   // 컬럼 설정
   tocSheet.columns = [
     { header: 'No', key: 'no', width: 6 },
-    { header: 'Sheet Name', key: 'name', width: 20 },
-    { header: 'Records', key: 'records', width: 10 },
-    { header: 'Description', key: 'desc', width: 30 },
-    { header: 'File Link', key: 'link', width: 15 }
+    { header: msg.sheetName, key: 'name', width: 20 },
+    { header: msg.records, key: 'records', width: 10 },
+    { header: msg.description, key: 'desc', width: 30 },
+    { header: msg.fileLink, key: 'link', width: 15 }
   ];
 
   // 사용법 안내 추가
   tocSheet.addRow([]);
   tocSheet.addRow([]);
-  const usageRow1 = tocSheet.addRow(['💡 사용법']);
+  const usageRow1 = tocSheet.addRow([msg.usage]);
   usageRow1.getCell(1).font = { bold: true, color: { argb: '2F5597' } };
   
-  tocSheet.addRow(['   1. "파일 열기" 링크를 클릭하여 메인 엑셀 파일을 엽니다']);
-  tocSheet.addRow(['   2. 메인 파일에서 원하는 시트 탭을 클릭합니다']);
-  tocSheet.addRow(['   3. 각 시트는 위 목록의 순서대로 배치되어 있습니다']);
+  tocSheet.addRow([msg.usageStep1]);
+  tocSheet.addRow([msg.usageStep2]);
+  tocSheet.addRow([msg.usageStep3]);
   
   // 안내 메시지 스타일링
   for (let i = tocSheet.rowCount - 2; i <= tocSheet.rowCount; i++) {

@@ -4,6 +4,27 @@ const path = require('path');
 // pkg 실행 파일 경로 처리
 const APP_ROOT = process.pkg ? path.dirname(process.execPath) : process.cwd();
 
+// 언어 설정 (명령줄 인수에서 가져오기)
+const args = process.argv.slice(2);
+const langArg = args.find(arg => arg.startsWith('--lang='));
+const LANGUAGE = langArg ? langArg.split('=')[1] : 'en';
+
+// 다국어 메시지
+const messages = {
+    en: {
+        fileReadFailed: '⚠️  File read failed:',
+        error: '   Error:',
+        cannotReadFile: 'Cannot read file:'
+    },
+    kr: {
+        fileReadFailed: '⚠️  파일 읽기 실패:',
+        error: '   오류:',
+        cannotReadFile: '파일을 읽을 수 없습니다:'
+    }
+};
+
+const msg = messages[LANGUAGE] || messages.en;
+
 /**
  * 파일 관련 유틸리티 함수들을 담당하는 모듈
  */
@@ -18,9 +39,9 @@ class FileUtils {
     try {
       return fs.readFileSync(filepath, encoding);
     } catch (error) {
-      console.warn(`⚠️  파일 읽기 실패: ${filepath}`);
-      console.warn(`   오류: ${error.message}`);
-      throw new Error(`파일을 읽을 수 없습니다: ${filepath}`);
+      console.warn(`${msg.fileReadFailed} ${filepath}`);
+      console.warn(`${msg.error} ${error.message}`);
+      throw new Error(`${msg.cannotReadFile} ${filepath}`);
     }
   }
 

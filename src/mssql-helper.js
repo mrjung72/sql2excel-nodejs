@@ -1,11 +1,42 @@
 const mssql = require('mssql');
 
+// 다국어 메시지
+const messages = {
+    en: {
+        dbIdNotFound: 'DB connection ID not found:',
+        dbConnecting: 'connecting to database...',
+        dbConnected: 'database connected',
+        dbClosing: 'closing database connection',
+        errorLogin: 'Database login failed: Check username or password.',
+        errorSocket: 'Database connection failed: Check server address and port.',
+        errorName: 'Database name error: Check database name.',
+        errorTimeout: 'Query execution timeout: Optimize query or increase timeout.',
+        errorAlreadyConnected: 'Database already connected.',
+        errorNotOpen: 'Database connection is not open.',
+        mssqlError: 'MSSQL Error:'
+    },
+    kr: {
+        dbIdNotFound: 'DB 접속 ID를 찾을 수 없습니다:',
+        dbConnecting: '데이터베이스에 연결 중...',
+        dbConnected: '데이터베이스 연결 완료',
+        dbClosing: '데이터베이스 연결 종료',
+        errorLogin: '데이터베이스 로그인 실패: 사용자명 또는 비밀번호를 확인하세요.',
+        errorSocket: '데이터베이스 연결 실패: 서버 주소와 포트를 확인하세요.',
+        errorName: '데이터베이스 이름 오류: 데이터베이스 이름을 확인하세요.',
+        errorTimeout: '쿼리 실행 시간 초과: 쿼리를 최적화하거나 타임아웃을 늘려주세요.',
+        errorAlreadyConnected: '이미 연결된 데이터베이스입니다.',
+        errorNotOpen: '데이터베이스 연결이 열려있지 않습니다.',
+        mssqlError: 'MSSQL 오류:'
+    }
+};
+
 /**
  * MSSQL 특화 기능들을 담당하는 헬퍼 모듈
  */
 class MSSQLHelper {
-  constructor() {
+  constructor(language = 'en') {
     this.dbPools = {};
+    this.msg = messages[language] || messages.en;
   }
 
   /**
@@ -17,14 +48,14 @@ class MSSQLHelper {
   async createConnectionPool(config, dbKey) {
     if (!this.dbPools[dbKey]) {
       if (!config) {
-        throw new Error(`DB 접속 ID를 찾을 수 없습니다: ${dbKey}`);
+        throw new Error(`${this.msg.dbIdNotFound} ${dbKey}`);
       }
       
-      console.log(`[DB] ${dbKey} 데이터베이스에 연결 중...`);
+      console.log(`[DB] ${dbKey} ${this.msg.dbConnecting}`);
       const pool = new mssql.ConnectionPool(config);
       await pool.connect();
       this.dbPools[dbKey] = pool;
-      console.log(`[DB] ${dbKey} 데이터베이스 연결 완료`);
+      console.log(`[DB] ${dbKey} ${this.msg.dbConnected}`);
     }
     return this.dbPools[dbKey];
   }
@@ -258,7 +289,7 @@ class MSSQLHelper {
    */
   async closeConnection(dbKey) {
     if (this.dbPools[dbKey]) {
-      console.log(`[DB] ${dbKey} 데이터베이스 연결 종료`);
+      console.log(`[DB] ${dbKey} ${this.msg.dbClosing}`);
       await this.dbPools[dbKey].close();
       delete this.dbPools[dbKey];
     }
@@ -269,7 +300,7 @@ class MSSQLHelper {
    */
   async closeAllConnections() {
     for (const [dbKey, pool] of Object.entries(this.dbPools)) {
-      console.log(`[DB] ${dbKey} 데이터베이스 연결 종료`);
+      console.log(`[DB] ${dbKey} ${this.msg.dbClosing}`);
       await pool.close();
     }
     this.dbPools = {};
@@ -282,19 +313,19 @@ class MSSQLHelper {
    */
   formatErrorMessage(error) {
     if (error.code === 'ELOGIN') {
-      return '데이터베이스 로그인 실패: 사용자명 또는 비밀번호를 확인하세요.';
+      return this.msg.errorLogin;
     } else if (error.code === 'ESOCKET') {
-      return '데이터베이스 연결 실패: 서버 주소와 포트를 확인하세요.';
+      return this.msg.errorSocket;
     } else if (error.code === 'ENAME') {
-      return '데이터베이스 이름 오류: 데이터베이스 이름을 확인하세요.';
+      return this.msg.errorName;
     } else if (error.code === 'ETIMEOUT') {
-      return '쿼리 실행 시간 초과: 쿼리를 최적화하거나 타임아웃을 늘려주세요.';
+      return this.msg.errorTimeout;
     } else if (error.code === 'EALREADYCONNECTED') {
-      return '이미 연결된 데이터베이스입니다.';
+      return this.msg.errorAlreadyConnected;
     } else if (error.code === 'ENOTOPEN') {
-      return '데이터베이스 연결이 열려있지 않습니다.';
+      return this.msg.errorNotOpen;
     } else {
-      return `MSSQL 오류: ${error.message}`;
+      return `${this.msg.mssqlError} ${error.message}`;
     }
   }
 

@@ -7,6 +7,93 @@ const QueryParser = require('./query-parser');
 const ExcelGenerator = require('./excel-generator');
 const MSSQLHelper = require('./mssql-helper');
 
+// 언어 설정 (명령줄 인수에서 가져오기)
+const args = process.argv.slice(2);
+const langArg = args.find(arg => arg.startsWith('--lang='));
+const LANGUAGE = langArg ? langArg.split('=')[1] : 'en';
+
+// 다국어 메시지
+const messages = {
+    en: {
+        queryFileNotFound: 'Query definition file not found. Check --query or --xml option.',
+        cliStyle: '🎨 CLI specified style:',
+        cliStyleNotFound: '⚠️  CLI specified style template not found:',
+        cliStyleUsingDefault: '   💡 Using default style.',
+        globalAggregateTemplate: '📋 Global aggregate info template:',
+        xmlStyle: '🎨 XML specified style:',
+        xmlStyleNotFound: '⚠️  XML specified style not found:',
+        dbConfigNotFound: 'DB connection info file does not exist:',
+        dbConfigInvalid: 'DB connection config is invalid:',
+        requiredFields: '(required fields: server, database, user, password)',
+        defaultDbNotFound: 'Default DB connection ID not found:',
+        skipSheet: '[SKIP] Sheet',
+        isDisabled: 'is disabled (use=false)',
+        sheetNameAutoFix: '\n⚠️  Sheet name auto-fixed (Sheet',
+        originalSheetName: '   Original sheet name:',
+        modifiedSheetName: '   Modified sheet name:',
+        maxRowsLimit: '\t[Limit] Limited to maximum',
+        maxRowsLimitSrc: 'rows (source:',
+        maxRowsLimitSheet: 'sheet',
+        maxRowsLimitGlobal: 'global',
+        maxRowsLimitSetting: 'setting)',
+        maxRowsIgnored: '\t[Limit] maxRows setting ignored because query already has TOP clause',
+        infoExecuting: '[INFO] Executing for sheet',
+        onDb: 'on DB',
+        sheetStyle: '\t🎨 Sheet-specific style applied:',
+        sheetStyleNotFound: '\t⚠️  Sheet-specific style not found:',
+        sheetStyleUsingGlobal: '\t   💡 Using global style.',
+        globalStyleApplied: '\t🎨 Global style applied:',
+        defaultStyle: 'default',
+        style: 'style',
+        aggregate: '\t[Aggregate]',
+        columnAggregate: 'column aggregate:',
+        rowsSelected: 'rows were selected',
+        errorHeader: '----------------------------------[ERROR]--------------------------------------\n',
+        sql: '\n\nSQL:',
+        errorFooter: '\n-------------------------------------------------------------------------------'
+    },
+    kr: {
+        queryFileNotFound: '쿼리 정의 파일을 찾을 수 없습니다. --query 또는 --xml 옵션을 확인하세요.',
+        cliStyle: '🎨 CLI에서 지정된 스타일:',
+        cliStyleNotFound: '⚠️  CLI에서 지정된 스타일 템플릿을 찾을 수 없습니다:',
+        cliStyleUsingDefault: '   💡 기본 스타일을 사용합니다.',
+        globalAggregateTemplate: '📋 전역 집계 정보 템플릿:',
+        xmlStyle: '🎨 XML에서 지정된 스타일:',
+        xmlStyleNotFound: '⚠️  XML에서 지정된 스타일을 찾을 수 없습니다:',
+        dbConfigNotFound: 'DB 접속 정보 파일이 존재하지 않습니다:',
+        dbConfigInvalid: 'DB 연결 설정이 올바르지 않습니다:',
+        requiredFields: '(필수 필드: server, database, user, password)',
+        defaultDbNotFound: '기본 DB 접속 ID를 찾을 수 없습니다:',
+        skipSheet: '[SKIP] 시트',
+        isDisabled: '비활성화됨 (use=false)',
+        sheetNameAutoFix: '\n⚠️  시트명 자동 수정 (시트',
+        originalSheetName: '   원래 시트명:',
+        modifiedSheetName: '   수정된 시트명:',
+        maxRowsLimit: '\t[제한] 최대',
+        maxRowsLimitSrc: '건으로 제한됨 (',
+        maxRowsLimitSheet: '시트별',
+        maxRowsLimitGlobal: '전역',
+        maxRowsLimitSetting: '설정)',
+        maxRowsIgnored: '\t[제한] 쿼리에 이미 TOP 절이 존재하여 maxRows 설정 무시됨',
+        infoExecuting: '[INFO] 시트',
+        onDb: '실행 중, DB:',
+        sheetStyle: '\t🎨 시트별 스타일 적용:',
+        sheetStyleNotFound: '\t⚠️  시트별 스타일을 찾을 수 없습니다:',
+        sheetStyleUsingGlobal: '\t   💡 전역 스타일을 사용합니다.',
+        globalStyleApplied: '\t🎨 전역 스타일 적용:',
+        defaultStyle: '기본',
+        style: '스타일',
+        aggregate: '\t[집계]',
+        columnAggregate: '컬럼 집계:',
+        rowsSelected: '행이 선택됨',
+        errorHeader: '----------------------------------[오류]--------------------------------------\n',
+        sql: '\n\nSQL:',
+        errorFooter: '\n-------------------------------------------------------------------------------'
+    }
+};
+
+const msg = messages[LANGUAGE] || messages.en;
+
 // 모듈 인스턴스 생성
 const fileUtils = new FileUtils();
 const variableProcessor = new VariableProcessor();
@@ -54,7 +141,7 @@ async function main() {
     queryDefs = jsonResult.queryDefs || {};
     dynamicVars = jsonResult.dynamicVars || [];
   } else {
-    throw new Error('쿼리 정의 파일을 찾을 수 없습니다. --query 또는 --xml 옵션을 확인하세요.');
+    throw new Error(msg.queryFileNotFound);
   }
 
   // CLI 변수 > 파일 전역변수 우선 적용
@@ -70,14 +157,14 @@ async function main() {
   // 기본 스타일 템플릿 적용 (CLI 옵션)
   const selectedStyle = await styleManager.getStyleById(argv.style);
   if (selectedStyle) {
-    console.log(`🎨 CLI에서 지정된 스타일: ${selectedStyle.name} (${selectedStyle.description})`);
+    console.log(`${msg.cliStyle} ${selectedStyle.name} (${selectedStyle.description})`);
     excelStyle = {
       header: selectedStyle.header || {},
       body: selectedStyle.body || {}
     };
   } else {
-    console.warn(`⚠️  CLI에서 지정된 스타일 템플릿을 찾을 수 없습니다: ${argv.style}`);
-    console.warn(`   💡 기본 스타일을 사용합니다.`);
+    console.warn(`${msg.cliStyleNotFound} ${argv.style}`);
+    console.warn(msg.cliStyleUsingDefault);
   }
   
   // 엑셀 설정 파싱
@@ -92,19 +179,19 @@ async function main() {
     excelOutput = excelSettings.output;
     
     if (globalAggregateInfoTemplate) {
-      console.log(`📋 전역 집계 정보 템플릿: "${globalAggregateInfoTemplate}"`);
+      console.log(`${msg.globalAggregateTemplate} "${globalAggregateInfoTemplate}"`);
     }
     
     if (excelSettings.style) {
       const xmlStyle = await styleManager.getStyleById(excelSettings.style);
       if (xmlStyle) {
-        console.log(`🎨 XML에서 지정된 스타일: ${xmlStyle.name} (${xmlStyle.description})`);
+        console.log(`${msg.xmlStyle} ${xmlStyle.name} (${xmlStyle.description})`);
         excelStyle = {
           header: xmlStyle.header || {},
           body: xmlStyle.body || {}
         };
       } else {
-        console.warn(`⚠️  XML에서 지정된 스타일을 찾을 수 없습니다: ${excelSettings.style}`);
+        console.warn(`${msg.xmlStyleNotFound} ${excelSettings.style}`);
       }
     }
   } else if (argv.query && FileUtils.exists(FileUtils.resolvePath(argv.query))) {
@@ -117,7 +204,7 @@ async function main() {
     excelOutput = excelSettings.output;
     
     if (globalAggregateInfoTemplate) {
-      console.log(`📋 전역 집계 정보 템플릿: "${globalAggregateInfoTemplate}"`);
+      console.log(`${msg.globalAggregateTemplate} "${globalAggregateInfoTemplate}"`);
     }
     
     if (queries.excel) {
@@ -128,24 +215,24 @@ async function main() {
   // DB 접속 정보 로드 (멀티 DB 지원)
   const configPath = FileUtils.resolvePath(argv.config);
   if (!FileUtils.exists(configPath)) {
-    throw new Error(`DB 접속 정보 파일이 존재하지 않습니다: ${configPath}`);
+    throw new Error(`${msg.dbConfigNotFound} ${configPath}`);
   }
   const configObj = JSON5.parse(FileUtils.readFileSafely(configPath, 'utf8'));
   
   // MSSQL 헬퍼 인스턴스 생성
-  const mssqlHelper = new MSSQLHelper();
+  const mssqlHelper = new MSSQLHelper(LANGUAGE);
   
   // 연결 설정 검증
   for (const [dbKey, config] of Object.entries(configObj || {})) {
     if (!mssqlHelper.validateConnectionConfig(config)) {
-      throw new Error(`DB 연결 설정이 올바르지 않습니다: ${dbKey} (필수 필드: server, database, user, password)`);
+      throw new Error(`${msg.dbConfigInvalid} ${dbKey} ${msg.requiredFields}`);
     }
   }
   
   // 기본 DB 연결 설정
   const defaultDbKey = argv.db || dbId || excelDb;
   if (!configObj || !configObj[defaultDbKey]) {
-    throw new Error(`기본 DB 접속 ID를 찾을 수 없습니다: ${defaultDbKey}`);
+    throw new Error(`${msg.defaultDbNotFound} ${defaultDbKey}`);
   }
   
   // DB 연결 풀 생성 함수
@@ -177,7 +264,7 @@ async function main() {
   for (const sheetDef of sheets) {
     // robust use 속성 체크
     if (!styleManager.isSheetEnabled(sheetDef)) {
-      console.log(`[SKIP] Sheet '${sheetDef.name}' is disabled (use=false)`);
+      console.log(`${msg.skipSheet} '${sheetDef.name}' ${msg.isDisabled}`);
       continue;
     }
     
@@ -187,8 +274,8 @@ async function main() {
     // 시트명 자동 수정 (변수 치환 후)
     const sheetNameValidation = queryParser.validateSheetName(sheetName, sheetIndex);
     if (!sheetNameValidation.valid) {
-      console.warn(`\n⚠️  시트명 자동 수정 (시트 #${sheetIndex + 1}):`);
-      console.warn(`   원래 시트명: "${sheetName}"`);
+      console.warn(`${msg.sheetNameAutoFix} #${sheetIndex + 1}):`);
+      console.warn(`${msg.originalSheetName} "${sheetName}"`);
       
       // 허용되지 않는 문자 제거
       const invalidChars = ['\\', '/', '*', '?', '[', ']', ':'];
@@ -204,7 +291,7 @@ async function main() {
         sheetName = sheetName.substring(0, 31);
       }
       
-      console.warn(`   수정된 시트명: "${sheetName}"`);
+      console.warn(`${msg.modifiedSheetName} "${sheetName}"`);
     }
     
     // maxRows 제한 적용 (개별 시트 설정 > 전역 설정 우선)
@@ -215,10 +302,10 @@ async function main() {
       sql = mssqlHelper.addTopClause(sql, effectiveMaxRows);
       
       if (originalSql !== sql) {
-        const source = sheetDef.maxRows ? '시트별' : '전역';
-        console.log(`\t[제한] 최대 ${effectiveMaxRows}건으로 제한됨 (${source} 설정)`);
+        const source = sheetDef.maxRows ? msg.maxRowsLimitSheet : msg.maxRowsLimitGlobal;
+        console.log(`${msg.maxRowsLimit} ${effectiveMaxRows}${msg.maxRowsLimitSrc} ${source} ${msg.maxRowsLimitSetting}`);
       } else {
-        console.log(`\t[제한] 쿼리에 이미 TOP 절이 존재하여 maxRows 설정 무시됨`);
+        console.log(msg.maxRowsIgnored);
       }
     }
     
@@ -226,7 +313,7 @@ async function main() {
     const sheetDbKey = sheetDef.db || defaultDbKey;
     const currentPool = await getDbPool(sheetDbKey);
     
-    console.log(`[INFO] Executing for sheet '${sheetName}' on DB '${sheetDbKey}'`);
+    console.log(`${msg.infoExecuting} '${sheetName}' ${msg.onDb} '${sheetDbKey}'`);
     try {
       const result = await mssqlHelper.executeQuery(currentPool, sql);
       const recordCount = result.recordset.length;
@@ -237,17 +324,17 @@ async function main() {
       if (sheetDef.style) {
         const sheetStyleTemplate = await styleManager.getStyleById(sheetDef.style);
         if (sheetStyleTemplate) {
-          console.log(`\t🎨 시트별 스타일 적용: ${sheetStyleTemplate.name} (${sheetStyleTemplate.description})`);
+          console.log(`${msg.sheetStyle} ${sheetStyleTemplate.name} (${sheetStyleTemplate.description})`);
           sheetStyle = {
             header: sheetStyleTemplate.header || {},
             body: sheetStyleTemplate.body || {}
           };
         } else {
-          console.warn(`\t⚠️  시트별 스타일을 찾을 수 없습니다: ${sheetDef.style}`);
-          console.warn(`\t   💡 전역 스타일을 사용합니다.`);
+          console.warn(`${msg.sheetStyleNotFound} ${sheetDef.style}`);
+          console.warn(msg.sheetStyleUsingGlobal);
         }
       } else {
-        console.log(`\t🎨 전역 스타일 적용: ${excelStyle.header?.font?.name || '기본'} 스타일`);
+        console.log(`${msg.globalStyleApplied} ${excelStyle.header?.font?.name || msg.defaultStyle} ${msg.style}`);
       }
       
       // 집계 데이터 계산
@@ -255,7 +342,7 @@ async function main() {
       if (sheetDef.aggregateColumn && recordCount > 0) {
         aggregateData = excelGenerator.calculateAggregateData(sheetDef.aggregateColumn, result.recordset);
         if (aggregateData && aggregateData.length > 0) {
-          console.log(`\t[집계] ${sheetDef.aggregateColumn} 컬럼 집계: ${aggregateData.map(item => `${item.key}(${item.count})`).join(', ')}`);
+          console.log(`${msg.aggregate} ${sheetDef.aggregateColumn} ${msg.columnAggregate} ${aggregateData.map(item => `${item.key}(${item.count})`).join(', ')}`);
         }
       }
       
@@ -283,12 +370,12 @@ async function main() {
         query: sql
       });
       
-      console.log(`\t---> ${recordCount} rows were selected `);
+      console.log(`\t---> ${recordCount} ${msg.rowsSelected} `);
     } catch (error) {
-      console.log(`----------------------------------[ERROR]--------------------------------------\n`);
+      console.log(msg.errorHeader);
       console.log(mssqlHelper.formatErrorMessage(error));
-      console.log(`\n\nSQL: ${sql}`);
-      console.log('\n-------------------------------------------------------------------------------');
+      console.log(`${msg.sql} ${sql}`);
+      console.log(msg.errorFooter);
     }
     
     sheetIndex++;
