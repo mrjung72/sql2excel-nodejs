@@ -29,7 +29,7 @@ const LANGUAGE = process.env.LANGUAGE || 'en';
 // 다국어 메시지
 const messages = {
     en: {
-        title: 'SQL2Excel Tool v1.2.7',
+        title: 'SQL2Excel',
         menuTitle: 'Menu Selection',
         menu1: '1. Validate Query Definition File',
         menu2: '2. Test Database Connection',
@@ -95,7 +95,7 @@ const messages = {
         interrupted: 'Interrupted by user'
     },
     kr: {
-        title: 'SQL2Excel 도구 v1.2.7',
+        title: 'SQL2Excel',
         menuTitle: '메뉴 선택',
         menu1: '1. 쿼리 정의 파일 검증',
         menu2: '2. 데이터베이스 연결 테스트',

@@ -1,5 +1,44 @@
 # SQL2Excel Version History
 
+## v1.2.8 - Language Configuration & Type Safety Improvements (2025-10-19)
+
+### 🔧 Improvements
+- **Unified Language Configuration**: Standardized language settings using environment variable (`LANGUAGE`)
+  - `app.js`: Use environment variable instead of command-line argument
+  - `src/index.js`: Environment variable-based language configuration
+  - `src/excel-cli.js`: Use environment variable, changed default from 'kr' to 'en'
+  - `src/excel-style-helper.js`: Use environment variable
+  - `src/file-utils.js`: Use environment variable
+  - `src/style-manager.js`: Use environment variable
+  - `src/variable-processor.js`: Use environment variable
+  - `src/query-parser.js`: Use environment variable
+  - `src/excel-generator.js`: Use environment variable
+
+- **Batch File Improvements**: Added environment variable settings, removed `--lang` parameter
+  - `run.bat`: Added `set LANGUAGE=en`
+  - `실행하기.bat`: Added `set LANGUAGE=kr`
+  - `create-release.js`: Added environment variable settings to release batch file templates
+  - `package.json`: Changed `start:kr` script to message directing users to use batch files
+
+### 🐛 Bug Fixes
+- **Type Conversion Error Fix**: Improved type safety when handling empty arrays in IN clauses
+  - `src/mssql-helper.js`: `createInClause()` function now returns `NULL` instead of `'^-_'`
+  - `src/variable-processor.js`: Unresolved dynamic variables replaced with `NULL` instead of `'^-_'`
+  - **Issue**: Type conversion error when executing `WHERE OrderID IN ('^-_')` on INT columns
+  - **Solution**: Using `WHERE OrderID IN (NULL)` works safely with all data types
+  - **Impact**: Executes without errors on all column types (numeric, string, date, etc.) and always returns 0 rows
+
+### 📝 Documentation
+- Enhanced multilingual messages
+  - `variable-processor.js`: Shows `(no match)` / `(매칭 없음)` message when replacing with NULL
+  - Clarified messages when replacing with empty strings
+
+### 🔄 Migration Guide
+- If you were running with `node app.js --lang=kr`:
+  - Windows: `set LANGUAGE=kr && node app.js`
+  - Or use `실행하기.bat` (automatically sets environment variable)
+- In development environment, you can set `LANGUAGE=kr` in `.env` file
+
 ## v1.2.7 - Encoding & Validation Improvements (2025-10-16)
 
 ### 🔧 Improvements

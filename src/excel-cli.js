@@ -15,7 +15,7 @@ const messages = {
         sheetNameWhitespace: 'Sheet name has leading or trailing whitespace.',
         
         helpMessage: `
-        SQL2Excel Tool v1.2
+        SQL2Excel
         Usage: node src/excel-cli.js <command> [options]
 
         Commands:
@@ -126,7 +126,7 @@ const messages = {
         sheetNameWhitespace: '시트명 앞뒤에 공백이 있습니다.',
         
         helpMessage: 
-        `SQL2Excel 도구 v1.2
+        `SQL2Excel
         사용법: node src/excel-cli.js <명령> [옵션]',
         명령:',
           export                     SQL 쿼리 결과를 엑셀 파일로 내보내기',

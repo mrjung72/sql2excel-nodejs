@@ -1,11 +1,11 @@
 {
   "name": "sql2excel",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "SQL 쿼리 결과를 엑셀 파일로 저장하는 도구 (시트별 쿼리, 변수, XML/JSON 지원)",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "start:kr": "node app.js --lang=kr",
+    "start:kr": "echo Please use 실행하기.bat for Korean language",
     "export": "node src/excel-cli.js export",
     "validate": "node src/excel-cli.js validate",
     "list-dbs": "node src/excel-cli.js list-dbs",

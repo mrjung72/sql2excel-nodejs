@@ -71,7 +71,9 @@ npm run build
 #### Option B: Standalone Executable
 1. Download the release package from the releases section
 2. Extract to your desired directory
-3. Run `sql2excel.bat` for interactive menu
+3. Run interactive menu:
+   - English: Run `run.bat`
+   - Korean: Run `실행하기.bat`
 4. Or use `sql2excel-v{version}.exe` directly
 
 ### 3. Database Connection Setup
@@ -107,11 +109,38 @@ Create `config/dbinfo.json` file:
 
 ## 🚀 Basic Usage
 
+### Language Settings
+
+The tool supports Korean and English through environment variables:
+
+#### Development Environment
+- **English**: Run `run.bat` (automatically sets `LANGUAGE=en`)
+- **Korean**: Run `실행하기.bat` (automatically sets `LANGUAGE=kr`)
+
+#### Release Package
+- **English**: Run `run.bat`
+- **Korean**: Run `실행하기.bat`
+
+> 💡 **Note**: Language is controlled via the `LANGUAGE` environment variable. Default is English (en).
+
 ### Method 1: Interactive Batch File (Recommended for Windows Users)
 
-Run the interactive batch file for a user-friendly menu:
+#### Development Environment
 ```bash
-sql2excel.bat
+# English version
+run.bat
+
+# Korean version
+실행하기.bat
+```
+
+#### Release Package
+```bash
+# English version
+run.bat
+
+# Korean version
+실행하기.bat
 ```
 
 The interactive menu provides:

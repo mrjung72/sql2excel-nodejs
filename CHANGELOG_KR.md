@@ -1,5 +1,44 @@
 # SQL2Excel 버전 히스토리
 
+## v1.2.8 - 언어 설정 개선 및 타입 안정성 향상 (2025-10-19)
+
+### 🔧 개선사항
+- **언어 설정 통일**: 모든 모듈에서 환경 변수(`LANGUAGE`)로 언어 설정 통일
+  - `app.js`: 명령줄 인수 대신 환경 변수 사용
+  - `src/index.js`: 환경 변수 기반 언어 설정
+  - `src/excel-cli.js`: 환경 변수 사용, 기본값 'kr'에서 'en'으로 변경
+  - `src/excel-style-helper.js`: 환경 변수 사용
+  - `src/file-utils.js`: 환경 변수 사용
+  - `src/style-manager.js`: 환경 변수 사용
+  - `src/variable-processor.js`: 환경 변수 사용
+  - `src/query-parser.js`: 환경 변수 사용
+  - `src/excel-generator.js`: 환경 변수 사용
+
+- **배치 파일 개선**: 환경 변수 설정 추가, `--lang` 파라미터 제거
+  - `run.bat`: `set LANGUAGE=en` 추가
+  - `실행하기.bat`: `set LANGUAGE=kr` 추가
+  - `create-release.js`: 릴리스 배치 파일 템플릿에 환경 변수 설정 추가
+  - `package.json`: `start:kr` 스크립트를 배치 파일 사용 안내 메시지로 변경
+
+### 🐛 버그 수정
+- **타입 변환 오류 해결**: IN 절에서 빈 배열 처리 시 타입 안정성 개선
+  - `src/mssql-helper.js`: `createInClause()` 함수에서 `'^-_'` 대신 `NULL` 반환
+  - `src/variable-processor.js`: 해결되지 않은 동적 변수를 `'^-_'` 대신 `NULL`로 대체
+  - **문제**: INT 타입 컬럼에서 `WHERE OrderID IN ('^-_')` 실행 시 타입 변환 오류 발생
+  - **해결**: `WHERE OrderID IN (NULL)` 사용으로 모든 데이터 타입에서 안전하게 작동
+  - **효과**: 숫자, 문자열, 날짜 등 모든 타입의 컬럼에서 오류 없이 실행 (항상 0개 행 반환)
+
+### 📝 문서
+- 다국어 메시지 개선
+  - `variable-processor.js`: NULL 대체 시 메시지에 `(매칭 없음)` / `(no match)` 표시
+  - 빈 문자열 대체 시 메시지 명확화
+
+### 🔄 마이그레이션 가이드
+- 기존에 `node app.js --lang=kr` 형태로 실행하던 경우:
+  - Windows: `set LANGUAGE=kr && node app.js`
+  - 또는 `실행하기.bat` 사용 (자동으로 환경 변수 설정됨)
+- 개발 환경에서는 `.env` 파일에 `LANGUAGE=kr` 설정 가능
+
 ## v1.2.7 - 인코딩 및 검증 개선 (2025-10-16)
 
 ### 🔧 개선사항
