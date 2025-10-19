@@ -262,7 +262,7 @@ class MSSQLHelper {
    */
   createInClause(values) {
     if (!Array.isArray(values) || values.length === 0) {
-      return "'^-_'"; // 빈 배열을 존재하지 않을 것 같은 값으로 치환
+      return "NULL"; // 빈 배열일 경우 NULL 반환 (숫자/문자열 타입 모두 안전)
     }
     
     return values.map(v => {

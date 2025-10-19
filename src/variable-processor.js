@@ -42,7 +42,8 @@ const messages = {
         unresolvedDynamicVar: 'Unresolved dynamic variable',
         replacedWith: '→ replaced with',
         unresolvedVar: 'Unresolved variable',
-        emptyString: '→ replaced with empty string'
+        emptyString: '(empty string)',
+        nullValue: '(no match)'
     },
     kr: {
         dynamicVarSet: '동적 변수 설정:',
@@ -80,7 +81,8 @@ const messages = {
         unresolvedVars: '치환되지 않은 변수들:',
         unresolvedDynamicVar: '치환되지 않은 동적 변수',
         replacedWith: '→',
-        emptyString: '로 대체',
+        emptyString: '(빈 문자열)',
+        nullValue: '(매칭 없음)',
         unresolvedVar: '치환되지 않은 변수'
     }
 };
@@ -394,17 +396,17 @@ class VariableProcessor {
         const fullMatch = match[0];
         const varName = match[1];
         
-        // 동적 변수의 경우 빈 배열로 대체
+        // 동적 변수의 경우 NULL로 대체 (IN 절에서 숫자/문자열 타입 모두 안전)
         if (this.dynamicVariables.hasOwnProperty(varName.split('.')[0])) {
-          result = result.replace(fullMatch, "'^-_'");
+          result = result.replace(fullMatch, "NULL");
           if (debugVariables) {
-            console.log(`${this.msg.unresolvedDynamicVar} [${varName}] ${this.msg.replacedWith} '^-_'${this.msg.emptyString}`);
+            console.log(`${this.msg.unresolvedDynamicVar} [${varName}] ${this.msg.replacedWith} NULL ${this.msg.nullValue}`);
           }
         } else {
           // 일반 변수의 경우 빈 문자열로 대체
           result = result.replace(fullMatch, "''");
           if (debugVariables) {
-            console.log(`${this.msg.unresolvedVar} [${varName}] ${this.msg.replacedWith} ''${this.msg.emptyString}`);
+            console.log(`${this.msg.unresolvedVar} [${varName}] ${this.msg.replacedWith} '' ${this.msg.emptyString}`);
           }
         }
       });
