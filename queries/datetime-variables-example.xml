@@ -8,67 +8,66 @@
     <var name="department">IT</var>
   </vars>
   
-    <!-- Basic Time Functions -->
-    <sheet name="BasicTimeFunctions" use="true">
+    <!-- UTC Date/Time Formats -->
+    <sheet name="UTCFormats" use="true">
       <![CDATA[
         SELECT 
           '${reportTitle}' as ReportTitle,
-          '${CURRENT_TIMESTAMP}' as CurrentTime_UTC,
-          '${NOW}' as CurrentTime_NOW,
-          '${CURRENT_DATE}' as CurrentDate,
-          '${CURRENT_TIME}' as CurrentTime,
-          '${GETDATE}' as SQLServerFormat
+          '${DATE.UTC:YYYY-MM-DD HH:mm:ss}' as UTC_DateTime,
+          '${DATE.UTC:YYYY-MM-DD}' as UTC_Date,
+          '${DATE.UTC:HH:mm:ss}' as UTC_TimeOnly,
+          '${DATE.UTC:YYYYMMDD}' as UTC_CompactDate,
+          '${DATE.UTC:YYYY/MM/DD HH:mm}' as UTC_SlashFormat
       ]]>
     </sheet>
     
-    <!-- Korean Time Zone Functions -->
-    <sheet name="KoreanTimeZone" use="true">
+    <!-- Korean Time Zone (KST) -->
+    <sheet name="KSTFormats" use="true">
       <![CDATA[
         SELECT 
-          '${KST_NOW}' as KST_Now,
-          '${KST_DATE}' as KST_Date,
-          '${KST_TIME}' as KST_Time,
-          '${KST_DATETIME}' as KST_DateTime,
-          '${KST_ISO_TIMESTAMP}' as KST_ISO_Format
+          '${DATE.KST:YYYY-MM-DD HH:mm:ss}' as KST_DateTime,
+          '${DATE.KST:YYYY-MM-DD}' as KST_Date,
+          '${DATE.KST:HH:mm:ss}' as KST_Time,
+          '${DATE.KST:YYYY년 MM월 DD일}' as KoreanStyleDate,
+          '${DATE.KST:YYYY년 MM월 DD일 HH시 mm분}' as KoreanStyleDateTime
       ]]>
     </sheet>
     
-    <!-- Korean Date Format -->
-    <sheet name="KoreanDateFormat" use="true">
+    <!-- Filename-Friendly Formats -->
+    <sheet name="FilenameFormats" use="true">
       <![CDATA[
         SELECT 
-          '${KOREAN_DATE}' as KoreanDate,
-          '${KOREAN_DATETIME}' as KoreanDateTime,
-          '${KOREAN_DATE_SHORT}' as KoreanDateShort,
-          '${WEEKDAY_KR}' as WeekdayKorean,
-          '${MONTH_KR}' as MonthKorean,
-          '${YEAR_KR}' as YearKorean
+          '${DATE.UTC:YYYYMMDD}' as DateCompact,
+          '${DATE.UTC:YYYYMMDD_HHmmss}' as DateTimeForFile,
+          '${DATE.UTC:YYYY-MM-DD}' as DateWithDash,
+          '${DATE.UTC:YYYYMMDD_HHmm}' as ShortDateTime,
+          'Report_${DATE.UTC:YYYYMMDD}_${department}.xlsx' as ExampleFilename
       ]]>
     </sheet>
     
-    <!-- Various Formats -->
-    <sheet name="VariousFormats" use="true">
-      <![CDATA[
-        SELECT 
-          '${DATE_YYYYMMDD}' as YYYYMMDD_Format,
-          '${DATE_YYYY_MM_DD}' as YYYY_MM_DD_Format,
-          '${DATETIME_YYYYMMDD_HHMMSS}' as DateTime_Combined,
-          '${WEEKDAY_EN}' as WeekdayEnglish,
-          '${UNIX_TIMESTAMP}' as UnixTimestamp,
-          '${TIMESTAMP_MS}' as MillisecondTimestamp
-      ]]>
-    </sheet>
-    
-    <!-- Practical Usage Example -->
-    <sheet name="PracticalExample" use="true">
+    <!-- Practical Usage Examples -->
+    <sheet name="PracticalExamples" use="true">
       <![CDATA[
         SELECT 
           '${department}' as Department,
-          'Report Creation Date: ${KOREAN_DATE}' as CreationInfo,
-          'Creation Time: ${KST_NOW}' as DetailedTime,
-          'Day of Week: ${WEEKDAY_KR}' as DayInfo,
-          'Filename Format: Report_${DATE_YYYYMMDD}_${department}' as FilenameExample,
-          'WHERE Condition Example: created_date >= ''${DATE_YYYY_MM_DD}''' as QueryExample
+          'Report Date: ${DATE.KST:YYYY년 MM월 DD일}' as ReportDate,
+          'Created: ${DATE.KST:YYYY-MM-DD HH:mm}' as CreatedTime,
+          'Backup_${DATE.UTC:YYYYMMDD}.sql' as BackupFilename,
+          'WHERE created_date >= ''${DATE.UTC:YYYY-MM-DD}''' as QueryExample
+       ]]>
+     </sheet>
+     
+    <!-- Advanced Custom Formats -->
+    <sheet name="AdvancedFormats" use="true">
+      <![CDATA[
+        SELECT 
+          '${DATE.UTC:YYYY-MM-DD}' as UTC_DateWithDash,
+          '${DATE.UTC:YYYY/MM/DD}' as UTC_DateWithSlash,
+          '${DATE.UTC:YYYY.MM.DD}' as UTC_DateWithDot,
+          '${DATE.UTC:YYYY-MM-DD HH:mm:ss.SSS}' as UTC_HighPrecisionTime,
+          '${DATE.KST:YY/MM/DD HH:mm}' as KST_ShortFormat,
+          '${DATE.UTC:YYYY-MM}' as UTC_YearMonthOnly,
+          '${DATE.UTC:MM/DD HH:mm}' as UTC_MonthDayTime
        ]]>
      </sheet>
 </queries>

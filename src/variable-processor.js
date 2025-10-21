@@ -295,27 +295,59 @@ class VariableProcessor {
       }
     });
     
-    // 현재 시각 함수 치환 (MSSQL 헬퍼 사용) - 일반 변수보다 먼저 처리
-    const timestampFunctions = this.mssqlHelper.getTimestampFunctions();
+    // 타임존별 오프셋 설정 (UTC 기준, 분 단위)
+    const timezoneOffsets = {
+      'UTC': 0,           // 협정 세계시
+      'GMT': 0,           // 그리니치 표준시 (UTC와 동일)
+      'KST': 540,         // 한국 표준시 (UTC+9)
+      'JST': 540,         // 일본 표준시 (UTC+9)
+      'CST': 480,         // 중국 표준시 (UTC+8)
+      'SGT': 480,         // 싱가포르 표준시 (UTC+8)
+      'AEST': 600,        // 호주 동부 표준시 (UTC+10)
+      'CET': 60,          // 중앙 유럽 표준시 (UTC+1)
+      'EET': 120,         // 동유럽 표준시 (UTC+2)
+      'IST': 330,         // 인도 표준시 (UTC+5:30)
+      'GST': 240,         // 걸프 표준시 (UTC+4)
+      'EST': -300,        // 미국 동부 표준시 (UTC-5)
+      'CST_US': -360,     // 미국 중부 표준시 (UTC-6)
+      'MST': -420,        // 미국 산악 표준시 (UTC-7)
+      'PST': -480,        // 미국 서부 표준시 (UTC-8)
+      'AKST': -540,       // 알래스카 표준시 (UTC-9)
+      'HST': -600,        // 하와이 표준시 (UTC-10)
+      'BRT': -180,        // 브라질 표준시 (UTC-3)
+      'ART': -180         // 아르헨티나 표준시 (UTC-3)
+    };
     
-    // 현재 시각 함수 패턴 매칭 및 치환
-    Object.entries(timestampFunctions).forEach(([funcName, funcImpl]) => {
-      const pattern = new RegExp(`\\$\\{${funcName}\\}`, 'g');
-      const beforeReplace = result;
+    // 커스텀 포맷 날짜 변수 치환 (예: ${DATE.UTC:YYYY-MM-DD}, ${DATE.KST:YYYY년 MM월 DD일})
+    const timezoneList = Object.keys(timezoneOffsets).join('|');
+    const customDatePattern = new RegExp(`\\$\\{DATE\\.(${timezoneList}):([^}]+)\\}`, 'g');
+    let customDateMatch;
+    while ((customDateMatch = customDatePattern.exec(str)) !== null) {
+      const fullMatch = customDateMatch[0];
+      const timezone = customDateMatch[1];
+      const format = customDateMatch[2];
       
       try {
-        result = result.replace(pattern, funcImpl());
+        // 현재 시간을 UTC 기준으로 가져옴
+        const now = new Date();
+        const offsetMinutes = timezoneOffsets[timezone] || 0;
         
-        if (debugVariables && beforeReplace !== result) {
-          console.log(`${this.msg.timestampFunc} [${funcName}] ${this.msg.substituted} ${funcImpl()}`);
+        // 타임존 오프셋을 적용한 날짜 계산
+        const date = new Date(now.getTime() + (offsetMinutes * 60 * 1000));
+        
+        const formattedDate = this.mssqlHelper.formatDate(date, format);
+        result = result.replace(fullMatch, formattedDate);
+        
+        if (debugVariables) {
+          console.log(`${this.msg.timestampFunc} [DATE.${timezone}:${format}] ${this.msg.substituted} ${formattedDate}`);
         }
       } catch (error) {
-        console.log(`${this.msg.timestampFunc} [${funcName}] ${this.msg.substitution} ${this.msg.errorDuring} ${error.message}`);
+        console.log(`${this.msg.timestampFunc} [DATE.${timezone}:${format}] ${this.msg.substitution} ${this.msg.errorDuring} ${error.message}`);
         // 오류 발생 시 원본 유지
       }
-    });
+    }
     
-    // 일반 변수 치환 (기존 방식) - 시각 함수 치환 후 처리
+    // 일반 변수 치환 (기존 방식)
     result = result.replace(/\$\{(\w+)\}/g, (_, v) => {
       const value = mergedVars[v];
       if (value === undefined || value === null) return '';

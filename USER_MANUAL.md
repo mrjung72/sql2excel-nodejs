@@ -444,64 +444,102 @@ WHERE CustomerID IN (${customerData.CustomerID})
 4. **Performance**: Variables are executed once and cached for the entire export
 5. **Debug Mode**: Enable with `DEBUG_VARIABLES=true` for detailed variable substitution
 
-## 🕒 Automatic DateTime Variables
+## 🕒 Custom Date/Time Variables
 
-SQL2Excel provides built-in datetime variables that are automatically resolved to current time values. These variables can be used in queries, file names, and any text content.
+SQL2Excel provides a powerful custom date variable system that allows you to display current date and time in any format you want. These variables can be used in queries, file names, and any text content.
 
-### Basic DateTime Functions
+### Basic Syntax
 
-| Variable | Description | Example Output |
-|----------|-------------|----------------|
-| `${CURRENT_TIMESTAMP}` | Current UTC timestamp | `2024-10-05 15:30:45` |
-| `${NOW}` | Current UTC timestamp | `2024-10-05 15:30:45` |
-| `${CURRENT_DATE}` | Current UTC date | `2024-10-05` |
-| `${CURRENT_TIME}` | Current UTC time | `15:30:45` |
-| `${GETDATE}` | SQL Server format | `2024-10-05 15:30:45` |
+```
+${DATE.<TIMEZONE>:format}
+```
 
-### Korean Time Zone Functions
+Where `<TIMEZONE>` can be any of the supported timezones listed below.
 
-| Variable | Description | Example Output |
-|----------|-------------|----------------|
-| `${KST_NOW}` | Korean Standard Time | `2024-10-06 00:30:45` |
-| `${KST_DATE}` | Korean date | `2024-10-06` |
-| `${KST_TIME}` | Korean time | `00:30:45` |
-| `${KST_DATETIME}` | Korean datetime | `2024-10-06 00:30:45` |
+### Supported Timezones
 
-### Korean Localized Formats
+| Timezone Code | Description | UTC Offset | Region |
+|---------------|-------------|------------|--------|
+| **UTC** | Coordinated Universal Time | UTC+0 | Global Standard |
+| **GMT** | Greenwich Mean Time | UTC+0 | United Kingdom |
+| **KST** | Korea Standard Time | UTC+9 | South Korea |
+| **JST** | Japan Standard Time | UTC+9 | Japan |
+| **CST** | China Standard Time | UTC+8 | China |
+| **SGT** | Singapore Time | UTC+8 | Singapore |
+| **AEST** | Australian Eastern Standard Time | UTC+10 | Australia (East) |
+| **IST** | India Standard Time | UTC+5:30 | India |
+| **GST** | Gulf Standard Time | UTC+4 | UAE, Oman |
+| **CET** | Central European Time | UTC+1 | Central Europe |
+| **EET** | Eastern European Time | UTC+2 | Eastern Europe |
+| **EST** | Eastern Standard Time | UTC-5 | US East Coast |
+| **CST_US** | Central Standard Time | UTC-6 | US Central |
+| **MST** | Mountain Standard Time | UTC-7 | US Mountain |
+| **PST** | Pacific Standard Time | UTC-8 | US West Coast |
+| **AKST** | Alaska Standard Time | UTC-9 | Alaska |
+| **HST** | Hawaii Standard Time | UTC-10 | Hawaii |
+| **BRT** | Brasilia Time | UTC-3 | Brazil |
+| **ART** | Argentina Time | UTC-3 | Argentina |
 
-| Variable | Description | Example Output |
-|----------|-------------|----------------|
-| `${KOREAN_DATE}` | Korean date format | `2024년 10월 6일` |
-| `${KOREAN_DATETIME}` | Korean datetime format | `2024년 10월 6일 00:30:45` |
-| `${KOREAN_DATE_SHORT}` | Short Korean date | `2024. 10. 06.` |
-| `${WEEKDAY_KR}` | Korean weekday | `일요일` |
-| `${MONTH_KR}` | Korean month | `10월` |
-| `${YEAR_KR}` | Korean year | `2024년` |
+### Supported Tokens
 
-### Formatted Date/Time Functions
+| Token | Description | Example |
+|-------|-------------|---------|
+| `YYYY` | 4-digit year | `2024` |
+| `YY` | 2-digit year | `24` |
+| `MM` | 2-digit month (01-12) | `10` |
+| `M` | Month (1-12) | `10` |
+| `DD` | 2-digit day (01-31) | `21` |
+| `D` | Day (1-31) | `21` |
+| `HH` | 2-digit hour (00-23) | `15` |
+| `H` | Hour (0-23) | `15` |
+| `mm` | 2-digit minutes (00-59) | `30` |
+| `m` | Minutes (0-59) | `30` |
+| `ss` | 2-digit seconds (00-59) | `45` |
+| `s` | Seconds (0-59) | `45` |
+| `SSS` | Milliseconds (000-999) | `123` |
 
-| Variable | Description | Example Output |
-|----------|-------------|----------------|
-| `${DATE_YYYYMMDD}` | Compact date format | `20241006` |
-| `${DATE_YYYY_MM_DD}` | Hyphenated date (KST) | `2024-10-06` |
-| `${DATETIME_YYYYMMDD_HHMMSS}` | Compact datetime | `20241006_003045` |
-| `${WEEKDAY_EN}` | English weekday | `Sunday` |
+### Common Format Examples
 
-### Timestamp Functions
+#### Standard ISO Formats
+| Format | Output Example | Use Case |
+|--------|----------------|----------|
+| `${DATE.UTC:YYYY-MM-DD}` | `2024-10-21` | Standard date format |
+| `${DATE.UTC:YYYY-MM-DD HH:mm:ss}` | `2024-10-21 15:30:45` | Standard timestamp |
+| `${DATE.UTC:YYYYMMDD_HHmmss}` | `20241021_153045` | Filename-friendly timestamp |
 
-| Variable | Description | Example Output |
-|----------|-------------|----------------|
-| `${UNIX_TIMESTAMP}` | Unix timestamp | `1728140445` |
-| `${TIMESTAMP_MS}` | Milliseconds timestamp | `1728140445123` |
-| `${ISO_TIMESTAMP}` | ISO 8601 format | `2024-10-05T15:30:45.123Z` |
-| `${KST_ISO_TIMESTAMP}` | Korean ISO format | `2024-10-06T00:30:45.123Z` |
+#### Regional Examples
+| Format | Output Example | Region |
+|--------|----------------|--------|
+| `${DATE.EST:YYYY-MM-DD HH:mm:ss}` | `2024-10-21 10:30:45` | US East Coast |
+| `${DATE.PST:YYYY-MM-DD HH:mm:ss}` | `2024-10-21 07:30:45` | US West Coast |
+| `${DATE.KST:YYYY년 MM월 DD일}` | `2024년 10월 22일` | South Korea |
+| `${DATE.JST:YYYY年MM月DD日}` | `2024年10月22日` | Japan |
+| `${DATE.CET:DD.MM.YYYY HH:mm}` | `21.10.2024 16:30` | Central Europe |
+| `${DATE.IST:DD/MM/YYYY HH:mm}` | `21/10/2024 21:00` | India |
+| `${DATE.AEST:DD/MM/YYYY HH:mm}` | `22/10/2024 01:30` | Australia |
+
+#### Various Date Formats
+| Format | Output Example | Use Case |
+|--------|----------------|----------|
+| `${DATE.UTC:YYYY/MM/DD}` | `2024/10/21` | Slash format |
+| `${DATE.UTC:YYYYMMDD}` | `20241021` | Compact format for filenames |
+| `${DATE.UTC:YYYY.MM.DD}` | `2024.10.21` | Dot-separated format |
+| `${DATE.UTC:YYYY-MM}` | `2024-10` | Year-month only |
+| `${DATE.UTC:HH:mm:ss}` | `15:30:45` | Time only |
+| `${DATE.UTC:HH:mm:ss.SSS}` | `15:30:45.123` | With milliseconds |
 
 ### Usage Examples
 
-#### In XML Queries
+#### 1. Include Date in File Name
+```xml
+<excel db="sampleDB" output="output/report_${DATE.UTC:YYYYMMDD}_${DATE.UTC:HHmmss}.xlsx">
+```
+Output: `output/report_20241021_153045.xlsx`
+
+#### 2. Use in XML Queries
 ```xml
 <vars>
-  <var name="reportDate">${KOREAN_DATE}</var>
+  <var name="reportDate">${DATE.KST:YYYY년 MM월 DD일}</var>
   <var name="department">IT</var>
 </vars>
 
@@ -509,60 +547,78 @@ SQL2Excel provides built-in datetime variables that are automatically resolved t
   <sheet name="DailyReport" use="true">
     <![CDATA[
       SELECT 
-        '${reportDate} 일일 리포트' as title,
-        '${KST_NOW}' as generated_at,
+        '${reportDate} Daily Report' as title,
+        '${DATE.KST:YYYY-MM-DD HH:mm:ss}' as generated_at,
         * FROM orders 
-      WHERE created_date >= '${DATE_YYYY_MM_DD}'
+      WHERE created_date >= '${DATE.KST:YYYY-MM-DD}'
         AND department = '${department}'
     ]]>
   </sheet>
 </sheets>
 ```
 
-#### In JSON Queries
+#### 3. Use in JSON Queries
 ```json
 {
   "vars": {
-    "reportTitle": "Daily Report - ${KOREAN_DATE}",
-    "currentTime": "${KST_NOW}"
+    "reportTitle": "Daily Report - ${DATE.KST:YYYY년 MM월 DD일}",
+    "currentTime": "${DATE.KST:YYYY-MM-DD HH:mm}"
   },
   "sheets": [
     {
-      "name": "Report_${DATE_YYYYMMDD}",
+      "name": "Report_${DATE.UTC:YYYYMMDD}",
       "query": "SELECT '${reportTitle}' as title, '${currentTime}' as generated_at FROM users"
     }
   ]
 }
 ```
 
-#### For File Naming
-```xml
-<excel db="sampleDB" output="output/report_${DATE_YYYYMMDD}_${DATETIME_YYYYMMDD_HHMMSS}.xlsx">
-```
-
-#### In Query Conditions
+#### 4. Use in WHERE Conditions
 ```sql
 -- Filter records from today (Korean time)
 SELECT * FROM orders 
-WHERE order_date >= '${DATE_YYYY_MM_DD} 00:00:00'
-  AND order_date < '${DATE_YYYY_MM_DD} 23:59:59'
+WHERE order_date >= '${DATE.KST:YYYY-MM-DD} 00:00:00'
+  AND order_date < '${DATE.KST:YYYY-MM-DD} 23:59:59'
 
--- Create backup table with timestamp
-CREATE TABLE backup_orders_${DATE_YYYYMMDD} AS 
-SELECT * FROM orders WHERE created_at < '${KST_NOW}'
+-- Query specific month data
+SELECT * FROM sales 
+WHERE sale_month = '${DATE.UTC:YYYY-MM}'
+```
+
+#### 5. Create Backup Tables
+```sql
+CREATE TABLE backup_orders_${DATE.UTC:YYYYMMDD} AS 
+SELECT * FROM orders WHERE created_at < '${DATE.KST:YYYY-MM-DD HH:mm:ss}'
+```
+
+#### 6. Multi-Timezone Report
+```xml
+<sheet name="GlobalReport" use="true">
+  <![CDATA[
+    SELECT 
+      'UTC: ${DATE.UTC:YYYY-MM-DD HH:mm:ss}' as UTC_Time,
+      'New York: ${DATE.EST:YYYY-MM-DD HH:mm:ss}' as NewYork_Time,
+      'Los Angeles: ${DATE.PST:YYYY-MM-DD HH:mm:ss}' as LA_Time,
+      'London: ${DATE.GMT:YYYY-MM-DD HH:mm:ss}' as London_Time,
+      'Paris: ${DATE.CET:YYYY-MM-DD HH:mm:ss}' as Paris_Time,
+      'Tokyo: ${DATE.JST:YYYY-MM-DD HH:mm:ss}' as Tokyo_Time,
+      'Seoul: ${DATE.KST:YYYY-MM-DD HH:mm:ss}' as Seoul_Time,
+      'Sydney: ${DATE.AEST:YYYY-MM-DD HH:mm:ss}' as Sydney_Time
+  ]]>
+</sheet>
 ```
 
 ### Debug Mode
-Enable debug mode to see datetime variable substitution:
+Enable debug mode to see date variable substitution:
 ```bash
 DEBUG_VARIABLES=true node src/excel-cli.js export --xml queries/my-queries.xml
 ```
 
 This will show output like:
 ```
-시각 함수 [KST_NOW] 치환: 2024-10-06 00:30:45
-시각 함수 [KOREAN_DATE] 치환: 2024년 10월 6일
-시각 함수 [DATE_YYYYMMDD] 치환: 20241006
+시각 함수 [DATE.UTC:YYYYMMDD] 치환: 20241021
+시각 함수 [DATE.KST:YYYY-MM-DD HH:mm:ss] 치환: 2024-10-22 00:30:45
+시각 함수 [DATE.KST:YYYY년 MM월 DD일] 치환: 2024년 10월 22일
 ```
 
 ## 🕒 Creation Timestamp Feature
@@ -1146,7 +1202,7 @@ sql2excel.bat
 - Clear npm cache: `npm cache clean --force`
 
 #### 11. DateTime Variables Not Working
-**Problem**: DateTime variables like `${KST_NOW}` not showing values in Excel
+**Problem**: DateTime variables like `${DATE.KST:YYYY-MM-DD}` not showing values in Excel
 **Solution**:
 - Check variable syntax (use exact variable names from documentation)
 - Ensure variables are used in queries, not just in variable definitions

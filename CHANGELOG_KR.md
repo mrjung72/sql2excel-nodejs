@@ -1,5 +1,67 @@
 # SQL2Excel 버전 히스토리
 
+## v1.2.9 - 날짜 포맷 커스터마이징 기능으로 전면 개편 (2025-10-21)
+
+### ✨ 새로운 기능
+- **커스텀 날짜 포맷 지원**: 날짜 변수에 원하는 포맷을 파라미터로 전달 가능
+  - 새로운 문법: `${DATE:format}`, `${DATETIME:format}`, `${KST:format}`
+  - 지원 토큰: `YYYY`, `YY`, `MM`, `M`, `DD`, `D`, `HH`, `H`, `mm`, `m`, `ss`, `s`, `SSS`
+  - 사용 예시:
+    - `${DATE:YYYY-MM-DD}` → 2024-10-21
+    - `${DATE:YYYY/MM/DD}` → 2024/10/21
+    - `${DATE:YYYYMMDD}` → 20241021
+    - `${DATETIME:YYYY-MM-DD HH:mm:ss}` → 2024-10-21 15:30:45
+    - `${DATETIME:YYYYMMDD_HHmmss}` → 20241021_153045
+    - `${KST:YYYY년 MM월 DD일}` → 2024년 10월 21일
+    - `${DATE:YYYY-MM}` → 2024-10
+    - `${DATETIME:HH:mm:ss.SSS}` → 15:30:45.123
+
+### 🔧 개선사항
+- **확장성 향상**: 고정된 날짜 포맷에서 벗어나 자유로운 포맷 지정 가능
+- `src/mssql-helper.js`: `formatDate()` 함수 추가 - 날짜 포맷팅 로직
+- `src/variable-processor.js`: 커스텀 포맷 날짜 변수 파싱 로직 추가
+
+### 💥 주요 변경사항 (Breaking Changes)
+- **기존 고정 날짜 변수 제거**: 확장성이 떨어지는 고정 포맷 변수들을 모두 제거
+  - 제거된 변수: `${CURRENT_TIMESTAMP}`, `${NOW}`, `${CURRENT_DATE}`, `${CURRENT_TIME}`, `${GETDATE}`, 
+    `${KST_NOW}`, `${KST_DATE}`, `${KST_TIME}`, `${KST_DATETIME}`, `${KST_ISO_TIMESTAMP}`,
+    `${KOREAN_DATE}`, `${KOREAN_DATETIME}`, `${KOREAN_DATE_SHORT}`,
+    `${DATE_YYYYMMDD}`, `${DATE_YYYY_MM_DD}`, `${DATETIME_YYYYMMDD_HHMMSS}`,
+    `${UNIX_TIMESTAMP}`, `${TIMESTAMP_MS}`, `${ISO_TIMESTAMP}`,
+    `${WEEKDAY_KR}`, `${WEEKDAY_EN}`, `${MONTH_KR}`, `${YEAR_KR}`
+  - `src/mssql-helper.js`: `getTimestampFunctions()` 메서드 제거
+  
+### 🔄 마이그레이션 가이드
+기존 변수를 새로운 커스텀 포맷으로 변경하세요:
+```
+기존: ${DATE_YYYYMMDD}              → 신규: ${DATE:YYYYMMDD}
+기존: ${DATE_YYYY_MM_DD}            → 신규: ${DATE:YYYY-MM-DD}
+기존: ${CURRENT_TIMESTAMP}          → 신규: ${DATETIME:YYYY-MM-DD HH:mm:ss}
+기존: ${CURRENT_DATE}               → 신규: ${DATE:YYYY-MM-DD}
+기존: ${CURRENT_TIME}               → 신규: ${DATETIME:HH:mm:ss}
+기존: ${KST_NOW}                    → 신규: ${KST:YYYY-MM-DD HH:mm:ss}
+기존: ${KST_DATE}                   → 신규: ${KST:YYYY-MM-DD}
+기존: ${KOREAN_DATE}                → 신규: ${KST:YYYY년 MM월 DD일}
+기존: ${DATETIME_YYYYMMDD_HHMMSS}  → 신규: ${DATETIME:YYYYMMDD_HHmmss}
+```
+
+### 📝 예제 파일 업데이트
+- `queries/datetime-variables-example.xml`: 새로운 커스텀 포맷 방식으로 전면 재작성
+- `queries/datetime-variables-example.json`: 새로운 커스텀 포맷 방식으로 전면 재작성
+
+### 📚 사용 예시
+```sql
+-- 다양한 날짜 포맷으로 파일명 생성
+SELECT 'Report_${DATE:YYYY-MM-DD}_${department}.xlsx' as Filename
+
+-- 한국식 날짜 표시
+SELECT '보고서 작성일: ${KST:YYYY년 MM월 DD일}' as Title
+
+-- WHERE 조건에 커스텀 포맷 사용
+WHERE created_date >= '${DATE:YYYY-MM-DD}'
+  AND updated_time < '${DATETIME:YYYY-MM-DD HH:mm:ss}'
+```
+
 ## v1.2.8 - 언어 설정 개선 및 타입 안정성 향상 (2025-10-19)
 
 ### 🔧 개선사항

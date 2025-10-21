@@ -1,5 +1,67 @@
 # SQL2Excel Version History
 
+## v1.2.9 - Complete Overhaul with Custom Date Format (2025-10-21)
+
+### ✨ New Features
+- **Custom Date Format Support**: Pass custom date formats as parameters to date variables
+  - New syntax: `${DATE:format}`, `${DATETIME:format}`, `${KST:format}`
+  - Supported tokens: `YYYY`, `YY`, `MM`, `M`, `DD`, `D`, `HH`, `H`, `mm`, `m`, `ss`, `s`, `SSS`
+  - Usage examples:
+    - `${DATE:YYYY-MM-DD}` → 2024-10-21
+    - `${DATE:YYYY/MM/DD}` → 2024/10/21
+    - `${DATE:YYYYMMDD}` → 20241021
+    - `${DATETIME:YYYY-MM-DD HH:mm:ss}` → 2024-10-21 15:30:45
+    - `${DATETIME:YYYYMMDD_HHmmss}` → 20241021_153045
+    - `${KST:YYYY년 MM월 DD일}` → 2024년 10월 21일
+    - `${DATE:YYYY-MM}` → 2024-10
+    - `${DATETIME:HH:mm:ss.SSS}` → 15:30:45.123
+
+### 🔧 Improvements
+- **Enhanced Flexibility**: Freedom to specify any date format instead of using fixed formats
+- `src/mssql-helper.js`: Added `formatDate()` function for date formatting logic
+- `src/variable-processor.js`: Added custom format date variable parsing logic
+
+### 💥 Breaking Changes
+- **Removed Fixed Date Variables**: Removed all fixed format variables due to poor extensibility
+  - Removed variables: `${CURRENT_TIMESTAMP}`, `${NOW}`, `${CURRENT_DATE}`, `${CURRENT_TIME}`, `${GETDATE}`, 
+    `${KST_NOW}`, `${KST_DATE}`, `${KST_TIME}`, `${KST_DATETIME}`, `${KST_ISO_TIMESTAMP}`,
+    `${KOREAN_DATE}`, `${KOREAN_DATETIME}`, `${KOREAN_DATE_SHORT}`,
+    `${DATE_YYYYMMDD}`, `${DATE_YYYY_MM_DD}`, `${DATETIME_YYYYMMDD_HHMMSS}`,
+    `${UNIX_TIMESTAMP}`, `${TIMESTAMP_MS}`, `${ISO_TIMESTAMP}`,
+    `${WEEKDAY_KR}`, `${WEEKDAY_EN}`, `${MONTH_KR}`, `${YEAR_KR}`
+  - `src/mssql-helper.js`: Removed `getTimestampFunctions()` method
+  
+### 🔄 Migration Guide
+Replace old variables with new custom format syntax:
+```
+Old: ${DATE_YYYYMMDD}              → New: ${DATE:YYYYMMDD}
+Old: ${DATE_YYYY_MM_DD}            → New: ${DATE:YYYY-MM-DD}
+Old: ${CURRENT_TIMESTAMP}          → New: ${DATETIME:YYYY-MM-DD HH:mm:ss}
+Old: ${CURRENT_DATE}               → New: ${DATE:YYYY-MM-DD}
+Old: ${CURRENT_TIME}               → New: ${DATETIME:HH:mm:ss}
+Old: ${KST_NOW}                    → New: ${KST:YYYY-MM-DD HH:mm:ss}
+Old: ${KST_DATE}                   → New: ${KST:YYYY-MM-DD}
+Old: ${KOREAN_DATE}                → New: ${KST:YYYY년 MM월 DD일}
+Old: ${DATETIME_YYYYMMDD_HHMMSS}  → New: ${DATETIME:YYYYMMDD_HHmmss}
+```
+
+### 📝 Example Files Updated
+- `queries/datetime-variables-example.xml`: Completely rewritten with new custom format syntax
+- `queries/datetime-variables-example.json`: Completely rewritten with new custom format syntax
+
+### 📚 Usage Examples
+```sql
+-- Generate filenames with various date formats
+SELECT 'Report_${DATE:YYYY-MM-DD}_${department}.xlsx' as Filename
+
+-- Display Korean-style dates
+SELECT 'Report Date: ${KST:YYYY년 MM월 DD일}' as Title
+
+-- Use custom formats in WHERE conditions
+WHERE created_date >= '${DATE:YYYY-MM-DD}'
+  AND updated_time < '${DATETIME:YYYY-MM-DD HH:mm:ss}'
+```
+
 ## v1.2.8 - Language Configuration & Type Safety Improvements (2025-10-19)
 
 ### 🔧 Improvements

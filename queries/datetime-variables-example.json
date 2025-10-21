@@ -10,29 +10,29 @@
   },
   "sheets": [
     {
-      "name": "BasicTimeFunctions",
+      "name": "UTCFormats",
       "use": true,
-      "query": "SELECT '${reportTitle}' as ReportTitle, '${CURRENT_TIMESTAMP}' as CurrentTime_UTC, '${NOW}' as CurrentTime_NOW, '${CURRENT_DATE}' as CurrentDate, '${CURRENT_TIME}' as CurrentTime, '${GETDATE}' as SQLServerFormat"
+      "query": "SELECT '${reportTitle}' as ReportTitle, '${DATE.UTC:YYYY-MM-DD HH:mm:ss}' as UTC_DateTime, '${DATE.UTC:YYYY-MM-DD}' as UTC_Date, '${DATE.UTC:HH:mm:ss}' as UTC_TimeOnly, '${DATE.UTC:YYYYMMDD}' as UTC_CompactDate, '${DATE.UTC:YYYY/MM/DD HH:mm}' as UTC_SlashFormat"
     },
     {
-      "name": "KoreanTimeZone",
+      "name": "KSTFormats",
       "use": true,
-      "query": "SELECT '${KST_NOW}' as KST_Now, '${KST_DATE}' as KST_Date, '${KST_TIME}' as KST_Time, '${KST_DATETIME}' as KST_DateTime, '${KST_ISO_TIMESTAMP}' as KST_ISO_Format"
+      "query": "SELECT '${DATE.KST:YYYY-MM-DD HH:mm:ss}' as KST_DateTime, '${DATE.KST:YYYY-MM-DD}' as KST_Date, '${DATE.KST:HH:mm:ss}' as KST_Time, '${DATE.KST:YYYY년 MM월 DD일}' as KoreanStyleDate, '${DATE.KST:YYYY년 MM월 DD일 HH시 mm분}' as KoreanStyleDateTime"
     },
     {
-      "name": "KoreanDateFormat",
+      "name": "FilenameFormats",
       "use": true,
-      "query": "SELECT '${KOREAN_DATE}' as KoreanDate, '${KOREAN_DATETIME}' as KoreanDateTime, '${KOREAN_DATE_SHORT}' as KoreanDateShort, '${WEEKDAY_KR}' as WeekdayKorean, '${MONTH_KR}' as MonthKorean, '${YEAR_KR}' as YearKorean"
+      "query": "SELECT '${DATE.UTC:YYYYMMDD}' as DateCompact, '${DATE.UTC:YYYYMMDD_HHmmss}' as DateTimeForFile, '${DATE.UTC:YYYY-MM-DD}' as DateWithDash, '${DATE.UTC:YYYYMMDD_HHmm}' as ShortDateTime, 'Report_${DATE.UTC:YYYYMMDD}_${department}.xlsx' as ExampleFilename"
     },
     {
-      "name": "FilenameExample",
+      "name": "PracticalExamples",
       "use": true,
-      "query": "SELECT '${department}' as Department, 'Report_${DATE_YYYYMMDD}_${department}.xlsx' as RecommendedFilename, '${KOREAN_DATE} ${WEEKDAY_KR} Report' as TitleExample, 'WHERE created_date >= ''${DATE_YYYY_MM_DD}'' AND department = ''${department}''' as QueryConditionExample"
+      "query": "SELECT '${department}' as Department, 'Report Date: ${DATE.KST:YYYY년 MM월 DD일}' as ReportDate, 'Created: ${DATE.KST:YYYY-MM-DD HH:mm}' as CreatedTime, 'Backup_${DATE.UTC:YYYYMMDD}.sql' as BackupFilename, 'WHERE created_date >= ''${DATE.UTC:YYYY-MM-DD}''' as QueryExample"
     },
     {
-      "name": "TimestampUsage",
+      "name": "AdvancedFormats",
       "use": true,
-      "query": "SELECT '${UNIX_TIMESTAMP}' as UnixTimestamp, '${TIMESTAMP_MS}' as MillisecondTimestamp, '${ISO_TIMESTAMP}' as ISOFormat, '${DATETIME_YYYYMMDD_HHMMSS}' as FilenameDateTime, 'backup_${DATE_YYYYMMDD}_${department}' as BackupFilenameExample"
+      "query": "SELECT '${DATE.UTC:YYYY-MM-DD}' as UTC_DateWithDash, '${DATE.UTC:YYYY/MM/DD}' as UTC_DateWithSlash, '${DATE.UTC:YYYY.MM.DD}' as UTC_DateWithDot, '${DATE.UTC:YYYY-MM-DD HH:mm:ss.SSS}' as UTC_HighPrecisionTime, '${DATE.KST:YY/MM/DD HH:mm}' as KST_ShortFormat, '${DATE.UTC:YYYY-MM}' as UTC_YearMonthOnly, '${DATE.UTC:MM/DD HH:mm}' as UTC_MonthDayTime"
     }
   ]
 }

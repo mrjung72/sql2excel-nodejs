@@ -444,64 +444,102 @@ WHERE CustomerID IN (${customerData.CustomerID})
 4. **성능**: 변수는 한 번 실행되고 전체 내보내기에 대해 캐시됩니다
 5. **디버그 모드**: 자세한 변수 치환을 위해 `DEBUG_VARIABLES=true`로 활성화
 
-## 🕒 자동 DateTime 변수
+## 🕒 커스텀 날짜/시간 변수
 
-SQL2Excel은 현재 시간 값으로 자동 해석되는 내장 datetime 변수를 제공합니다. 이러한 변수는 쿼리, 파일 이름 및 모든 텍스트 콘텐츠에서 사용할 수 있습니다.
+SQL2Excel은 원하는 형식으로 현재 날짜와 시간을 표시할 수 있는 강력한 커스텀 날짜 변수 시스템을 제공합니다. 이러한 변수는 쿼리, 파일 이름 및 모든 텍스트 콘텐츠에서 사용할 수 있습니다.
 
-### 기본 DateTime 함수
+### 기본 문법
 
-| 변수 | 설명 | 예제 출력 |
-|------|------|----------|
-| `${CURRENT_TIMESTAMP}` | 현재 UTC 타임스탬프 | `2024-10-05 15:30:45` |
-| `${NOW}` | 현재 UTC 타임스탬프 | `2024-10-05 15:30:45` |
-| `${CURRENT_DATE}` | 현재 UTC 날짜 | `2024-10-05` |
-| `${CURRENT_TIME}` | 현재 UTC 시간 | `15:30:45` |
-| `${GETDATE}` | SQL Server 형식 | `2024-10-05 15:30:45` |
+```
+${DATE.<TIMEZONE>:format}
+```
 
-### 한국 시간대 함수
+`<TIMEZONE>`에는 아래 지원되는 타임존 중 하나를 사용할 수 있습니다.
 
-| 변수 | 설명 | 예제 출력 |
-|------|------|----------|
-| `${KST_NOW}` | 한국 표준시 | `2024-10-06 00:30:45` |
-| `${KST_DATE}` | 한국 날짜 | `2024-10-06` |
-| `${KST_TIME}` | 한국 시간 | `00:30:45` |
-| `${KST_DATETIME}` | 한국 일시 | `2024-10-06 00:30:45` |
+### 지원 타임존
 
-### 한국어 로케일 형식
+| 타임존 코드 | 설명 | UTC 오프셋 | 지역 |
+|------------|------|-----------|------|
+| **UTC** | 협정 세계시 | UTC+0 | 세계 표준 |
+| **GMT** | 그리니치 표준시 | UTC+0 | 영국 |
+| **KST** | 한국 표준시 | UTC+9 | 대한민국 |
+| **JST** | 일본 표준시 | UTC+9 | 일본 |
+| **CST** | 중국 표준시 | UTC+8 | 중국 |
+| **SGT** | 싱가포르 표준시 | UTC+8 | 싱가포르 |
+| **AEST** | 호주 동부 표준시 | UTC+10 | 호주 (동부) |
+| **IST** | 인도 표준시 | UTC+5:30 | 인도 |
+| **GST** | 걸프 표준시 | UTC+4 | UAE, 오만 |
+| **CET** | 중앙 유럽 표준시 | UTC+1 | 중앙 유럽 |
+| **EET** | 동유럽 표준시 | UTC+2 | 동유럽 |
+| **EST** | 미국 동부 표준시 | UTC-5 | 미국 동부 |
+| **CST_US** | 미국 중부 표준시 | UTC-6 | 미국 중부 |
+| **MST** | 미국 산악 표준시 | UTC-7 | 미국 산악 지대 |
+| **PST** | 미국 서부 표준시 | UTC-8 | 미국 서부 |
+| **AKST** | 알래스카 표준시 | UTC-9 | 알래스카 |
+| **HST** | 하와이 표준시 | UTC-10 | 하와이 |
+| **BRT** | 브라질리아 표준시 | UTC-3 | 브라질 |
+| **ART** | 아르헨티나 표준시 | UTC-3 | 아르헨티나 |
 
-| 변수 | 설명 | 예제 출력 |
-|------|------|----------|
-| `${KOREAN_DATE}` | 한국어 날짜 형식 | `2024년 10월 6일` |
-| `${KOREAN_DATETIME}` | 한국어 일시 형식 | `2024년 10월 6일 00:30:45` |
-| `${KOREAN_DATE_SHORT}` | 짧은 한국어 날짜 | `2024. 10. 06.` |
-| `${WEEKDAY_KR}` | 한국어 요일 | `일요일` |
-| `${MONTH_KR}` | 한국어 월 | `10월` |
-| `${YEAR_KR}` | 한국어 년 | `2024년` |
+### 지원 토큰
 
-### 형식화된 날짜/시간 함수
+| 토큰 | 설명 | 예제 |
+|------|------|------|
+| `YYYY` | 4자리 연도 | `2024` |
+| `YY` | 2자리 연도 | `24` |
+| `MM` | 2자리 월 (01-12) | `10` |
+| `M` | 월 (1-12) | `10` |
+| `DD` | 2자리 일 (01-31) | `21` |
+| `D` | 일 (1-31) | `21` |
+| `HH` | 2자리 시간 (00-23) | `15` |
+| `H` | 시간 (0-23) | `15` |
+| `mm` | 2자리 분 (00-59) | `30` |
+| `m` | 분 (0-59) | `30` |
+| `ss` | 2자리 초 (00-59) | `45` |
+| `s` | 초 (0-59) | `45` |
+| `SSS` | 밀리초 (000-999) | `123` |
 
-| 변수 | 설명 | 예제 출력 |
-|------|------|----------|
-| `${DATE_YYYYMMDD}` | 압축 날짜 형식 | `20241006` |
-| `${DATE_YYYY_MM_DD}` | 하이픈 날짜 (KST) | `2024-10-06` |
-| `${DATETIME_YYYYMMDD_HHMMSS}` | 압축 일시 | `20241006_003045` |
-| `${WEEKDAY_EN}` | 영어 요일 | `Sunday` |
+### 일반적인 형식 예시
 
-### 타임스탬프 함수
+#### 표준 ISO 형식
+| 형식 | 출력 예시 | 사용 예 |
+|------|----------|---------|
+| `${DATE.UTC:YYYY-MM-DD}` | `2024-10-21` | 표준 날짜 형식 |
+| `${DATE.UTC:YYYY-MM-DD HH:mm:ss}` | `2024-10-21 15:30:45` | 표준 타임스탬프 |
+| `${DATE.UTC:YYYYMMDD_HHmmss}` | `20241021_153045` | 파일명용 타임스탬프 |
 
-| 변수 | 설명 | 예제 출력 |
-|------|------|----------|
-| `${UNIX_TIMESTAMP}` | Unix 타임스탬프 | `1728140445` |
-| `${TIMESTAMP_MS}` | 밀리초 타임스탬프 | `1728140445123` |
-| `${ISO_TIMESTAMP}` | ISO 8601 형식 | `2024-10-05T15:30:45.123Z` |
-| `${KST_ISO_TIMESTAMP}` | 한국 ISO 형식 | `2024-10-06T00:30:45.123Z` |
+#### 지역별 예시
+| 형식 | 출력 예시 | 지역 |
+|------|----------|------|
+| `${DATE.EST:YYYY-MM-DD HH:mm:ss}` | `2024-10-21 10:30:45` | 미국 동부 |
+| `${DATE.PST:YYYY-MM-DD HH:mm:ss}` | `2024-10-21 07:30:45` | 미국 서부 |
+| `${DATE.KST:YYYY년 MM월 DD일}` | `2024년 10월 22일` | 대한민국 |
+| `${DATE.JST:YYYY年MM月DD日}` | `2024年10月22日` | 일본 |
+| `${DATE.CET:DD.MM.YYYY HH:mm}` | `21.10.2024 16:30` | 중앙 유럽 |
+| `${DATE.IST:DD/MM/YYYY HH:mm}` | `21/10/2024 21:00` | 인도 |
+| `${DATE.AEST:DD/MM/YYYY HH:mm}` | `22/10/2024 01:30` | 호주 |
+
+#### 다양한 날짜 형식
+| 형식 | 출력 예시 | 사용 예 |
+|------|----------|---------|
+| `${DATE.UTC:YYYY/MM/DD}` | `2024/10/21` | 슬래시 형식 |
+| `${DATE.UTC:YYYYMMDD}` | `20241021` | 파일명용 압축 형식 |
+| `${DATE.UTC:YYYY.MM.DD}` | `2024.10.21` | 점 구분 형식 |
+| `${DATE.UTC:YYYY-MM}` | `2024-10` | 연월만 표시 |
+| `${DATE.UTC:HH:mm:ss}` | `15:30:45` | 시간만 표시 |
+| `${DATE.UTC:HH:mm:ss.SSS}` | `15:30:45.123` | 밀리초 포함 |
 
 ### 사용 예제
 
-#### XML 쿼리에서
+#### 1. 파일 이름에 날짜 포함
+```xml
+<excel db="sampleDB" output="output/report_${DATE.UTC:YYYYMMDD}_${DATE.UTC:HHmmss}.xlsx">
+```
+출력: `output/report_20241021_153045.xlsx`
+
+#### 2. XML 쿼리에서 사용
 ```xml
 <vars>
-  <var name="reportDate">${KOREAN_DATE}</var>
+  <var name="reportDate">${DATE.KST:YYYY년 MM월 DD일}</var>
   <var name="department">IT</var>
 </vars>
 
@@ -510,59 +548,77 @@ SQL2Excel은 현재 시간 값으로 자동 해석되는 내장 datetime 변수�
     <![CDATA[
       SELECT 
         '${reportDate} 일일 리포트' as title,
-        '${KST_NOW}' as generated_at,
+        '${DATE.KST:YYYY-MM-DD HH:mm:ss}' as generated_at,
         * FROM orders 
-      WHERE created_date >= '${DATE_YYYY_MM_DD}'
+      WHERE created_date >= '${DATE.KST:YYYY-MM-DD}'
         AND department = '${department}'
     ]]>
   </sheet>
 </sheets>
 ```
 
-#### JSON 쿼리에서
+#### 3. JSON 쿼리에서 사용
 ```json
 {
   "vars": {
-    "reportTitle": "일일 리포트 - ${KOREAN_DATE}",
-    "currentTime": "${KST_NOW}"
+    "reportTitle": "일일 리포트 - ${DATE.KST:YYYY년 MM월 DD일}",
+    "currentTime": "${DATE.KST:YYYY-MM-DD HH:mm}"
   },
   "sheets": [
     {
-      "name": "Report_${DATE_YYYYMMDD}",
+      "name": "Report_${DATE.UTC:YYYYMMDD}",
       "query": "SELECT '${reportTitle}' as title, '${currentTime}' as generated_at FROM users"
     }
   ]
 }
 ```
 
-#### 파일 이름 지정
-```xml
-<excel db="sampleDB" output="output/report_${DATE_YYYYMMDD}_${DATETIME_YYYYMMDD_HHMMSS}.xlsx">
-```
-
-#### 쿼리 조건에서
+#### 4. WHERE 조건에서 사용
 ```sql
 -- 오늘 날짜의 레코드 필터링 (한국 시간)
 SELECT * FROM orders 
-WHERE order_date >= '${DATE_YYYY_MM_DD} 00:00:00'
-  AND order_date < '${DATE_YYYY_MM_DD} 23:59:59'
+WHERE order_date >= '${DATE.KST:YYYY-MM-DD} 00:00:00'
+  AND order_date < '${DATE.KST:YYYY-MM-DD} 23:59:59'
 
--- 타임스탬프로 백업 테이블 생성
-CREATE TABLE backup_orders_${DATE_YYYYMMDD} AS 
-SELECT * FROM orders WHERE created_at < '${KST_NOW}'
+-- 특정 월의 데이터 조회
+SELECT * FROM sales 
+WHERE sale_month = '${DATE.UTC:YYYY-MM}'
+```
+
+#### 5. 백업 테이블 생성
+```sql
+CREATE TABLE backup_orders_${DATE.UTC:YYYYMMDD} AS 
+SELECT * FROM orders WHERE created_at < '${DATE.KST:YYYY-MM-DD HH:mm:ss}'
+```
+
+#### 6. 다중 타임존 보고서
+```xml
+<sheet name="GlobalReport" use="true">
+  <![CDATA[
+    SELECT 
+      'UTC: ${DATE.UTC:YYYY-MM-DD HH:mm:ss}' as UTC_Time,
+      '뉴욕: ${DATE.EST:YYYY-MM-DD HH:mm:ss}' as NewYork_Time,
+      '로스앤젤레스: ${DATE.PST:YYYY-MM-DD HH:mm:ss}' as LA_Time,
+      '런던: ${DATE.GMT:YYYY-MM-DD HH:mm:ss}' as London_Time,
+      '파리: ${DATE.CET:YYYY-MM-DD HH:mm:ss}' as Paris_Time,
+      '도쿄: ${DATE.JST:YYYY-MM-DD HH:mm:ss}' as Tokyo_Time,
+      '서울: ${DATE.KST:YYYY-MM-DD HH:mm:ss}' as Seoul_Time,
+      '시드니: ${DATE.AEST:YYYY-MM-DD HH:mm:ss}' as Sydney_Time
+  ]]>
+</sheet>
 ```
 
 ### 디버그 모드
-datetime 변수 치환을 확인하려면 디버그 모드를 활성화하세요:
+날짜 변수 치환을 확인하려면 디버그 모드를 활성화하세요:
 ```bash
 DEBUG_VARIABLES=true node src/excel-cli.js export --xml queries/my-queries.xml
 ```
 
 다음과 같은 출력이 표시됩니다:
 ```
-시각 함수 [KST_NOW] 치환: 2024-10-06 00:30:45
-시각 함수 [KOREAN_DATE] 치환: 2024년 10월 6일
-시각 함수 [DATE_YYYYMMDD] 치환: 20241006
+시각 함수 [DATE.UTC:YYYYMMDD] 치환: 20241021
+시각 함수 [DATE.KST:YYYY-MM-DD HH:mm:ss] 치환: 2024-10-22 00:30:45
+시각 함수 [DATE.KST:YYYY년 MM월 DD일] 치환: 2024년 10월 22일
 ```
 
 ## 🕒 생성 타임스탬프 기능
@@ -1146,7 +1202,7 @@ sql2excel.bat
 - npm 캐시 정리: `npm cache clean --force`
 
 #### 11. DateTime 변수가 작동하지 않음
-**문제**: `${KST_NOW}`와 같은 DateTime 변수가 엑셀에 값을 표시하지 않음
+**문제**: `${DATE.KST:YYYY-MM-DD}`와 같은 DateTime 변수가 엑셀에 값을 표시하지 않음
 **해결 방법**:
 - 변수 구문 확인 (문서의 정확한 변수 이름 사용)
 - 변수가 변수 정의가 아닌 쿼리에서 사용되는지 확인
