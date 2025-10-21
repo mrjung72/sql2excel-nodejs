@@ -1,66 +1,86 @@
 # SQL2Excel Version History
 
-## v1.2.9 - Complete Overhaul with Custom Date Format (2025-10-21)
+## v1.2.9 - Global Timezone System & Local Time Support (2025-10-21)
 
 ### ✨ New Features
-- **Custom Date Format Support**: Pass custom date formats as parameters to date variables
-  - New syntax: `${DATE:format}`, `${DATETIME:format}`, `${KST:format}`
+- **Global Timezone System**: Support for 22 timezones worldwide
+  - New syntax: `${DATE.<TIMEZONE>:format}` (explicit timezone) or `${DATE:format}` (local time)
+  - Asia-Pacific: UTC, GMT, KST, JST, CST, SGT, PHT, ICT, IST, AEST
+  - Europe/Middle East: CET(Germany, France, Italy, Poland), EET, GST
+  - Americas: EST, AST, CST_US(US, Canada, Mexico), MST, PST, AKST, HST, BRT, ART
   - Supported tokens: `YYYY`, `YY`, `MM`, `M`, `DD`, `D`, `HH`, `H`, `mm`, `m`, `ss`, `s`, `SSS`
-  - Usage examples:
-    - `${DATE:YYYY-MM-DD}` → 2024-10-21
-    - `${DATE:YYYY/MM/DD}` → 2024/10/21
-    - `${DATE:YYYYMMDD}` → 20241021
-    - `${DATETIME:YYYY-MM-DD HH:mm:ss}` → 2024-10-21 15:30:45
-    - `${DATETIME:YYYYMMDD_HHmmss}` → 20241021_153045
-    - `${KST:YYYY년 MM월 DD일}` → 2024년 10월 21일
-    - `${DATE:YYYY-MM}` → 2024-10
-    - `${DATETIME:HH:mm:ss.SSS}` → 15:30:45.123
+
+- **Local Time Support**: Automatically uses server's local time when timezone is omitted
+  - `${DATE:YYYY-MM-DD}` - Uses server's local timezone
+  - Recommendation: Explicitly specify timezone for global consistency
+
+### 🌍 Timezone Usage Examples
+```
+${DATE.UTC:YYYY-MM-DD}                 → 2024-10-21 (UTC time)
+${DATE.KST:YYYY년 MM월 DD일}           → 2024년 10월 22일 (Korea time)
+${DATE.JST:YYYY年MM月DD日}             → 2024年10月22日 (Japan time)
+${DATE.EST:YYYY-MM-DD HH:mm:ss}        → 2024-10-21 10:30:45 (US East)
+${DATE.CET:DD.MM.YYYY HH:mm}           → 21.10.2024 16:30 (Central Europe)
+${DATE.PHT:YYYY/MM/DD HH:mm}           → 2024/10/21 23:30 (Philippines)
+${DATE.ICT:YYYY-MM-DD HH:mm}           → 2024-10-21 22:30 (Thailand/Vietnam)
+${DATE:YYYYMMDD_HHmmss}                → 20241021_183045 (local time)
+```
 
 ### 🔧 Improvements
-- **Enhanced Flexibility**: Freedom to specify any date format instead of using fixed formats
-- `src/mssql-helper.js`: Added `formatDate()` function for date formatting logic
-- `src/variable-processor.js`: Added custom format date variable parsing logic
+- **Enhanced Extensibility**: Flexible timezone and format specification beyond fixed formats
+- **Explicit Timezone**: Clarified timezone specification in variable names (`DATE.UTC`, `DATE.KST`, etc.)
+- **Flexible Time Handling**: Simultaneous multi-timezone display for global reports
+- `src/variable-processor.js`: 
+  - Added 22 timezone offset configurations
+  - Added local time processing logic
+  - Added timezone-specific date variable parsing logic
+- `src/mssql-helper.js`: Unified date formatting logic with `formatDate()` function
 
 ### 💥 Breaking Changes
-- **Removed Fixed Date Variables**: Removed all fixed format variables due to poor extensibility
-  - Removed variables: `${CURRENT_TIMESTAMP}`, `${NOW}`, `${CURRENT_DATE}`, `${CURRENT_TIME}`, `${GETDATE}`, 
-    `${KST_NOW}`, `${KST_DATE}`, `${KST_TIME}`, `${KST_DATETIME}`, `${KST_ISO_TIMESTAMP}`,
-    `${KOREAN_DATE}`, `${KOREAN_DATETIME}`, `${KOREAN_DATE_SHORT}`,
-    `${DATE_YYYYMMDD}`, `${DATE_YYYY_MM_DD}`, `${DATETIME_YYYYMMDD_HHMMSS}`,
-    `${UNIX_TIMESTAMP}`, `${TIMESTAMP_MS}`, `${ISO_TIMESTAMP}`,
-    `${WEEKDAY_KR}`, `${WEEKDAY_EN}`, `${MONTH_KR}`, `${YEAR_KR}`
-  - `src/mssql-helper.js`: Removed `getTimestampFunctions()` method
-  
+- **Date Variable Format Changed**: Changed to explicitly specify timezone
+  - Old: `${DATE:format}`, `${DATETIME:format}`, `${KST:format}`
+  - New: `${DATE.<TIMEZONE>:format}` or `${DATE:format}` (local time)
+
 ### 🔄 Migration Guide
-Replace old variables with new custom format syntax:
+Update existing variables to new global timezone format:
 ```
-Old: ${DATE_YYYYMMDD}              → New: ${DATE:YYYYMMDD}
-Old: ${DATE_YYYY_MM_DD}            → New: ${DATE:YYYY-MM-DD}
-Old: ${CURRENT_TIMESTAMP}          → New: ${DATETIME:YYYY-MM-DD HH:mm:ss}
-Old: ${CURRENT_DATE}               → New: ${DATE:YYYY-MM-DD}
-Old: ${CURRENT_TIME}               → New: ${DATETIME:HH:mm:ss}
-Old: ${KST_NOW}                    → New: ${KST:YYYY-MM-DD HH:mm:ss}
-Old: ${KST_DATE}                   → New: ${KST:YYYY-MM-DD}
-Old: ${KOREAN_DATE}                → New: ${KST:YYYY년 MM월 DD일}
-Old: ${DATETIME_YYYYMMDD_HHMMSS}  → New: ${DATETIME:YYYYMMDD_HHmmss}
+Old: ${DATE:YYYY-MM-DD}                   → New: ${DATE.UTC:YYYY-MM-DD} or ${DATE:YYYY-MM-DD} (local)
+Old: ${DATETIME:YYYY-MM-DD HH:mm:ss}      → New: ${DATE.UTC:YYYY-MM-DD HH:mm:ss}
+Old: ${KST:YYYY-MM-DD}                    → New: ${DATE.KST:YYYY-MM-DD}
+Old: ${KST:YYYY년 MM월 DD일}              → New: ${DATE.KST:YYYY년 MM월 DD일}
 ```
 
 ### 📝 Example Files Updated
-- `queries/datetime-variables-example.xml`: Completely rewritten with new custom format syntax
-- `queries/datetime-variables-example.json`: Completely rewritten with new custom format syntax
+- `queries/datetime-variables-example.xml`: Completely rewritten with global timezone system
+- `queries/datetime-variables-example.json`: Completely rewritten with global timezone system
 
 ### 📚 Usage Examples
 ```sql
--- Generate filenames with various date formats
-SELECT 'Report_${DATE:YYYY-MM-DD}_${department}.xlsx' as Filename
+-- Use UTC time in filename
+<excel output="report_${DATE.UTC:YYYYMMDD}_${DATE.UTC:HHmmss}.xlsx">
+
+-- Use local time in filename
+<excel output="report_${DATE:YYYYMMDD}_${DATE:HHmmss}.xlsx">
+
+-- Global report (simultaneous multi-timezone display)
+SELECT 
+  'Seoul: ${DATE.KST:YYYY-MM-DD HH:mm:ss}' as Seoul_Time,
+  'New York: ${DATE.EST:YYYY-MM-DD HH:mm:ss}' as NewYork_Time,
+  'Tokyo: ${DATE.JST:YYYY-MM-DD HH:mm:ss}' as Tokyo_Time,
+  'Paris: ${DATE.CET:YYYY-MM-DD HH:mm:ss}' as Paris_Time
 
 -- Display Korean-style dates
-SELECT 'Report Date: ${KST:YYYY년 MM월 DD일}' as Title
+SELECT 'Report Date: ${DATE.KST:YYYY년 MM월 DD일}' as Title
 
--- Use custom formats in WHERE conditions
-WHERE created_date >= '${DATE:YYYY-MM-DD}'
-  AND updated_time < '${DATETIME:YYYY-MM-DD HH:mm:ss}'
+-- Use timezone in WHERE conditions
+WHERE created_date >= '${DATE.KST:YYYY-MM-DD}'
+  AND updated_time < '${DATE.KST:YYYY-MM-DD HH:mm:ss}'
 ```
+
+### 🌏 Newly Added Timezones (3)
+- **PHT** (Philippine Time, UTC+8): Philippines
+- **ICT** (Indochina Time, UTC+7): Thailand, Vietnam
+- **AST** (Atlantic Standard Time, UTC-4): Eastern Canada
 
 ## v1.2.8 - Language Configuration & Type Safety Improvements (2025-10-19)
 

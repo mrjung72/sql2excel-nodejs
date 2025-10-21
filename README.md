@@ -21,7 +21,7 @@ A Node.js-based tool for generating Excel files from SQL query results.
 - 🌐 **Multi-language Support**: Korean and English release packages
 - 🔧 **Release Automation**: Automated release package generation with proper documentation
 - 🕒 **Creation Timestamp**: Display creation timestamp on each Excel sheet
-- ⏰ **Custom DateTime Variables**: Support for 19 timezones worldwide with custom format (`${DATE.UTC:YYYY-MM-DD}`, `${DATE.KST:YYYY년 MM월 DD일}`, `${DATE.EST:YYYY-MM-DD HH:mm}`, etc.)
+- ⏰ **Custom DateTime Variables**: Support for 22 timezones worldwide with custom format (`${DATE.UTC:YYYY-MM-DD}`, `${DATE.KST:YYYY년 MM월 DD일}`, `${DATE.EST:YYYY-MM-DD HH:mm}`, etc.) or use local time (`${DATE:YYYY-MM-DD}`)
 - 📋 **SQL Query Formatting**: Preserve original SQL formatting with line breaks in Table of Contents
 - 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 

@@ -450,11 +450,20 @@ SQL2Excel은 원하는 형식으로 현재 날짜와 시간을 표시할 수 있
 
 ### 기본 문법
 
+**타임존 지정 (권장):**
 ```
 ${DATE.<TIMEZONE>:format}
 ```
 
-`<TIMEZONE>`에는 아래 지원되는 타임존 중 하나를 사용할 수 있습니다.
+**타임존 생략 (로컬 시간):**
+```
+${DATE:format}
+```
+
+- **타임존 지정**: 특정 타임존 시간 사용 (예: `${DATE.UTC:YYYY-MM-DD}`, `${DATE.KST:YYYY-MM-DD}`)
+- **타임존 생략**: 서버의 로컬 시간 사용 (예: `${DATE:YYYY-MM-DD}`)
+
+> **참고**: 타임존을 생략하면 서버의 로컬 타임존 시간이 사용됩니다. 글로벌 일관성을 위해서는 타임존을 명시적으로 지정하는 것을 권장합니다.
 
 ### 지원 타임존
 
@@ -466,13 +475,16 @@ ${DATE.<TIMEZONE>:format}
 | **JST** | 일본 표준시 | UTC+9 | 일본 |
 | **CST** | 중국 표준시 | UTC+8 | 중국 |
 | **SGT** | 싱가포르 표준시 | UTC+8 | 싱가포르 |
+| **PHT** | 필리핀 표준시 | UTC+8 | 필리핀 |
 | **AEST** | 호주 동부 표준시 | UTC+10 | 호주 (동부) |
+| **ICT** | 인도차이나 표준시 | UTC+7 | 태국, 베트남 |
 | **IST** | 인도 표준시 | UTC+5:30 | 인도 |
 | **GST** | 걸프 표준시 | UTC+4 | UAE, 오만 |
-| **CET** | 중앙 유럽 표준시 | UTC+1 | 중앙 유럽 |
+| **CET** | 중앙 유럽 표준시 | UTC+1 | 독일, 프랑스, 이탈리아, 폴란드 |
 | **EET** | 동유럽 표준시 | UTC+2 | 동유럽 |
 | **EST** | 미국 동부 표준시 | UTC-5 | 미국 동부 |
-| **CST_US** | 미국 중부 표준시 | UTC-6 | 미국 중부 |
+| **AST** | 대서양 표준시 | UTC-4 | 캐나다 동부 |
+| **CST_US** | 중부 표준시 | UTC-6 | 미국, 캐나다, 멕시코 중부 |
 | **MST** | 미국 산악 표준시 | UTC-7 | 미국 산악 지대 |
 | **PST** | 미국 서부 표준시 | UTC-8 | 미국 서부 |
 | **AKST** | 알래스카 표준시 | UTC-9 | 알래스카 |
@@ -531,10 +543,18 @@ ${DATE.<TIMEZONE>:format}
 ### 사용 예제
 
 #### 1. 파일 이름에 날짜 포함
+
+**타임존 지정:**
 ```xml
 <excel db="sampleDB" output="output/report_${DATE.UTC:YYYYMMDD}_${DATE.UTC:HHmmss}.xlsx">
 ```
 출력: `output/report_20241021_153045.xlsx`
+
+**로컬 시간 사용:**
+```xml
+<excel db="sampleDB" output="output/report_${DATE:YYYYMMDD}_${DATE:HHmmss}.xlsx">
+```
+출력: `output/report_20241021_183045.xlsx` (서버의 로컬 시간 사용)
 
 #### 2. XML 쿼리에서 사용
 ```xml

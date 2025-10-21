@@ -450,11 +450,20 @@ SQL2Excel provides a powerful custom date variable system that allows you to dis
 
 ### Basic Syntax
 
+**With Timezone (Recommended):**
 ```
 ${DATE.<TIMEZONE>:format}
 ```
 
-Where `<TIMEZONE>` can be any of the supported timezones listed below.
+**Without Timezone (Local Time):**
+```
+${DATE:format}
+```
+
+- **With Timezone**: Uses the specified timezone (e.g., `${DATE.UTC:YYYY-MM-DD}`, `${DATE.KST:YYYY-MM-DD}`)
+- **Without Timezone**: Uses the server's local time (e.g., `${DATE:YYYY-MM-DD}`)
+
+> **Note**: When timezone is omitted, the date/time will be in the server's local timezone. For global consistency, it's recommended to explicitly specify the timezone.
 
 ### Supported Timezones
 
@@ -466,13 +475,16 @@ Where `<TIMEZONE>` can be any of the supported timezones listed below.
 | **JST** | Japan Standard Time | UTC+9 | Japan |
 | **CST** | China Standard Time | UTC+8 | China |
 | **SGT** | Singapore Time | UTC+8 | Singapore |
+| **PHT** | Philippine Time | UTC+8 | Philippines |
 | **AEST** | Australian Eastern Standard Time | UTC+10 | Australia (East) |
+| **ICT** | Indochina Time | UTC+7 | Thailand, Vietnam |
 | **IST** | India Standard Time | UTC+5:30 | India |
 | **GST** | Gulf Standard Time | UTC+4 | UAE, Oman |
-| **CET** | Central European Time | UTC+1 | Central Europe |
+| **CET** | Central European Time | UTC+1 | Germany, France, Italy, Poland |
 | **EET** | Eastern European Time | UTC+2 | Eastern Europe |
 | **EST** | Eastern Standard Time | UTC-5 | US East Coast |
-| **CST_US** | Central Standard Time | UTC-6 | US Central |
+| **AST** | Atlantic Standard Time | UTC-4 | Eastern Canada |
+| **CST_US** | Central Standard Time | UTC-6 | US, Canada, Mexico Central |
 | **MST** | Mountain Standard Time | UTC-7 | US Mountain |
 | **PST** | Pacific Standard Time | UTC-8 | US West Coast |
 | **AKST** | Alaska Standard Time | UTC-9 | Alaska |
@@ -531,10 +543,18 @@ Where `<TIMEZONE>` can be any of the supported timezones listed below.
 ### Usage Examples
 
 #### 1. Include Date in File Name
+
+**With Timezone:**
 ```xml
 <excel db="sampleDB" output="output/report_${DATE.UTC:YYYYMMDD}_${DATE.UTC:HHmmss}.xlsx">
 ```
 Output: `output/report_20241021_153045.xlsx`
+
+**With Local Time:**
+```xml
+<excel db="sampleDB" output="output/report_${DATE:YYYYMMDD}_${DATE:HHmmss}.xlsx">
+```
+Output: `output/report_20241021_183045.xlsx` (using server's local time)
 
 #### 2. Use in XML Queries
 ```xml

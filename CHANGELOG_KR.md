@@ -1,66 +1,86 @@
 # SQL2Excel 버전 히스토리
 
-## v1.2.9 - 날짜 포맷 커스터마이징 기능으로 전면 개편 (2025-10-21)
+## v1.2.9 - 글로벌 타임존 시스템 및 로컬 시간 지원 (2025-10-21)
 
 ### ✨ 새로운 기능
-- **커스텀 날짜 포맷 지원**: 날짜 변수에 원하는 포맷을 파라미터로 전달 가능
-  - 새로운 문법: `${DATE:format}`, `${DATETIME:format}`, `${KST:format}`
+- **글로벌 타임존 시스템**: 전세계 22개 타임존 지원
+  - 새로운 문법: `${DATE.<TIMEZONE>:format}` (타임존 명시) 또는 `${DATE:format}` (로컬 시간)
+  - 아시아-태평양: UTC, GMT, KST, JST, CST, SGT, PHT, ICT, IST, AEST
+  - 유럽/중동: CET(독일, 프랑스, 이탈리아, 폴란드), EET, GST
+  - 아메리카: EST, AST, CST_US(미국, 캐나다, 멕시코), MST, PST, AKST, HST, BRT, ART
   - 지원 토큰: `YYYY`, `YY`, `MM`, `M`, `DD`, `D`, `HH`, `H`, `mm`, `m`, `ss`, `s`, `SSS`
-  - 사용 예시:
-    - `${DATE:YYYY-MM-DD}` → 2024-10-21
-    - `${DATE:YYYY/MM/DD}` → 2024/10/21
-    - `${DATE:YYYYMMDD}` → 20241021
-    - `${DATETIME:YYYY-MM-DD HH:mm:ss}` → 2024-10-21 15:30:45
-    - `${DATETIME:YYYYMMDD_HHmmss}` → 20241021_153045
-    - `${KST:YYYY년 MM월 DD일}` → 2024년 10월 21일
-    - `${DATE:YYYY-MM}` → 2024-10
-    - `${DATETIME:HH:mm:ss.SSS}` → 15:30:45.123
+
+- **로컬 시간 지원**: 타임존 생략 시 서버의 로컬 시간 자동 사용
+  - `${DATE:YYYY-MM-DD}` - 서버의 로컬 타임존 시간 사용
+  - 권장사항: 글로벌 일관성을 위해 타임존 명시 권장
+
+### 🌍 타임존별 사용 예시
+```
+${DATE.UTC:YYYY-MM-DD}                 → 2024-10-21 (UTC 시간)
+${DATE.KST:YYYY년 MM월 DD일}           → 2024년 10월 22일 (한국 시간)
+${DATE.JST:YYYY年MM月DD日}             → 2024年10月22日 (일본 시간)
+${DATE.EST:YYYY-MM-DD HH:mm:ss}        → 2024-10-21 10:30:45 (미국 동부)
+${DATE.CET:DD.MM.YYYY HH:mm}           → 21.10.2024 16:30 (중앙유럽)
+${DATE.PHT:YYYY/MM/DD HH:mm}           → 2024/10/21 23:30 (필리핀)
+${DATE.ICT:YYYY-MM-DD HH:mm}           → 2024-10-21 22:30 (태국/베트남)
+${DATE:YYYYMMDD_HHmmss}                → 20241021_183045 (로컬 시간)
+```
 
 ### 🔧 개선사항
-- **확장성 향상**: 고정된 날짜 포맷에서 벗어나 자유로운 포맷 지정 가능
-- `src/mssql-helper.js`: `formatDate()` 함수 추가 - 날짜 포맷팅 로직
-- `src/variable-processor.js`: 커스텀 포맷 날짜 변수 파싱 로직 추가
+- **확장성 향상**: 고정된 날짜 포맷에서 벗어나 자유로운 타임존 및 포맷 지정 가능
+- **타임존 명시화**: 타임존을 변수명에 명시하여 혼란 방지 (`DATE.UTC`, `DATE.KST` 등)
+- **유연한 시간 처리**: 글로벌 보고서를 위한 다중 타임존 동시 표시 가능
+- `src/variable-processor.js`: 
+  - 22개 타임존 오프셋 설정 추가
+  - 로컬 시간 처리 로직 추가
+  - 타임존별 날짜 변수 파싱 로직 추가
+- `src/mssql-helper.js`: `formatDate()` 함수로 날짜 포맷팅 로직 통합
 
 ### 💥 주요 변경사항 (Breaking Changes)
-- **기존 고정 날짜 변수 제거**: 확장성이 떨어지는 고정 포맷 변수들을 모두 제거
-  - 제거된 변수: `${CURRENT_TIMESTAMP}`, `${NOW}`, `${CURRENT_DATE}`, `${CURRENT_TIME}`, `${GETDATE}`, 
-    `${KST_NOW}`, `${KST_DATE}`, `${KST_TIME}`, `${KST_DATETIME}`, `${KST_ISO_TIMESTAMP}`,
-    `${KOREAN_DATE}`, `${KOREAN_DATETIME}`, `${KOREAN_DATE_SHORT}`,
-    `${DATE_YYYYMMDD}`, `${DATE_YYYY_MM_DD}`, `${DATETIME_YYYYMMDD_HHMMSS}`,
-    `${UNIX_TIMESTAMP}`, `${TIMESTAMP_MS}`, `${ISO_TIMESTAMP}`,
-    `${WEEKDAY_KR}`, `${WEEKDAY_EN}`, `${MONTH_KR}`, `${YEAR_KR}`
-  - `src/mssql-helper.js`: `getTimestampFunctions()` 메서드 제거
-  
+- **날짜 변수 형식 변경**: 타임존을 명시적으로 지정하는 방식으로 변경
+  - 기존: `${DATE:format}`, `${DATETIME:format}`, `${KST:format}`
+  - 신규: `${DATE.<TIMEZONE>:format}` 또는 `${DATE:format}` (로컬 시간)
+
 ### 🔄 마이그레이션 가이드
-기존 변수를 새로운 커스텀 포맷으로 변경하세요:
+기존 변수를 새로운 글로벌 타임존 형식으로 변경하세요:
 ```
-기존: ${DATE_YYYYMMDD}              → 신규: ${DATE:YYYYMMDD}
-기존: ${DATE_YYYY_MM_DD}            → 신규: ${DATE:YYYY-MM-DD}
-기존: ${CURRENT_TIMESTAMP}          → 신규: ${DATETIME:YYYY-MM-DD HH:mm:ss}
-기존: ${CURRENT_DATE}               → 신규: ${DATE:YYYY-MM-DD}
-기존: ${CURRENT_TIME}               → 신규: ${DATETIME:HH:mm:ss}
-기존: ${KST_NOW}                    → 신규: ${KST:YYYY-MM-DD HH:mm:ss}
-기존: ${KST_DATE}                   → 신규: ${KST:YYYY-MM-DD}
-기존: ${KOREAN_DATE}                → 신규: ${KST:YYYY년 MM월 DD일}
-기존: ${DATETIME_YYYYMMDD_HHMMSS}  → 신규: ${DATETIME:YYYYMMDD_HHmmss}
+기존: ${DATE:YYYY-MM-DD}                   → 신규: ${DATE.UTC:YYYY-MM-DD} 또는 ${DATE:YYYY-MM-DD} (로컬)
+기존: ${DATETIME:YYYY-MM-DD HH:mm:ss}      → 신규: ${DATE.UTC:YYYY-MM-DD HH:mm:ss}
+기존: ${KST:YYYY-MM-DD}                    → 신규: ${DATE.KST:YYYY-MM-DD}
+기존: ${KST:YYYY년 MM월 DD일}              → 신규: ${DATE.KST:YYYY년 MM월 DD일}
 ```
 
 ### 📝 예제 파일 업데이트
-- `queries/datetime-variables-example.xml`: 새로운 커스텀 포맷 방식으로 전면 재작성
-- `queries/datetime-variables-example.json`: 새로운 커스텀 포맷 방식으로 전면 재작성
+- `queries/datetime-variables-example.xml`: 글로벌 타임존 시스템으로 전면 재작성
+- `queries/datetime-variables-example.json`: 글로벌 타임존 시스템으로 전면 재작성
 
 ### 📚 사용 예시
 ```sql
--- 다양한 날짜 포맷으로 파일명 생성
-SELECT 'Report_${DATE:YYYY-MM-DD}_${department}.xlsx' as Filename
+-- 파일명에 UTC 시간 사용
+<excel output="report_${DATE.UTC:YYYYMMDD}_${DATE.UTC:HHmmss}.xlsx">
+
+-- 파일명에 로컬 시간 사용
+<excel output="report_${DATE:YYYYMMDD}_${DATE:HHmmss}.xlsx">
+
+-- 글로벌 보고서 (다중 타임존 동시 표시)
+SELECT 
+  '서울: ${DATE.KST:YYYY-MM-DD HH:mm:ss}' as Seoul_Time,
+  '뉴욕: ${DATE.EST:YYYY-MM-DD HH:mm:ss}' as NewYork_Time,
+  '도쿄: ${DATE.JST:YYYY-MM-DD HH:mm:ss}' as Tokyo_Time,
+  '파리: ${DATE.CET:YYYY-MM-DD HH:mm:ss}' as Paris_Time
 
 -- 한국식 날짜 표시
-SELECT '보고서 작성일: ${KST:YYYY년 MM월 DD일}' as Title
+SELECT '보고서 작성일: ${DATE.KST:YYYY년 MM월 DD일}' as Title
 
--- WHERE 조건에 커스텀 포맷 사용
-WHERE created_date >= '${DATE:YYYY-MM-DD}'
-  AND updated_time < '${DATETIME:YYYY-MM-DD HH:mm:ss}'
+-- WHERE 조건에 타임존 사용
+WHERE created_date >= '${DATE.KST:YYYY-MM-DD}'
+  AND updated_time < '${DATE.KST:YYYY-MM-DD HH:mm:ss}'
 ```
+
+### 🌏 신규 추가 타임존 (3개)
+- **PHT** (Philippine Time, UTC+8): 필리핀
+- **ICT** (Indochina Time, UTC+7): 태국, 베트남
+- **AST** (Atlantic Standard Time, UTC-4): 캐나다 동부
 
 ## v1.2.8 - 언어 설정 개선 및 타입 안정성 향상 (2025-10-19)
 
