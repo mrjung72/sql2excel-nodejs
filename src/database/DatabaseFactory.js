@@ -1,5 +1,7 @@
 const MSSQLAdapter = require('./MSSQLAdapter');
 const MySQLAdapter = require('./MySQLAdapter');
+const PostgreSQLAdapter = require('./PostgreSQLAdapter');
+const SQLiteAdapter = require('./SQLiteAdapter');
 const { getMessages } = require('../utils/messages');
 
 /**
@@ -8,7 +10,7 @@ const { getMessages } = require('../utils/messages');
 class DatabaseFactory {
   /**
    * 데이터베이스 연결 어댑터 생성
-   * @param {string} dbType - 데이터베이스 타입 (mssql, mysql, mariadb)
+   * @param {string} dbType - 데이터베이스 타입 (mssql, mysql, mariadb, postgresql, sqlite)
    * @param {Object} config - 데이터베이스 연결 설정
    * @param {string} language - 언어 설정 (en/kr)
    * @returns {Object} 데이터베이스 어댑터 인스턴스
@@ -26,6 +28,15 @@ class DatabaseFactory {
       case 'mariadb':
         return new MySQLAdapter(config, language);
       
+      case 'postgresql':
+      case 'postgres':
+      case 'pg':
+        return new PostgreSQLAdapter(config, language);
+      
+      case 'sqlite':
+      case 'sqlite3':
+        return new SQLiteAdapter(config, language);
+      
       default:
         throw new Error(`${msg.unsupportedDbType} ${dbType}`);
     }
@@ -39,7 +50,9 @@ class DatabaseFactory {
     return [
       { type: 'mssql', name: 'Microsoft SQL Server', defaultPort: 1433 },
       { type: 'mysql', name: 'MySQL', defaultPort: 3306 },
-      { type: 'mariadb', name: 'MariaDB', defaultPort: 3306 }
+      { type: 'mariadb', name: 'MariaDB', defaultPort: 3306 },
+      { type: 'postgresql', name: 'PostgreSQL', defaultPort: 5432 },
+      { type: 'sqlite', name: 'SQLite', defaultPort: null }
     ];
   }
 
@@ -62,6 +75,17 @@ class DatabaseFactory {
    */
   static validateConfig(dbType, config, language = 'en') {
     const msg = getMessages('database', language);
+    const normalizedType = (dbType || 'mssql').toLowerCase();
+    
+    // SQLite는 파일 기반이므로 database 또는 server 필드만 필요
+    if (normalizedType === 'sqlite' || normalizedType === 'sqlite3') {
+      if (!config.database && !config.server) {
+        throw new Error(`${msg.requiredConfigMissing} database or server (file path)`);
+      }
+      return true;
+    }
+    
+    // 다른 DB들은 server, database, user, password 필요
     const requiredFields = ['server', 'database', 'user', 'password'];
     const missingFields = requiredFields.filter(field => !config[field]);
     

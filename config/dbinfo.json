@@ -55,5 +55,27 @@
       "requestTimeout": 300000,
       "connectionTimeout": 30000
     }
+  },
+  "_comment_postgresql": "PostgreSQL example - uncomment and configure to use",
+  "_postgresDB": {
+    "type": "postgresql",
+    "user": "postgres",
+    "password": "password",
+    "server": "localhost",
+    "database": "mydb",
+    "port": 5432,
+    "options": {
+      "max": 10,
+      "idleTimeoutMillis": 30000,
+      "connectionTimeout": 30000
+    }
+  },
+  "_comment_sqlite": "SQLite example - uncomment and configure to use (file-based, no user/password)",
+  "_sqliteDB": {
+    "type": "sqlite",
+    "database": "./data/mydb.sqlite",
+    "options": {
+      "mode": null
+    }
   }
 } 
