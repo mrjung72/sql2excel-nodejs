@@ -5,7 +5,7 @@ const VariableProcessor = require('./variable-processor');
 const StyleManager = require('./style-manager');
 const QueryParser = require('./query-parser');
 const ExcelGenerator = require('./excel-generator');
-const MSSQLHelper = require('./mssql-helper');
+const DatabaseFactory = require('./database/DatabaseFactory');
 
 // 언어 설정 (환경 변수 사용, 기본값 영어)
 const LANGUAGE = process.env.LANGUAGE || 'en';
@@ -217,14 +217,22 @@ async function main() {
   }
   const configObj = JSON5.parse(FileUtils.readFileSafely(configPath, 'utf8'));
   
-  // MSSQL 헬퍼 인스턴스 생성
-  const mssqlHelper = new MSSQLHelper(LANGUAGE);
+  // DB 어댑터 맵 (각 DB별로 적절한 어댑터 생성)
+  const dbAdapters = {};
   
-  // 연결 설정 검증
+  // 연결 설정 검증 및 어댑터 생성
   for (const [dbKey, config] of Object.entries(configObj || {})) {
-    if (!mssqlHelper.validateConnectionConfig(config)) {
+    // type이 없으면 기본값 'mssql' 사용 (하위 호환성)
+    const dbType = config.type || 'mssql';
+    
+    // 어댑터 생성
+    const adapter = DatabaseFactory.createAdapter(dbType, config, LANGUAGE);
+    
+    if (!adapter.validateConnectionConfig(config)) {
       throw new Error(`${msg.dbConfigInvalid} ${dbKey} ${msg.requiredFields}`);
     }
+    
+    dbAdapters[dbKey] = adapter;
   }
   
   // 기본 DB 연결 설정
@@ -235,15 +243,19 @@ async function main() {
   
   // DB 연결 풀 생성 함수
   async function getDbPool(dbKey) {
-    return await mssqlHelper.createConnectionPool(configObj[dbKey], dbKey);
+    const adapter = dbAdapters[dbKey];
+    return await adapter.createConnectionPool(configObj[dbKey], dbKey);
   }
+  
+  // 기본 DB 어댑터 가져오기
+  const defaultAdapter = dbAdapters[defaultDbKey];
   
   // 기본 DB 연결
   const defaultPool = await getDbPool(defaultDbKey);
 
   // 동적 변수 처리 (DB 연결 후, 시트 처리 전)
   if (dynamicVars && dynamicVars.length > 0) {
-    await variableProcessor.processDynamicVariables(dynamicVars, mssqlHelper, defaultDbKey, mergedVars, configObj);
+    await variableProcessor.processDynamicVariables(dynamicVars, defaultAdapter, defaultDbKey, mergedVars, configObj);
   }
 
   // 엑셀 파일 경로 결정 (CLI > excel > 쿼리파일 > 기본값)
@@ -295,9 +307,11 @@ async function main() {
     // maxRows 제한 적용 (개별 시트 설정 > 전역 설정 우선)
     const effectiveMaxRows = sheetDef.maxRows || globalMaxRows;
     if (effectiveMaxRows && effectiveMaxRows > 0) {
-      // MSSQL 헬퍼를 사용하여 TOP 절 추가
+      // 시트별 DB 어댑터를 사용하여 TOP/LIMIT 절 추가
+      const sheetDbKey = sheetDef.db || defaultDbKey;
+      const sheetAdapter = dbAdapters[sheetDbKey];
       const originalSql = sql;
-      sql = mssqlHelper.addTopClause(sql, effectiveMaxRows);
+      sql = sheetAdapter.addTopClause(sql, effectiveMaxRows);
       
       if (originalSql !== sql) {
         const source = sheetDef.maxRows ? msg.maxRowsLimitSheet : msg.maxRowsLimitGlobal;
@@ -309,11 +323,12 @@ async function main() {
     
     // 시트별 DB 연결 결정 (개별 시트 설정 > 기본 DB 설정 우선)
     const sheetDbKey = sheetDef.db || defaultDbKey;
+    const currentAdapter = dbAdapters[sheetDbKey];
     const currentPool = await getDbPool(sheetDbKey);
     
     console.log(`${msg.infoExecuting} '${sheetName}' ${msg.onDb} '${sheetDbKey}'`);
     try {
-      const result = await mssqlHelper.executeQuery(currentPool, sql);
+      const result = await currentAdapter.executeQuery(currentPool, sql);
       const recordCount = result.recordset.length;
       
       // 시트별 스타일 적용 (우선순위: 시트별 > XML 전역 > CLI > 기본)
@@ -371,7 +386,7 @@ async function main() {
       console.log(`\t---> ${recordCount} ${msg.rowsSelected} `);
     } catch (error) {
       console.log(msg.errorHeader);
-      console.log(mssqlHelper.formatErrorMessage(error));
+      console.log(currentAdapter.formatErrorMessage(error));
       console.log(`${msg.sql} ${sql}`);
       console.log(msg.errorFooter);
     }
@@ -390,7 +405,9 @@ async function main() {
   }
   
   // 모든 DB 연결 정리
-  await mssqlHelper.closeAllConnections();
+  for (const adapter of Object.values(dbAdapters)) {
+    await adapter.closeAllConnections();
+  }
 }
 
 // 모듈로 사용될 때를 위해 main 함수를 export

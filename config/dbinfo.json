@@ -1,5 +1,6 @@
 {
   "sampleDB": {
+    "type": "mssql",
     "user": "sample",
     "password": "sample1234!",
     "server": "localhost",
@@ -8,14 +9,38 @@
     "options": { "encrypt": true, "trustServerCertificate": true }
   },
   "erpDB": {
-    "user": "erp",
-    "password": "erp1234!",
+    "type": "mssql",
+    "user": "sample",
+    "password": "sample1234!",
     "server": "localhost",
     "database": "ERP_DB",
     "port": 1433,
     "options": { "encrypt": true, "trustServerCertificate": true }
   },
+  "mysql": {
+    "type": "mysql",
+    "user": "sahara",
+    "password": "1111",
+    "server": "localhost",
+    "database": "etcdb",
+    "port": 3306,
+    "options": {
+      "connectionTimeout": 30000
+    }
+  },
+  "mariaDB": {
+    "type": "mariadb",
+    "user": "sahara",
+    "password": "1111",
+    "server": "localhost",
+    "database": "mydb",
+    "port": 3306,
+    "options": {
+      "connectionTimeout": 30000
+    }
+  },
   "sourceDB": {
+    "type": "mssql",
     "user": "sample",
     "password": "sample1234!",
     "server": "localhost",

@@ -352,28 +352,20 @@ function loadDatabaseConfig(configPath) {
 
 // 데이터베이스 연결 테스트
 async function testDatabaseConnection(dbKey, dbConfig) {
-    let pool = null;
+    let connection = null;
+    let adapter = null;
     try {
         console.log(msg.dbConnecting.replace('{dbKey}', dbKey));
         
-        pool = new mssql.ConnectionPool({
-            user: dbConfig.user,
-            password: dbConfig.password,
-            server: dbConfig.server,
-            database: dbConfig.database,
-            port: dbConfig.port || 1433,
-            options: dbConfig.options || {
-                encrypt: true,
-                trustServerCertificate: true
-            },
-            connectionTimeout: 10000,
-            requestTimeout: 5000
-        });
-
-        await pool.connect();
+        // DatabaseFactory를 사용하여 적절한 어댑터 생성
+        const DatabaseFactory = require('./database/DatabaseFactory');
+        const dbType = dbConfig.type || 'mssql';
         
-        const request = pool.request();
-        await request.query('SELECT 1 as test');
+        adapter = DatabaseFactory.createAdapter(dbType, dbConfig, LANGUAGE);
+        connection = await adapter.createConnectionPool(dbConfig, dbKey);
+        
+        // 연결 테스트 쿼리 실행
+        await adapter.executeQuery(connection, 'SELECT 1 as test');
         
         console.log(msg.dbConnectionSuccess.replace('{dbKey}', dbKey));
         return { success: true, message: msg.dbConnectionSuccess.replace('{dbKey}', '') };
@@ -383,9 +375,9 @@ async function testDatabaseConnection(dbKey, dbConfig) {
         return { success: false, message: error.message };
         
     } finally {
-        if (pool) {
+        if (connection && adapter) {
             try {
-                await pool.close();
+                await adapter.closeConnection(dbKey);
             } catch (closeError) {
                 // 연결 종료 오류는 무시
             }
