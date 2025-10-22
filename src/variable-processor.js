@@ -241,7 +241,7 @@ class VariableProcessor {
       try {
         // 배열 타입인 경우 IN절 처리
         if (Array.isArray(value)) {
-          const inClause = this.mssqlHelper.createInClause(value);
+          const inClause = this.createInClause(value);
           result = result.replace(pattern, inClause);
           
           if (debugVariables && beforeReplace !== result) {
@@ -258,12 +258,12 @@ class VariableProcessor {
             
             if (Array.isArray(keyValue)) {
               // column_identified: 배열 값을 IN절로 변환
-              const inClause = this.mssqlHelper.createInClause(keyValue);
+              const inClause = this.createInClause(keyValue);
               result = result.replace(keyPattern, inClause);
             } else {
               // key_value_pairs: 키 값들을 배열로 반환 (IN절용)
               if (Array.isArray(keyValue)) {
-                const inClause = this.mssqlHelper.createInClause(keyValue);
+                const inClause = this.createInClause(keyValue);
                 result = result.replace(keyPattern, inClause);
               } else {
                 // 단일 값인 경우
@@ -282,11 +282,11 @@ class VariableProcessor {
           if (allValues.every(v => Array.isArray(v))) {
             // column_identified: 모든 배열 값을 통합하여 IN절로
             const flatValues = allValues.flat();
-            const inClause = this.mssqlHelper.createInClause(flatValues);
+            const inClause = this.createInClause(flatValues);
             result = result.replace(pattern, inClause);
           } else {
             // key_value_pairs: 모든 값들을 IN절로
-            const inClause = this.mssqlHelper.createInClause(allValues);
+            const inClause = this.createInClause(allValues);
             result = result.replace(pattern, inClause);
           }
           
@@ -318,7 +318,7 @@ class VariableProcessor {
       try {
         // 로컬 시간 사용 (시스템 타임존)
         const now = new Date();
-        const formattedDate = this.mssqlHelper.formatDate(now, format);
+        const formattedDate = this.formatDate(now, format);
         result = result.replace(fullMatch, formattedDate);
         
         if (debugVariables) {
@@ -347,7 +347,7 @@ class VariableProcessor {
         // 타임존 오프셋을 적용한 날짜 계산
         const date = new Date(now.getTime() + (offsetMinutes * 60 * 1000));
         
-        const formattedDate = this.mssqlHelper.formatDate(date, format);
+        const formattedDate = this.formatDate(date, format);
         result = result.replace(fullMatch, formattedDate);
         
         if (debugVariables) {
@@ -366,7 +366,7 @@ class VariableProcessor {
       
       // 배열 타입인 경우 IN절 처리
       if (Array.isArray(value)) {
-        const inClause = this.mssqlHelper.createInClause(value);
+        const inClause = this.createInClause(value);
         
         if (debugVariables) {
           console.log(`${this.msg.generalVar} [${v}] ${this.msg.substituted} ${this.msg.array} ${value.length}개 ${this.msg.toInClause}`);
@@ -402,7 +402,7 @@ class VariableProcessor {
           // 환경 변수가 배열 형태인지 확인 (JSON 형태로 저장된 경우)
           const parsed = JSON.parse(envValue);
           if (Array.isArray(parsed)) {
-            const inClause = this.mssqlHelper.createInClause(parsed);
+            const inClause = this.createInClause(parsed);
             result = result.replace(fullMatch, inClause);
             
             if (debugVariables) {

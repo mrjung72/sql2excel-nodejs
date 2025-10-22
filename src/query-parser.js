@@ -410,7 +410,13 @@ class QueryParser {
         }
       } else {
         // 직접 쿼리가 있으면 사용
-        query = (s._ || (s["_"] ? s["_"] : (s["$"] ? s["$"] : '')) || (s["__cdata"] ? s["__cdata"] : '') || (s["cdata"] ? s["cdata"] : '') || (s["#cdata-section"] ? s["#cdata-section"] : '') || (s["__text"] ? s["__text"] : '') || (s["#text"] ? s["#text"] : '') || (s["$text"] ? s["$text"] : '') || (s["$value"] ? s["$value"] : '') || (s["value"] ? s["value"] : '') || '').toString().trim();
+        // <query> 태그가 있는 경우: s.query[0]
+        if (s.query && s.query[0]) {
+          query = (typeof s.query[0] === 'string' ? s.query[0] : (s.query[0]._ || s.query[0]['#text'] || '')).toString().trim();
+        } else {
+          // 직접 텍스트로 작성된 경우: s._
+          query = (s._ || (s["_"] ? s["_"] : (s["$"] ? s["$"] : '')) || (s["__cdata"] ? s["__cdata"] : '') || (s["cdata"] ? s["cdata"] : '') || (s["#cdata-section"] ? s["#cdata-section"] : '') || (s["__text"] ? s["__text"] : '') || (s["#text"] ? s["#text"] : '') || (s["$text"] ? s["$text"] : '') || (s["$value"] ? s["$value"] : '') || (s["value"] ? s["value"] : '') || '').toString().trim();
+        }
       }
       
       return {
