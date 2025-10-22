@@ -23,6 +23,7 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 - 📊 **Multi-Sheet Support**: Save multiple SQL query results in separate sheets within one Excel file
 - 🎨 **Template Style System**: Pre-defined Excel styling templates for consistent design with 7 built-in styles
 - 🔗 **Multiple DB Connections**: Use different database connections for each sheet
+- 🗄️ **Multi-Database Support (v1.3.0)**: Support for MSSQL, MySQL, and MariaDB with unified interface
 - 📝 **Variable System**: Use variables in queries for dynamic query generation
 - 🔄 **Enhanced Dynamic Variables**: Extract values from database in real-time with advanced processing
 - 🔄 **Query Reuse**: Define common queries and reuse them across multiple sheets
@@ -38,7 +39,7 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 - 🌐 **Multi-language Support**: Korean and English release packages
 - 🔧 **Release Automation**: Automated release package generation with proper documentation
 - 🕒 **Creation Timestamp**: Display creation timestamp on each Excel sheet
-- ⏰ **Enhanced DateTime Variables**: 20+ automatic datetime variables for real-time timestamp generation
+- ⏰ **Enhanced DateTime Variables**: 22 timezones worldwide with custom format support
 - 📋 **SQL Query Formatting**: Preserve original SQL formatting with line breaks in Table of Contents
 - 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 
@@ -48,12 +49,12 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 
 #### For Development/Source Code Usage
 - Node.js 16.0 or higher
-- SQL Server 2012 or higher
+- Database Server (MSSQL 2012+, MySQL 5.7+, or MariaDB 10.2+)
 - Appropriate database permissions
 
 #### For Standalone Executable Usage
 - Windows 10 or higher (64-bit)
-- SQL Server 2012 or higher
+- Database Server (MSSQL 2012+, MySQL 5.7+, or MariaDB 10.2+)
 - Appropriate database permissions
 - **No Node.js installation required**
 
@@ -78,26 +79,47 @@ npm run build
 
 ### 3. Database Connection Setup
 Create `config/dbinfo.json` file:
+
+#### Multi-Database Support (v1.3.0+)
 ```json
 {
-  "dbs": {
-    "sampleDB": {
-      "server": "localhost",
-      "port": 1433,
-      "database": "SampleDB",
-      "user": "sa",
-      "password": "yourpassword",
-      "options": {
-        "encrypt": false,
-        "trustServerCertificate": true
-      }
-    },
-    "erpDB": {
-      "server": "erp-server.com",
-      "port": 1433,
-      "database": "ERP_Database",
-      "user": "erp_user",
-      "password": "erp_password",
+  "sampleDB": {
+    "type": "mssql",          // Optional: "mssql" (default), "mysql", or "mariadb"
+    "server": "localhost",
+    "port": 1433,
+    "database": "SampleDB",
+    "user": "sa",
+    "password": "yourpassword",
+    "options": {
+      "encrypt": false,
+      "trustServerCertificate": true
+    }
+  },
+  "mysqlDB": {
+    "type": "mysql",          // MySQL database
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password",
+    "options": {
+      "connectionTimeout": 30000
+    }
+  },
+  "mariaDB": {
+    "type": "mariadb",        // MariaDB database
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  },
+  "erpDB": {
+    "server": "erp-server.com",
+    "port": 1433,
+    "database": "ERP_Database",
+    "user": "erp_user",
+    "password": "erp_password",
       "options": {
         "encrypt": true,
         "trustServerCertificate": false
@@ -687,7 +709,130 @@ This feature works automatically - no configuration required!
 
 ## 🎨 Advanced Features
 
-### 1. Excel Styling
+### 1. Multi-Database Support (v1.3.0+)
+
+SQL2Excel now supports multiple database types with a unified interface:
+
+#### Supported Databases
+- **MSSQL** (SQL Server 2012+)
+- **MySQL** (5.7+)
+- **MariaDB** (10.2+)
+
+#### Configuration
+Add the `type` field to your database connection in `config/dbinfo.json`:
+
+```json
+{
+  "mssqlDB": {
+    "type": "mssql",     // or omit for backward compatibility
+    "server": "localhost",
+    "port": 1433,
+    "database": "SampleDB",
+    "user": "sa",
+    "password": "password",
+    "options": {
+      "encrypt": false,
+      "trustServerCertificate": true
+    }
+  },
+  "mysqlDB": {
+    "type": "mysql",
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  },
+  "mariaDB": {
+    "type": "mariadb",
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  }
+}
+```
+
+#### Mixed Database Queries
+You can query different database types in a single Excel file:
+
+**XML Example:**
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<queries>
+  <excel output="output/mixed_report.xlsx" db="mssqlDB" style="modern">
+  </excel>
+
+  <!-- Query MSSQL database -->
+  <sheet name="MSSQL Data" db="mssqlDB">
+    <query>
+      SELECT TOP 10 * FROM Customers
+    </query>
+  </sheet>
+
+  <!-- Query MySQL database -->
+  <sheet name="MySQL Data" db="mysqlDB">
+    <query>
+      SELECT * FROM products LIMIT 10
+    </query>
+  </sheet>
+
+  <!-- Query MariaDB database -->
+  <sheet name="MariaDB Data" db="mariaDB">
+    <query>
+      SELECT * FROM orders 
+      WHERE order_date >= '2024-01-01'
+      LIMIT 20
+    </query>
+  </sheet>
+</queries>
+```
+
+**JSON Example:**
+```json
+{
+  "excel": {
+    "output": "output/mixed_report.xlsx",
+    "db": "mssqlDB",
+    "style": "modern"
+  },
+  "sheets": [
+    {
+      "name": "MSSQL Data",
+      "db": "mssqlDB",
+      "query": "SELECT TOP 10 * FROM Customers"
+    },
+    {
+      "name": "MySQL Data",
+      "db": "mysqlDB",
+      "query": "SELECT * FROM products LIMIT 10"
+    },
+    {
+      "name": "MariaDB Data",
+      "db": "mariaDB",
+      "query": "SELECT * FROM orders WHERE order_date >= '2024-01-01' LIMIT 20"
+    }
+  ]
+}
+```
+
+#### Database-Specific Features
+- **MSSQL**: Supports `TOP N` clause, `GETDATE()` function
+- **MySQL/MariaDB**: Supports `LIMIT N` clause, `NOW()` function
+- **All**: Automatic syntax handling for each database type
+
+#### Testing Database Connections
+Test all configured database connections:
+```bash
+# Development
+node src/excel-cli.js list-dbs
+
+# Standalone executable
+sql2excel-v1.3.0.exe list-dbs
+```
+
+### 2. Excel Styling
 
 #### Font Styling
 ```xml

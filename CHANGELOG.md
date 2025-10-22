@@ -1,5 +1,94 @@
 # SQL2Excel Version History
 
+## v1.3.0 - Multi-Database Support (2025-10-22)
+
+### ✨ New Features
+- **Multi-Database Support**: Support for multiple database types beyond MSSQL
+  - **Supported Databases**: MSSQL, MySQL, MariaDB
+  - **Unified Interface**: Consistent API across all database types
+  - **Database Factory Pattern**: Automatic adapter selection based on database type
+  - **Backward Compatibility**: Existing MSSQL configurations work without changes
+
+### 🔧 Configuration
+```json
+{
+  "sampleDB": {
+    "type": "mssql",      // Optional, defaults to "mssql" if not specified
+    "server": "localhost",
+    "port": 1433,
+    "database": "SampleDB",
+    "user": "sa",
+    "password": "password"
+  },
+  "mysqlDB": {
+    "type": "mysql",      // New: MySQL support
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  },
+  "mariaDB": {
+    "type": "mariadb",    // New: MariaDB support
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  }
+}
+```
+
+### 📦 Technical Changes
+- **New Architecture**:
+  - `src/database/DatabaseFactory.js`: Factory for creating database adapters
+  - `src/database/MSSQLAdapter.js`: MSSQL implementation (refactored from mssql-helper.js)
+  - `src/database/MySQLAdapter.js`: MySQL/MariaDB implementation
+  
+- **Updated Files**:
+  - `src/index.js`: Uses DatabaseFactory instead of direct MSSQLHelper
+  - `src/variable-processor.js`: Database-agnostic implementation
+  - `package.json`: Added `mysql2` dependency
+
+### 🔄 Database-Specific Features
+- **MSSQL**: 
+  - Uses `TOP N` for row limiting
+  - Supports `GETDATE()` function
+  
+- **MySQL/MariaDB**: 
+  - Uses `LIMIT N` for row limiting
+  - Converts `GETDATE()` to `NOW()` automatically
+  - Connection pooling with automatic reconnection
+
+### 💡 Usage Examples
+```xml
+<!-- Mix different database types in one Excel file -->
+<excel output="multi_db_report_${DATE.UTC:YYYYMMDD}.xlsx" db="mysqlDB">
+  <sheet name="MySQL Users" db="mysqlDB">
+    <query>SELECT * FROM users</query>
+  </sheet>
+  
+  <sheet name="MSSQL Orders" db="sampleDB">
+    <query>SELECT * FROM orders</query>
+  </sheet>
+  
+  <sheet name="MariaDB Products" db="mariaDB">
+    <query>SELECT * FROM products</query>
+  </sheet>
+</excel>
+```
+
+### ⚠️ Notes
+- **Type Field**: The `type` field in database configuration is optional. If omitted, defaults to `mssql` for backward compatibility.
+- **Port Numbers**: Default ports are used if not specified (MSSQL: 1433, MySQL/MariaDB: 3306)
+- **Connection Pooling**: All database types use connection pooling for optimal performance
+
+### 📚 Dependencies
+- Added: `mysql2@^3.6.0` - MySQL/MariaDB driver with promise support
+- Maintained: `mssql@^10.0.0` - Microsoft SQL Server driver
+
+---
+
 ## v1.2.9 - Global Timezone System & Local Time Support (2025-10-21)
 
 ### ✨ New Features

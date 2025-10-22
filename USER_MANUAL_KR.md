@@ -23,6 +23,7 @@ SQL2Excel은 고급 스타일링, 템플릿 지원, 독립 실행 파일 배포 
 - 📊 **다중 시트 지원**: 하나의 엑셀 파일 내에서 여러 SQL 쿼리 결과를 별도의 시트에 저장
 - 🎨 **템플릿 스타일 시스템**: 일관된 디자인을 위한 사전 정의된 엑셀 스타일링 템플릿 (7가지 내장 스타일)
 - 🔗 **다중 DB 연결**: 각 시트마다 다른 데이터베이스 연결 사용 가능
+- 🗄️ **다중 데이터베이스 지원 (v1.3.0)**: MSSQL, MySQL, MariaDB를 통합 인터페이스로 지원
 - 📝 **변수 시스템**: 동적 쿼리 생성을 위한 변수 사용
 - 🔄 **향상된 동적 변수**: 실시간으로 데이터베이스에서 값을 추출하여 고급 처리
 - 🔄 **쿼리 재사용**: 공통 쿼리를 정의하고 여러 시트에서 재사용
@@ -38,7 +39,7 @@ SQL2Excel은 고급 스타일링, 템플릿 지원, 독립 실행 파일 배포 
 - 🌐 **다국어 지원**: 한국어 및 영어 릴리스 패키지
 - 🔧 **릴리스 자동화**: 적절한 문서와 함께 자동 릴리스 패키지 생성
 - 🕒 **생성 타임스탬프**: 각 엑셀 시트에 생성 타임스탬프 표시
-- ⏰ **향상된 DateTime 변수**: 실시간 타임스탬프 생성을 위한 20개 이상의 자동 datetime 변수
+- ⏰ **향상된 DateTime 변수**: 전세계 22개 타임존 지원 및 커스텀 포맷
 - 📋 **SQL 쿼리 포맷팅**: 목차에서 줄바꿈을 포함한 원본 SQL 포맷 유지
 - 🔧 **입력 유효성 검증**: 파일 경로 입력에 대한 자동 공백 제거
 
@@ -48,12 +49,12 @@ SQL2Excel은 고급 스타일링, 템플릿 지원, 독립 실행 파일 배포 
 
 #### 개발/소스 코드 사용 시
 - Node.js 16.0 이상
-- SQL Server 2012 이상
+- 데이터베이스 서버 (MSSQL 2012+, MySQL 5.7+, 또는 MariaDB 10.2+)
 - 적절한 데이터베이스 권한
 
 #### 독립 실행 파일 사용 시
 - Windows 10 이상 (64비트)
-- SQL Server 2012 이상
+- 데이터베이스 서버 (MSSQL 2012+, MySQL 5.7+, 또는 MariaDB 10.2+)
 - 적절한 데이터베이스 권한
 - **Node.js 설치 불필요**
 
@@ -78,26 +79,47 @@ npm run build
 
 ### 3. 데이터베이스 연결 설정
 `config/dbinfo.json` 파일을 생성하세요:
+
+#### 다중 데이터베이스 지원 (v1.3.0+)
 ```json
 {
-  "dbs": {
-    "sampleDB": {
-      "server": "localhost",
-      "port": 1433,
-      "database": "SampleDB",
-      "user": "sa",
-      "password": "yourpassword",
-      "options": {
-        "encrypt": false,
-        "trustServerCertificate": true
-      }
-    },
-    "erpDB": {
-      "server": "erp-server.com",
-      "port": 1433,
-      "database": "ERP_Database",
-      "user": "erp_user",
-      "password": "erp_password",
+  "sampleDB": {
+    "type": "mssql",          // 선택사항: "mssql" (기본값), "mysql", 또는 "mariadb"
+    "server": "localhost",
+    "port": 1433,
+    "database": "SampleDB",
+    "user": "sa",
+    "password": "yourpassword",
+    "options": {
+      "encrypt": false,
+      "trustServerCertificate": true
+    }
+  },
+  "mysqlDB": {
+    "type": "mysql",          // MySQL 데이터베이스
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password",
+    "options": {
+      "connectionTimeout": 30000
+    }
+  },
+  "mariaDB": {
+    "type": "mariadb",        // MariaDB 데이터베이스
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  },
+  "erpDB": {
+    "server": "erp-server.com",
+    "port": 1433,
+    "database": "ERP_Database",
+    "user": "erp_user",
+    "password": "erp_password",
       "options": {
         "encrypt": true,
         "trustServerCertificate": false
@@ -687,7 +709,130 @@ SQL2Excel은 생성된 각 엑셀 시트에 자동으로 생성 타임스탬프�
 
 ## 🎨 고급 기능
 
-### 1. 엑셀 스타일링
+### 1. 다중 데이터베이스 지원 (v1.3.0+)
+
+SQL2Excel은 이제 통합 인터페이스로 여러 데이터베이스 타입을 지원합니다:
+
+#### 지원 데이터베이스
+- **MSSQL** (SQL Server 2012+)
+- **MySQL** (5.7+)
+- **MariaDB** (10.2+)
+
+#### 설정
+`config/dbinfo.json`의 데이터베이스 연결에 `type` 필드를 추가하세요:
+
+```json
+{
+  "mssqlDB": {
+    "type": "mssql",     // 또는 하위 호환성을 위해 생략 가능
+    "server": "localhost",
+    "port": 1433,
+    "database": "SampleDB",
+    "user": "sa",
+    "password": "password",
+    "options": {
+      "encrypt": false,
+      "trustServerCertificate": true
+    }
+  },
+  "mysqlDB": {
+    "type": "mysql",
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  },
+  "mariaDB": {
+    "type": "mariadb",
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  }
+}
+```
+
+#### 혼합 데이터베이스 쿼리
+단일 Excel 파일에서 다양한 데이터베이스 타입을 쿼리할 수 있습니다:
+
+**XML 예제:**
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<queries>
+  <excel output="output/mixed_report.xlsx" db="mssqlDB" style="modern">
+  </excel>
+
+  <!-- MSSQL 데이터베이스 쿼리 -->
+  <sheet name="MSSQL 데이터" db="mssqlDB">
+    <query>
+      SELECT TOP 10 * FROM Customers
+    </query>
+  </sheet>
+
+  <!-- MySQL 데이터베이스 쿼리 -->
+  <sheet name="MySQL 데이터" db="mysqlDB">
+    <query>
+      SELECT * FROM products LIMIT 10
+    </query>
+  </sheet>
+
+  <!-- MariaDB 데이터베이스 쿼리 -->
+  <sheet name="MariaDB 데이터" db="mariaDB">
+    <query>
+      SELECT * FROM orders 
+      WHERE order_date >= '2024-01-01'
+      LIMIT 20
+    </query>
+  </sheet>
+</queries>
+```
+
+**JSON 예제:**
+```json
+{
+  "excel": {
+    "output": "output/mixed_report.xlsx",
+    "db": "mssqlDB",
+    "style": "modern"
+  },
+  "sheets": [
+    {
+      "name": "MSSQL 데이터",
+      "db": "mssqlDB",
+      "query": "SELECT TOP 10 * FROM Customers"
+    },
+    {
+      "name": "MySQL 데이터",
+      "db": "mysqlDB",
+      "query": "SELECT * FROM products LIMIT 10"
+    },
+    {
+      "name": "MariaDB 데이터",
+      "db": "mariaDB",
+      "query": "SELECT * FROM orders WHERE order_date >= '2024-01-01' LIMIT 20"
+    }
+  ]
+}
+```
+
+#### 데이터베이스별 기능
+- **MSSQL**: `TOP N` 절, `GETDATE()` 함수 지원
+- **MySQL/MariaDB**: `LIMIT N` 절, `NOW()` 함수 지원
+- **전체**: 각 데이터베이스 타입에 대한 자동 구문 처리
+
+#### 데이터베이스 연결 테스트
+구성된 모든 데이터베이스 연결을 테스트하세요:
+```bash
+# 개발 환경
+node src/excel-cli.js list-dbs
+
+# 독립 실행 파일
+sql2excel-v1.3.0.exe list-dbs
+```
+
+### 2. 엑셀 스타일링
 
 #### 글꼴 스타일링
 ```xml

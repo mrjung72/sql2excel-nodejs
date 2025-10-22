@@ -6,6 +6,7 @@ SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니�
 - 📊 **다중 시트 지원**: 하나의 엑셀 파일 내에서 여러 SQL 쿼리 결과를 별도의 시트에 저장
 - 🎨 **템플릿 스타일 시스템**: 일관된 디자인을 위한 사전 정의된 엑셀 스타일링 템플릿 (7가지 내장 스타일)
 - 🔗 **다중 DB 연결**: 각 시트마다 다른 데이터베이스 연결 사용 가능
+- 🗄️ **다중 데이터베이스 지원 (v1.3.0)**: MSSQL, MySQL, MariaDB를 통합 인터페이스로 지원
 - 📝 **변수 시스템**: 동적 쿼리 생성을 위한 변수 사용
 - 🔄 **향상된 동적 변수**: 실시간으로 데이터베이스에서 값을 추출하여 고급 처리
 - 🔄 **쿼리 재사용**: 공통 쿼리를 정의하고 여러 시트에서 재사용
@@ -33,12 +34,12 @@ SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니�
 
 #### 개발/소스 코드 사용 시
 - Node.js 16.0 이상
-- SQL Server 2012 이상
+- 데이터베이스 서버 (MSSQL 2012+, MySQL 5.7+, 또는 MariaDB 10.2+)
 - 적절한 데이터베이스 권한
 
 #### 독립 실행 파일 사용 시
 - Windows 10 이상 (64비트)
-- SQL Server 2012 이상
+- 데이터베이스 서버 (MSSQL 2012+, MySQL 5.7+, 또는 MariaDB 10.2+)
 - 적절한 데이터베이스 권한
 - **Node.js 설치 불필요**
 
@@ -65,32 +66,46 @@ npm run build
 `config/dbinfo.json` 파일을 생성하세요:
 ```json
 {
-  "dbs": {
-    "sampleDB": {
-      "server": "localhost",
-      "port": 1433,
-      "database": "SampleDB",
-      "user": "sa",
-      "password": "yourpassword",
-      "options": {
-        "encrypt": false,
-        "trustServerCertificate": true
-      }
-    },
-    "erpDB": {
-      "server": "erp-server.com",
-      "port": 1433,
-      "database": "ERP_Database",
-      "user": "erp_user",
-      "password": "erp_password",
-      "options": {
-        "encrypt": true,
-        "trustServerCertificate": false
-      }
+  "sampleDB": {
+    "type": "mssql",
+    "server": "localhost",
+    "port": 1433,
+    "database": "SampleDB",
+    "user": "sa",
+    "password": "yourpassword",
+    "options": {
+      "encrypt": false,
+      "trustServerCertificate": true
+    }
+  },
+  "mysqlDB": {
+    "type": "mysql",
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password",
+    "options": {
+      "connectionTimeout": 30000
+    }
+  },
+  "mariaDB": {
+    "type": "mariadb",
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password",
+    "options": {
+      "connectionTimeout": 30000
     }
   }
 }
 ```
+
+**참고:** 
+- `type` 필드는 선택사항입니다. 지정하지 않으면 하위 호환성을 위해 기본값 `mssql`을 사용합니다.
+- 지원 타입: `mssql`, `mysql`, `mariadb`
 
 ## 🚀 기본 사용법
 

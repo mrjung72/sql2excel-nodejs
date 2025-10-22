@@ -1,5 +1,94 @@
 # SQL2Excel 버전 히스토리
 
+## v1.3.0 - 다중 데이터베이스 지원 (2025-10-22)
+
+### ✨ 새로운 기능
+- **다중 데이터베이스 지원**: MSSQL 외 다양한 데이터베이스 타입 지원
+  - **지원 데이터베이스**: MSSQL, MySQL, MariaDB
+  - **통합 인터페이스**: 모든 데이터베이스 타입에 대한 일관된 API
+  - **데이터베이스 팩토리 패턴**: 데이터베이스 타입에 따라 자동으로 적절한 어댑터 선택
+  - **하위 호환성**: 기존 MSSQL 설정은 변경 없이 그대로 작동
+
+### 🔧 설정
+```json
+{
+  "sampleDB": {
+    "type": "mssql",      // 선택사항, 지정하지 않으면 "mssql" 기본값 사용
+    "server": "localhost",
+    "port": 1433,
+    "database": "SampleDB",
+    "user": "sa",
+    "password": "password"
+  },
+  "mysqlDB": {
+    "type": "mysql",      // 신규: MySQL 지원
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  },
+  "mariaDB": {
+    "type": "mariadb",    // 신규: MariaDB 지원
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  }
+}
+```
+
+### 📦 기술적 변경사항
+- **새로운 아키텍처**:
+  - `src/database/DatabaseFactory.js`: 데이터베이스 어댑터 생성 팩토리
+  - `src/database/MSSQLAdapter.js`: MSSQL 구현 (mssql-helper.js에서 리팩토링)
+  - `src/database/MySQLAdapter.js`: MySQL/MariaDB 구현
+  
+- **업데이트된 파일**:
+  - `src/index.js`: MSSQLHelper 대신 DatabaseFactory 사용
+  - `src/variable-processor.js`: 데이터베이스 독립적인 구현
+  - `package.json`: `mysql2` 의존성 추가
+
+### 🔄 데이터베이스별 특징
+- **MSSQL**: 
+  - 행 제한에 `TOP N` 사용
+  - `GETDATE()` 함수 지원
+  
+- **MySQL/MariaDB**: 
+  - 행 제한에 `LIMIT N` 사용
+  - `GETDATE()`를 `NOW()`로 자동 변환
+  - 자동 재연결 기능이 있는 연결 풀링
+
+### 💡 사용 예시
+```xml
+<!-- 하나의 엑셀 파일에 다양한 데이터베이스 타입 혼합 -->
+<excel output="multi_db_report_${DATE.UTC:YYYYMMDD}.xlsx" db="mysqlDB">
+  <sheet name="MySQL 사용자" db="mysqlDB">
+    <query>SELECT * FROM users</query>
+  </sheet>
+  
+  <sheet name="MSSQL 주문" db="sampleDB">
+    <query>SELECT * FROM orders</query>
+  </sheet>
+  
+  <sheet name="MariaDB 제품" db="mariaDB">
+    <query>SELECT * FROM products</query>
+  </sheet>
+</excel>
+```
+
+### ⚠️ 참고사항
+- **Type 필드**: 데이터베이스 설정의 `type` 필드는 선택사항입니다. 생략하면 하위 호환성을 위해 `mssql`을 기본값으로 사용합니다.
+- **포트 번호**: 지정하지 않으면 기본 포트를 사용합니다 (MSSQL: 1433, MySQL/MariaDB: 3306)
+- **연결 풀링**: 모든 데이터베이스 타입은 최적의 성능을 위해 연결 풀링을 사용합니다
+
+### 📚 의존성
+- 추가: `mysql2@^3.6.0` - Promise 지원이 포함된 MySQL/MariaDB 드라이버
+- 유지: `mssql@^10.0.0` - Microsoft SQL Server 드라이버
+
+---
+
 ## v1.2.9 - 글로벌 타임존 시스템 및 로컬 시간 지원 (2025-10-21)
 
 ### ✨ 새로운 기능

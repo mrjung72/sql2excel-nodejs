@@ -6,6 +6,7 @@ A Node.js-based tool for generating Excel files from SQL query results.
 - 📊 **Multi-Sheet Support**: Save multiple SQL query results in separate sheets within one Excel file
 - 🎨 **Template Style System**: Pre-defined Excel styling templates for consistent design with 7 built-in styles
 - 🔗 **Multiple DB Connections**: Use different database connections for each sheet
+- 🗄️ **Multi-Database Support (v1.3.0)**: Support for MSSQL, MySQL, and MariaDB with unified interface
 - 📝 **Variable System**: Use variables in queries for dynamic query generation
 - 🔄 **Enhanced Dynamic Variables**: Extract values from database in real-time with advanced processing
 - 🔄 **Query Reuse**: Define common queries and reuse them across multiple sheets
@@ -33,12 +34,12 @@ A Node.js-based tool for generating Excel files from SQL query results.
 
 #### For Development/Source Code Usage
 - Node.js 16.0 or higher
-- SQL Server 2012 or higher
+- Database Server (MSSQL 2012+, MySQL 5.7+, or MariaDB 10.2+)
 - Appropriate database permissions
 
 #### For Standalone Executable Usage
 - Windows 10 or higher (64-bit)
-- SQL Server 2012 or higher
+- Database Server (MSSQL 2012+, MySQL 5.7+, or MariaDB 10.2+)
 - Appropriate database permissions
 - **No Node.js installation required**
 
@@ -65,32 +66,46 @@ npm run build
 Create `config/dbinfo.json` file:
 ```json
 {
-  "dbs": {
-    "sampleDB": {
-      "server": "localhost",
-      "port": 1433,
-      "database": "SampleDB",
-      "user": "sa",
-      "password": "yourpassword",
-      "options": {
-        "encrypt": false,
-        "trustServerCertificate": true
-      }
-    },
-    "erpDB": {
-      "server": "erp-server.com",
-      "port": 1433,
-      "database": "ERP_Database",
-      "user": "erp_user",
-      "password": "erp_password",
-      "options": {
-        "encrypt": true,
-        "trustServerCertificate": false
-      }
+  "sampleDB": {
+    "type": "mssql",
+    "server": "localhost",
+    "port": 1433,
+    "database": "SampleDB",
+    "user": "sa",
+    "password": "yourpassword",
+    "options": {
+      "encrypt": false,
+      "trustServerCertificate": true
+    }
+  },
+  "mysqlDB": {
+    "type": "mysql",
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password",
+    "options": {
+      "connectionTimeout": 30000
+    }
+  },
+  "mariaDB": {
+    "type": "mariadb",
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password",
+    "options": {
+      "connectionTimeout": 30000
     }
   }
 }
 ```
+
+**Note:** 
+- `type` field is optional. If not specified, defaults to `mssql` for backward compatibility.
+- Supported types: `mssql`, `mysql`, `mariadb`
 
 ## 🚀 Basic Usage
 
