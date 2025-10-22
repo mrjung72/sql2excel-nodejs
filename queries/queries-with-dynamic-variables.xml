@@ -71,8 +71,7 @@
         c.Region as Region,
         c.CustomerType as CustomerType
       FROM SampleDB.dbo.Customers c
-      WHERE c.CustomerID IN (${customerData.CustomerID})
-        AND c.Region IN (${regionList})
+      WHERE c.Region IN (${regionList})
       ORDER BY c.CustomerID
       ]]>
     </queryDef>
@@ -82,15 +81,10 @@
   <!-- Sheet definitions -->
   <sheet name="${envType}_DynamicVar_Seoul_Busan_Test" use="true" queryRef="customer_base" aggregateColumn="Region" aggregateInfoTemplate="Customer distribution by region: {count} records {details}" maxRows="100" db="sampleDB">
     <params>
-      <param name="regionList">["Seoul", "Busan"]</param>
+      <param name="regionList">["서울", "부산"]</param>
     </params>
   </sheet>
   
-  <sheet name="${envType}_DynamicVar_Busan_Test" use="true" queryRef="customer_base" aggregateColumn="Region" aggregateInfoTemplate="Customer distribution by region: {count} records {details}" maxRows="100" db="sampleDB">
-    <params>
-      <param name="regionList">["Busan"]</param>
-    </params>
-  </sheet>
   
   <sheet name="OrderDetail_DynamicVar_Test2" use="true" aggregateColumn="OrderStatus" aggregateInfoTemplate="Order status summary: {count} records {details}">
     <![CDATA[
