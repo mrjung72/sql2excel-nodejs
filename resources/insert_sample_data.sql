@@ -1,277 +1,120 @@
 -- ========================================
 -- 샘플 데이터 입력 스크립트
 -- Microsoft SQL Server용
+-- 100건 샘플 데이터 (한글 50건 + 영어 50건)
 -- ========================================
 
 USE [SampleDB]
 GO
 
 -- ========================================
--- 1. Customers 샘플 데이터 입력
+-- 1. Customers 테이블 데이터 입력 (100건)
 -- ========================================
 
-PRINT '고객 데이터 입력 중...'
+-- 한글 고객 (50건)
+INSERT INTO dbo.Customers (CustomerCode, CustomerName, ContactName, Email, Phone, Address, City, Region, Country, CustomerType, CreditLimit, IsActive) VALUES
+('CUST001', '(주)한국전자', '김철수', 'kim@hankook-elec.co.kr', '02-1234-5678', '서울시 강남구 테헤란로 123', '서울', '서울', '대한민국', 'Premium', 50000000.00, 1),
+('CUST002', '서울무역상사', '이영희', 'lee@seoul-trade.com', '02-2345-6789', '서울시 중구 세종대로 456', '서울', '서울', '대한민국', 'Regular', 30000000.00, 1),
+('CUST003', '부산산업(주)', '박민수', 'park@busan-ind.co.kr', '051-3456-7890', '부산시 해운대구 센텀로 789', '부산', '부산', '대한민국', 'Premium', 40000000.00, 1),
+('CUST004', '대구섬유', '최지영', 'choi@daegu-textile.com', '053-4567-8901', '대구시 중구 동성로 234', '대구', '대구', '대한민국', 'Regular', 20000000.00, 1),
+('CUST005', '인천물류센터', '정현우', 'jung@incheon-logis.com', '032-5678-9012', '인천시 연수구 송도대로 567', '인천', '인천', '대한민국', 'VIP', 100000000.00, 1),
+('CUST006', '광주식품유통', '강수진', 'kang@gwangju-food.com', '062-6789-0123', '광주시 서구 상무대로 890', '광주', '광주', '대한민국', 'Regular', 25000000.00, 1),
+('CUST007', '제주특산물', '윤서연', 'yoon@jeju-special.com', '064-7890-1234', '제주시 연동 중앙로 345', '제주', '제주', '대한민국', 'Regular', 15000000.00, 1),
+('CUST008', '울산화학공업', '임동혁', 'lim@ulsan-chem.co.kr', '052-8901-2345', '울산시 남구 삼산로 678', '울산', '울산', '대한민국', 'Premium', 60000000.00, 1),
+('CUST009', '대전기술연구소', '송미래', 'song@daejeon-tech.com', '042-9012-3456', '대전시 유성구 대학로 901', '대전', '대전', '대한민국', 'Regular', 35000000.00, 1),
+('CUST010', '경기통상', '한지훈', 'han@gyeonggi-trade.com', '031-0123-4567', '경기도 수원시 영통구 광교로 123', '수원', '경기', '대한민국', 'VIP', 80000000.00, 1),
+('CUST011', '서울가구', '김영수', 'kim.ys@seoul-furniture.com', '02-1111-2222', '서울시 종로구 종로 100', '서울', '서울', '대한민국', 'Regular', 28000000.00, 1),
+('CUST012', '부산수산', '이순희', 'lee.sh@busan-fish.com', '051-2222-3333', '부산시 남구 용호로 200', '부산', '부산', '대한민국', 'Premium', 45000000.00, 1),
+('CUST013', '대구한방약품', '박건호', 'park.kh@daegu-herb.com', '053-3333-4444', '대구시 북구 칠성로 300', '대구', '대구', '대한민국', 'Regular', 32000000.00, 1),
+('CUST014', '인천해운', '최미영', 'choi.my@incheon-ship.com', '032-4444-5555', '인천시 중구 항동 400', '인천', '인천', '대한민국', 'VIP', 95000000.00, 1),
+('CUST015', '광주자동차부품', '정태윤', 'jung.ty@gwangju-auto.com', '062-5555-6666', '광주시 북구 첨단로 500', '광주', '광주', '대한민국', 'Premium', 55000000.00, 1),
+('CUST016', '제주관광개발', '강민석', 'kang.ms@jeju-tour.com', '064-6666-7777', '제주시 노형동 600', '제주', '제주', '대한민국', 'Regular', 38000000.00, 1),
+('CUST017', '울산조선', '윤혜진', 'yoon.hj@ulsan-ship.com', '052-7777-8888', '울산시 동구 방어진로 700', '울산', '울산', '대한민국', 'VIP', 120000000.00, 1),
+('CUST018', '대전바이오', '임재현', 'lim.jh@daejeon-bio.com', '042-8888-9999', '대전시 서구 둔산로 800', '대전', '대전', '대한민국', 'Premium', 48000000.00, 1),
+('CUST019', '경기반도체', '송현주', 'song.hj@gyeonggi-semi.com', '031-9999-0000', '경기도 화성시 동탄대로 900', '화성', '경기', '대한민국', 'VIP', 110000000.00, 1),
+('CUST020', '서울패션', '한수연', 'han.sy@seoul-fashion.com', '02-1234-5670', '서울시 강남구 압구정로 1000', '서울', '서울', '대한민국', 'Regular', 26000000.00, 1),
+('CUST021', '부산철강', '김동현', 'kim.dh@busan-steel.com', '051-2345-6780', '부산시 사상구 학장로 110', '부산', '부산', '대한민국', 'Premium', 52000000.00, 1),
+('CUST022', '대구섬유공업', '이지은', 'lee.je@daegu-textile2.com', '053-3456-7890', '대구시 서구 염색공단 120', '대구', '대구', '대한민국', 'Regular', 29000000.00, 1),
+('CUST023', '인천유리', '박상철', 'park.sc@incheon-glass.com', '032-4567-8900', '인천시 남동구 남동대로 130', '인천', '인천', '대한민국', 'Premium', 42000000.00, 1),
+('CUST024', '광주전자부품', '최윤정', 'choi.yj@gwangju-elec.com', '062-5678-9010', '광주시 광산구 하남대로 140', '광주', '광주', '대한민국', 'Regular', 31000000.00, 1),
+('CUST025', '제주식품', '정수현', 'jung.sh@jeju-food.com', '064-6789-0120', '제주시 애월읍 해안로 150', '제주', '제주', '대한민국', 'Regular', 24000000.00, 1),
+('CUST026', '울산정유', '강태영', 'kang.ty@ulsan-oil.com', '052-7890-1230', '울산시 남구 여천로 160', '울산', '울산', '대한민국', 'VIP', 150000000.00, 1),
+('CUST027', '대전전자', '윤미선', 'yoon.ms@daejeon-elec.com', '042-8901-2340', '대전시 대덕구 대덕대로 170', '대전', '대전', '대한민국', 'Premium', 58000000.00, 1),
+('CUST028', '경기화학', '임경호', 'lim.kh@gyeonggi-chem.com', '031-9012-3450', '경기도 안산시 단원구 180', '안산', '경기', '대한민국', 'Premium', 65000000.00, 1),
+('CUST029', '서울건설', '송재민', 'song.jm@seoul-const.com', '02-0123-4560', '서울시 서초구 서초대로 190', '서울', '서울', '대한민국', 'VIP', 130000000.00, 1),
+('CUST030', '부산건설자재', '한영미', 'han.ym@busan-material.com', '051-1234-5670', '부산시 강서구 공항로 200', '부산', '부산', '대한민국', 'Regular', 33000000.00, 1),
+('CUST031', '대구기계', '김민재', 'kim.mj@daegu-machine.com', '053-2345-6781', '대구시 달서구 성서로 210', '대구', '대구', '대한민국', 'Premium', 47000000.00, 1),
+('CUST032', '인천항만', '이상훈', 'lee.sh@incheon-port.com', '032-3456-7892', '인천시 중구 항동7가 220', '인천', '인천', '대한민국', 'VIP', 140000000.00, 1),
+('CUST033', '광주광산', '박정아', 'park.ja@gwangju-mine.com', '062-4567-8903', '광주시 북구 운암로 230', '광주', '광주', '대한민국', 'Regular', 27000000.00, 1),
+('CUST034', '제주에너지', '최승현', 'choi.sh@jeju-energy.com', '064-5678-9014', '제주시 구좌읍 240', '제주', '제주', '대한민국', 'Premium', 72000000.00, 1),
+('CUST035', '울산자동차', '정유진', 'jung.yj@ulsan-auto.com', '052-6789-0125', '울산시 북구 산업로 250', '울산', '울산', '대한민국', 'VIP', 160000000.00, 1),
+('CUST036', '대전소프트웨어', '강도현', 'kang.dh@daejeon-sw.com', '042-7890-1236', '대전시 유성구 테크노 260', '대전', '대전', '대한민국', 'Premium', 54000000.00, 1),
+('CUST037', '경기물류', '윤서준', 'yoon.sj@gyeonggi-logis.com', '031-8901-2347', '경기도 이천시 270', '이천', '경기', '대한민국', 'Regular', 36000000.00, 1),
+('CUST038', '서울의료기기', '임하은', 'lim.he@seoul-medical.com', '02-9012-3458', '서울시 금천구 가산디지털 280', '서울', '서울', '대한민국', 'Premium', 68000000.00, 1),
+('CUST039', '부산바이오', '송지우', 'song.jw@busan-bio.com', '051-0123-4569', '부산시 기장군 정관읍 290', '부산', '부산', '대한민국', 'Premium', 71000000.00, 1),
+('CUST040', '대구IT', '한승우', 'han.sw@daegu-it.com', '053-1234-5672', '대구시 수성구 알파시티 300', '대구', '대구', '대한민국', 'Regular', 39000000.00, 1),
+('CUST041', '인천신재생에너지', '김시우', 'kim.sw@incheon-green.com', '032-2345-6783', '인천시 서구 가좌동 310', '인천', '인천', '대한민국', 'VIP', 125000000.00, 1),
+('CUST042', '광주스마트팩토리', '이예은', 'lee.ye@gwangju-smart.com', '062-3456-7894', '광주시 남구 봉선로 320', '광주', '광주', '대한민국', 'Premium', 62000000.00, 1),
+('CUST043', '제주데이터센터', '박하준', 'park.hj@jeju-data.com', '064-4567-8905', '제주시 첨단과학로 330', '제주', '제주', '대한민국', 'Premium', 78000000.00, 1),
+('CUST044', '울산디스플레이', '최서윤', 'choi.sy@ulsan-display.com', '052-5678-9016', '울산시 중구 성남동 340', '울산', '울산', '대한민국', 'VIP', 135000000.00, 1),
+('CUST045', '대전우주항공', '정민재', 'jung.mj@daejeon-aero.com', '042-6789-0127', '대전시 유성구 대덕대로 350', '대전', '대전', '대한민국', 'Premium', 88000000.00, 1),
+('CUST046', '경기AI산업', '강유나', 'kang.yn@gyeonggi-ai.com', '031-7890-1238', '경기도 성남시 분당구 360', '성남', '경기', '대한민국', 'VIP', 145000000.00, 1),
+('CUST047', '서울핀테크', '윤도윤', 'yoon.dy@seoul-fintech.com', '02-8901-2349', '서울시 영등포구 여의도 370', '서울', '서울', '대한민국', 'Premium', 92000000.00, 1),
+('CUST048', '부산로봇산업', '임서준', 'lim.sj@busan-robot.com', '051-9012-3460', '부산시 강서구 미음산단 380', '부산', '부산', '대한민국', 'Regular', 41000000.00, 1),
+('CUST049', '대구드론', '송지안', 'song.ja@daegu-drone.com', '053-0123-4571', '대구시 동구 신서동 390', '대구', '대구', '대한민국', 'Premium', 56000000.00, 1),
+('CUST050', '인천스마트시티', '한예진', 'han.yj@incheon-smart.com', '032-1234-5674', '인천시 연수구 송도국제 400', '인천', '인천', '대한민국', 'VIP', 170000000.00, 1),
 
--- 기존 데이터 삭제 (참조무결성 때문에 역순으로)
-DELETE FROM dbo.OrderDetails
-DELETE FROM dbo.Orders  
-DELETE FROM dbo.Customers
+-- 영어 고객 (50건)
+('CUST051', 'Tech Solutions Inc', 'John Smith', 'john@techsolutions.com', '+1-555-0101', '123 Silicon Valley Blvd', 'San Francisco', 'CA', 'USA', 'Premium', 75000000.00, 1),
+('CUST052', 'Global Trading Co', 'Emily Johnson', 'emily@globaltrading.com', '+1-555-0102', '456 Wall Street', 'New York', 'NY', 'USA', 'VIP', 120000000.00, 1),
+('CUST053', 'Digital Innovations', 'Michael Brown', 'michael@digitalinov.com', '+44-20-7123', '789 Oxford Street', 'London', 'England', 'UK', 'Regular', 45000000.00, 1),
+('CUST054', 'Advanced Manufacturing', 'Sarah Davis', 'sarah@advmanu.com', '+49-30-1234', '321 Hauptstraße', 'Berlin', 'Berlin', 'Germany', 'Premium', 82000000.00, 1),
+('CUST055', 'Pacific Logistics', 'David Wilson', 'david@pacificlog.com', '+61-2-5678', '654 Harbor Road', 'Sydney', 'NSW', 'Australia', 'VIP', 135000000.00, 1),
+('CUST056', 'Euro Electronics', 'Sophie Martin', 'sophie@euroelec.com', '+33-1-2345', '987 Champs-Élysées', 'Paris', 'IDF', 'France', 'Regular', 38000000.00, 1),
+('CUST057', 'Asia Pacific Trade', 'James Lee', 'james@apacific.com', '+65-6789-0123', '147 Orchard Road', 'Singapore', 'Singapore', 'Singapore', 'Premium', 95000000.00, 1),
+('CUST058', 'Northern Industries', 'Emma Anderson', 'emma@northind.com', '+46-8-5678', '258 Drottninggatan', 'Stockholm', 'Stockholm', 'Sweden', 'Regular', 52000000.00, 1),
+('CUST059', 'Smart Tech Corp', 'Oliver Taylor', 'oliver@smarttech.com', '+1-555-0103', '369 Tech Park Drive', 'Austin', 'TX', 'USA', 'VIP', 148000000.00, 1),
+('CUST060', 'International Supply', 'Isabella Thomas', 'isabella@intsupply.com', '+1-416-789-0', '741 Bay Street', 'Toronto', 'ON', 'Canada', 'Premium', 67000000.00, 1),
+('CUST061', 'Future Systems', 'William Jackson', 'william@futuresys.com', '+81-3-1234', '852 Shibuya', 'Tokyo', 'Tokyo', 'Japan', 'VIP', 158000000.00, 1),
+('CUST062', 'Green Energy Ltd', 'Olivia White', 'olivia@greenenergy.com', '+44-161-234', '963 Market Street', 'Manchester', 'England', 'UK', 'Regular', 43000000.00, 1),
+('CUST063', 'Advanced Materials', 'Ethan Harris', 'ethan@advmaterials.com', '+49-89-5678', '159 Marienplatz', 'Munich', 'Bavaria', 'Germany', 'Premium', 78000000.00, 1),
+('CUST064', 'Ocean Freight Co', 'Ava Martinez', 'ava@oceanfreight.com', '+31-20-1234', '357 Damrak', 'Amsterdam', 'NH', 'Netherlands', 'VIP', 142000000.00, 1),
+('CUST065', 'Digital Commerce', 'Noah Robinson', 'noah@digicommerce.com', '+1-555-0104', '753 Commerce Street', 'Seattle', 'WA', 'USA', 'Premium', 89000000.00, 1),
+('CUST066', 'Biotech Research', 'Mia Clark', 'mia@biotech.com', '+41-44-789', '951 Bahnhofstrasse', 'Zurich', 'ZH', 'Switzerland', 'VIP', 165000000.00, 1),
+('CUST067', 'Automotive Parts Ltd', 'Lucas Rodriguez', 'lucas@autoparts.com', '+39-02-3456', '246 Via Montenapoleone', 'Milan', 'Lombardy', 'Italy', 'Regular', 48000000.00, 1),
+('CUST068', 'Cloud Services Inc', 'Charlotte Lewis', 'charlotte@cloudserv.com', '+353-1-234', '468 OConnell Street', 'Dublin', 'Dublin', 'Ireland', 'Premium', 72000000.00, 1),
+('CUST069', 'Pharma Solutions', 'Benjamin Walker', 'benjamin@pharmasol.com', '+32-2-5678', '579 Grand Place', 'Brussels', 'Brussels', 'Belgium', 'VIP', 128000000.00, 1),
+('CUST070', 'Robotics International', 'Amelia Hall', 'amelia@robotics.com', '+82-2-1234', '681 Gangnam-gu', 'Seoul', 'Seoul', 'South Korea', 'Premium', 94000000.00, 1),
+('CUST071', 'Financial Systems', 'Henry Allen', 'henry@finsys.com', '+1-555-0105', '792 Financial District', 'Chicago', 'IL', 'USA', 'VIP', 156000000.00, 1),
+('CUST072', 'Renewable Power', 'Harper Young', 'harper@renewpower.com', '+45-33-1234', '813 Nyhavn', 'Copenhagen', 'Capital', 'Denmark', 'Regular', 51000000.00, 1),
+('CUST073', 'Aerospace Tech', 'Alexander King', 'alex@aerotech.com', '+1-555-0106', '924 Aerospace Parkway', 'Houston', 'TX', 'USA', 'VIP', 175000000.00, 1),
+('CUST074', 'Smart Agriculture', 'Evelyn Wright', 'evelyn@smartagri.com', '+31-10-5678', '135 Coolsingel', 'Rotterdam', 'ZH', 'Netherlands', 'Premium', 63000000.00, 1),
+('CUST075', 'Quantum Computing', 'Sebastian Lopez', 'sebastian@quantum.com', '+1-555-0107', '246 Innovation Way', 'Boston', 'MA', 'USA', 'VIP', 182000000.00, 1),
+('CUST076', 'Marine Solutions', 'Ella Hill', 'ella@marinesol.com', '+47-22-1234', '357 Stortorget', 'Oslo', 'Oslo', 'Norway', 'Regular', 46000000.00, 1),
+('CUST077', 'AI Development', 'Jack Scott', 'jack@aidev.com', '+1-555-0108', '468 Tech Center', 'San Jose', 'CA', 'USA', 'Premium', 98000000.00, 1),
+('CUST078', 'Logistics Solutions', 'Aria Green', 'aria@logisol.com', '+65-6234-5678', '579 Business Park', 'Singapore', 'Singapore', 'Singapore', 'VIP', 138000000.00, 1),
+('CUST079', 'Construction Tech', 'Mason Adams', 'mason@constructech.com', '+61-3-1234', '691 Collins Street', 'Melbourne', 'VIC', 'Australia', 'Premium', 71000000.00, 1),
+('CUST080', 'Food Processing', 'Luna Baker', 'luna@foodproc.com', '+34-91-234', '702 Gran Via', 'Madrid', 'Madrid', 'Spain', 'Regular', 42000000.00, 1),
+('CUST081', 'Textile Manufacturing', 'Logan Nelson', 'logan@textilema.com', '+91-22-1234', '813 Marine Drive', 'Mumbai', 'MH', 'India', 'Premium', 54000000.00, 1),
+('CUST082', 'Chemical Industries', 'Layla Carter', 'layla@chemind.com', '+55-11-5678', '924 Avenida Paulista', 'São Paulo', 'SP', 'Brazil', 'VIP', 132000000.00, 1),
+('CUST083', 'Mining Corporation', 'Elijah Mitchell', 'elijah@miningcorp.com', '+27-11-234', '135 Commissioner St', 'Johannesburg', 'GP', 'South Africa', 'Premium', 87000000.00, 1),
+('CUST084', 'Healthcare Systems', 'Chloe Perez', 'chloe@healthcare.com', '+1-555-0109', '246 Medical Center', 'Philadelphia', 'PA', 'USA', 'VIP', 149000000.00, 1),
+('CUST085', 'Education Technology', 'Matthew Roberts', 'matthew@edutech.com', '+44-131-234', '357 Royal Mile', 'Edinburgh', 'Scotland', 'UK', 'Regular', 39000000.00, 1),
+('CUST086', 'Entertainment Media', 'Avery Turner', 'avery@entmedia.com', '+1-555-0110', '468 Sunset Boulevard', 'Los Angeles', 'CA', 'USA', 'Premium', 76000000.00, 1),
+('CUST087', 'Security Solutions', 'Daniel Phillips', 'daniel@secsol.com', '+972-3-1234', '579 Rothschild Blvd', 'Tel Aviv', 'TA', 'Israel', 'VIP', 124000000.00, 1),
+('CUST088', 'Environmental Tech', 'Sofia Campbell', 'sofia@envtech.com', '+358-9-1234', '691 Esplanadi', 'Helsinki', 'Uusimaa', 'Finland', 'Premium', 69000000.00, 1),
+('CUST089', 'Transportation Systems', 'Joseph Parker', 'joseph@transys.com', '+43-1-5678', '702 Ringstraße', 'Vienna', 'Vienna', 'Austria', 'Regular', 57000000.00, 1),
+('CUST090', 'Telecommunications', 'Victoria Evans', 'victoria@telecom.com', '+852-2345-6789', '813 Nathan Road', 'Hong Kong', 'HK', 'Hong Kong', 'VIP', 167000000.00, 1),
+('CUST091', 'Water Treatment', 'David Edwards', 'david@watertreat.com', '+971-4-1234', '924 Sheikh Zayed Rd', 'Dubai', 'Dubai', 'UAE', 'Premium', 102000000.00, 1),
+('CUST092', 'Fashion Design', 'Grace Collins', 'grace@fashiondes.com', '+33-1-5678', '135 Rue de Rivoli', 'Paris', 'IDF', 'France', 'Regular', 44000000.00, 1),
+('CUST093', 'Gaming Studios', 'Samuel Stewart', 'samuel@gamingstudios.com', '+1-555-0111', '246 Game Avenue', 'San Francisco', 'CA', 'USA', 'Premium', 91000000.00, 1),
+('CUST094', 'Space Technology', 'Zoe Sanchez', 'zoe@spacetech.com', '+1-321-555-0112', '357 Kennedy Space Center', 'Cape Canaveral', 'FL', 'USA', 'VIP', 195000000.00, 1),
+('CUST095', 'Furniture Design', 'Ryan Morris', 'ryan@furndes.com', '+46-31-1234', '468 Avenyn', 'Gothenburg', 'VG', 'Sweden', 'Regular', 49000000.00, 1),
+('CUST096', 'Printing Services', 'Penelope Rogers', 'penelope@printserv.com', '+49-40-5678', '579 Jungfernstieg', 'Hamburg', 'Hamburg', 'Germany', 'Premium', 58000000.00, 1),
+('CUST097', 'Packaging Solutions', 'Isaac Reed', 'isaac@packsol.com', '+1-555-0113', '691 Industrial Pkwy', 'Atlanta', 'GA', 'USA', 'VIP', 118000000.00, 1),
+('CUST098', 'Laboratory Equipment', 'Stella Cook', 'stella@labequip.com', '+41-61-1234', '702 Basel Street', 'Basel', 'BS', 'Switzerland', 'Premium', 84000000.00, 1),
+('CUST099', 'Sports Equipment', 'Christian Morgan', 'christian@sportseq.com', '+1-555-0114', '813 Sports Complex', 'Denver', 'CO', 'USA', 'Regular', 53000000.00, 1),
+('CUST100', 'Defense Systems', 'Nora Bell', 'nora@defensesys.com', '+1-703-555-0115', '924 Pentagon Road', 'Arlington', 'VA', 'USA', 'VIP', 220000000.00, 1)
 GO
 
--- IDENTITY 시드 리셋
-DBCC CHECKIDENT ('dbo.Customers', RESEED, 0)
-DBCC CHECKIDENT ('dbo.Orders', RESEED, 0)
-DBCC CHECKIDENT ('dbo.OrderDetails', RESEED, 0)
-GO
-
--- 고객 데이터 입력
-INSERT INTO dbo.Customers (
-    CustomerCode, CustomerName, ContactName, Email, Phone, 
-    Address, City, Region, PostalCode, Country, 
-    CustomerType, CreditLimit, IsActive, CreatedDate
-) VALUES 
--- 서울 지역 고객
-('CUST001', '삼성전자(주)', '김철수', 'kim@samsung.com', '02-1234-5678', 
- '서울특별시 서초구 서초대로 1321', '서울', '서울', '06765', '대한민국', 'VIP', 50000000, 1, '2024-01-15'),
-
-('CUST002', 'LG전자(주)', '박영희', 'park@lg.com', '02-2345-6789', 
- '서울특별시 영등포구 여의대로 128', '서울', '서울', '07336', '대한민국', 'VIP', 30000000, 1, '2024-01-20'),
-
-('CUST003', '현대자동차(주)', '이민수', 'lee@hyundai.com', '02-3456-7890', 
- '서울특별시 종로구 율곡로 75', '서울', '서울', '03045', '대한민국', 'Premium', 40000000, 1, '2024-02-01'),
-
-('CUST004', '신세계백화점', '정수진', 'jung@shinsegae.com', '02-4567-8901', 
- '서울특별시 중구 소공로 63', '서울', '서울', '04530', '대한민국', 'Regular', 10000000, 1, '2024-02-10'),
-
--- 부산 지역 고객  
-('CUST005', '부산항만공사', '김부산', 'kim@busanport.com', '051-999-1234', 
- '부산광역시 중구 해관로 1', '부산', '부산', '48943', '대한민국', 'Premium', 20000000, 1, '2024-02-15'),
-
-('CUST006', '롯데백화점 센텀시티점', '최롯데', 'choi@lotte.com', '051-888-2345', 
- '부산광역시 해운대구 센텀남대로 35', '부산', '부산', '48058', '대한민국', 'Regular', 8000000, 1, '2024-03-01'),
-
--- 대구 지역 고객
-('CUST007', '대구은행', '서대구', 'seo@dgb.co.kr', '053-777-3456', 
- '대구광역시 중구 달구벌대로 2077', '대구', '경북', '41911', '대한민국', 'Premium', 15000000, 1, '2024-03-05'),
-
--- 인천 지역 고객
-('CUST008', '인천국제공항공사', '안인천', 'ahn@airport.kr', '032-666-4567', 
- '인천광역시 중구 공항로 272', '인천', '인천', '22382', '대한민국', 'VIP', 25000000, 1, '2024-03-10'),
-
--- 광주 지역 고객
-('CUST009', '기아자동차 광주공장', '조광주', 'cho@kia.com', '062-555-5678', 
- '광주광역시 광산구 소촌로 60', '광주', '전남', '62034', '대한민국', 'Premium', 18000000, 1, '2024-03-15'),
-
--- 대전 지역 고객
-('CUST010', 'KAIST', '문대전', 'moon@kaist.ac.kr', '042-444-6789', 
- '대전광역시 유성구 대학로 291', '대전', '대전', '34141', '대한민국', 'Regular', 5000000, 1, '2024-03-20'),
-
--- 해외 고객
-('CUST011', 'Sony Corporation', 'Tanaka Hiroshi', 'tanaka@sony.co.jp', '+81-3-1234-5678', 
- '1-7-1 Konan, Minato-ku', 'Tokyo', 'Tokyo', '108-0075', 'Japan', 'VIP', 60000000, 1, '2024-04-01'),
-
-('CUST012', 'Apple Inc.', 'John Smith', 'john.smith@apple.com', '+1-408-996-1010', 
- 'One Apple Park Way', 'Cupertino', 'California', '95014', 'USA', 'VIP', 80000000, 1, '2024-04-05'),
-
--- 비활성 고객
-('CUST013', '구)대우전자', '김대우', 'kim@daewoo.com', '02-9999-0000', 
- '서울특별시 중구 청계천로 100', '서울', '서울', '04517', '대한민국', 'Regular', 0, 0, '2023-12-01')
-
-PRINT '고객 데이터 입력 완료 (13개)'
-GO
-
--- ========================================
--- 2. Orders 샘플 데이터 입력  
--- ========================================
-
-PRINT '주문 데이터 입력 중...'
-
-INSERT INTO dbo.Orders (
-    OrderNumber, CustomerID, OrderDate, RequiredDate, ShippedDate,
-    OrderStatus, ShipVia, Freight, ShipName, ShipAddress, ShipCity, ShipRegion, ShipCountry,
-    SubTotal, TaxAmount, TotalAmount, PaymentMethod, PaymentStatus, EmployeeID, Notes
-) VALUES 
--- 2024년 1월 주문
-('ORD-2024-0001', 1, '2024-01-16', '2024-01-26', '2024-01-18', 
- 'Shipped', '한진택배', 5000, '삼성전자(주)', '서울특별시 서초구 서초대로 1321', '서울', '서울', '대한민국',
- 950000, 95000, 1050000, '신용카드', 'Paid', 101, '긴급배송 요청'),
-
-('ORD-2024-0002', 2, '2024-01-22', '2024-02-01', '2024-01-25', 
- 'Shipped', 'CJ대한통운', 3000, 'LG전자(주)', '서울특별시 영등포구 여의대로 128', '서울', '서울', '대한민국',
- 1200000, 120000, 1323000, '계좌이체', 'Paid', 102, NULL),
-
--- 2024년 2월 주문
-('ORD-2024-0003', 3, '2024-02-05', '2024-02-15', '2024-02-07', 
- 'Shipped', '로젠택배', 7000, '현대자동차(주)', '서울특별시 종로구 율곡로 75', '서울', '서울', '대한민국',
- 2500000, 250000, 2757000, '신용카드', 'Paid', 103, '대량주문'),
-
-('ORD-2024-0004', 4, '2024-02-12', '2024-02-22', '2024-02-14', 
- 'Shipped', '한진택배', 2000, '신세계백화점', '서울특별시 중구 소공로 63', '서울', '서울', '대한민국',
- 800000, 80000, 882000, '신용카드', 'Paid', 101, NULL),
-
-('ORD-2024-0005', 5, '2024-02-18', '2024-02-28', '2024-02-20', 
- 'Shipped', '부산택배', 4000, '부산항만공사', '부산광역시 중구 해관로 1', '부산', '부산', '대한민국',
- 1500000, 150000, 1654000, '계좌이체', 'Paid', 104, '부산지역 배송'),
-
--- 2024년 3월 주문
-('ORD-2024-0006', 6, '2024-03-03', '2024-03-13', '2024-03-05', 
- 'Shipped', 'CJ대한통운', 3500, '롯데백화점 센텀시티점', '부산광역시 해운대구 센텀남대로 35', '부산', '부산', '대한민국',
- 600000, 60000, 663500, '신용카드', 'Paid', 105, NULL),
-
-('ORD-2024-0007', 7, '2024-03-08', '2024-03-18', '2024-03-10', 
- 'Shipped', '대구택배', 2500, '대구은행', '대구광역시 중구 달구벌대로 2077', '대구', '경북', '대한민국',
- 1100000, 110000, 1212500, '계좌이체', 'Paid', 106, NULL),
-
-('ORD-2024-0008', 8, '2024-03-12', '2024-03-22', '2024-03-14', 
- 'Shipped', '인천택배', 6000, '인천국제공항공사', '인천광역시 중구 공항로 272', '인천', '인천', '대한민국',
- 3200000, 320000, 3526000, '신용카드', 'Paid', 107, '공항 직배송'),
-
--- 2024년 4월 주문 (일부 미처리)
-('ORD-2024-0009', 9, '2024-04-02', '2024-04-12', '2024-04-04', 
- 'Shipped', '광주택배', 4500, '기아자동차 광주공장', '광주광역시 광산구 소촌로 60', '광주', '전남', '대한민국',
- 1800000, 180000, 1984500, '계좌이체', 'Paid', 108, NULL),
-
-('ORD-2024-0010', 10, '2024-04-08', '2024-04-18', NULL, 
- 'Processing', NULL, 0, 'KAIST', '대전광역시 유성구 대학로 291', '대전', '대전', '대한민국',
- 500000, 50000, 550000, '계좌이체', 'Pending', 109, '연구용 장비'),
-
-('ORD-2024-0011', 11, '2024-04-15', '2024-04-25', NULL, 
- 'Processing', NULL, 0, 'Sony Corporation', '1-7-1 Konan, Minato-ku', 'Tokyo', 'Tokyo', 'Japan',
- 5000000, 0, 5000000, '신용카드', 'Pending', 110, '해외배송'),
-
-('ORD-2024-0012', 12, '2024-04-20', '2024-04-30', NULL, 
- 'Pending', NULL, 0, 'Apple Inc.', 'One Apple Park Way', 'Cupertino', 'California', 'USA',
- 8000000, 0, 8000000, '계좌이체', 'Pending', 111, '대량 해외주문'),
-
--- 취소된 주문
-('ORD-2024-0013', 1, '2024-04-25', '2024-05-05', NULL, 
- 'Cancelled', NULL, 0, '삼성전자(주)', '서울특별시 서초구 서초대로 1321', '서울', '서울', '대한민국',
- 300000, 30000, 330000, NULL, 'Cancelled', 101, '고객 요청으로 취소')
-
-PRINT '주문 데이터 입력 완료 (13개)'
-GO
-
--- ========================================
--- 3. OrderDetails 샘플 데이터 입력
--- ========================================
-
-PRINT '주문상세 데이터 입력 중...'
-
-INSERT INTO dbo.OrderDetails (
-    OrderID, ProductCode, ProductName, UnitPrice, Quantity, Discount
-) VALUES 
--- 주문 1번 상세 (삼성전자)
-(1, 'PROD-001', '갤럭시 S24 Ultra', 1300000, 1, 0),
-(1, 'PROD-002', '갤럭시 워치6', 350000, 1, 10),
-
--- 주문 2번 상세 (LG전자) 
-(2, 'PROD-011', 'LG OLED TV 65인치', 2200000, 1, 0),
-(2, 'PROD-012', 'LG 사운드바', 450000, 1, 5),
-
--- 주문 3번 상세 (현대자동차)
-(3, 'PROD-021', '현대 제네시스 G90 부품세트', 5000000, 1, 20),
-
--- 주문 4번 상세 (신세계백화점)
-(4, 'PROD-031', '명품 핸드백 컬렉션', 1200000, 1, 15),
-(4, 'PROD-032', '브랜드 향수 세트', 800000, 1, 20),
-
--- 주문 5번 상세 (부산항만공사)
-(5, 'PROD-041', '항만 관리 시스템', 2500000, 1, 10),
-(5, 'PROD-042', '보안 카메라 세트', 800000, 1, 5),
-
--- 주문 6번 상세 (롯데백화점)
-(6, 'PROD-051', '매장 디스플레이 시스템', 1500000, 1, 0),
-
--- 주문 7번 상세 (대구은행)
-(7, 'PROD-061', '은행 보안 솔루션', 2000000, 1, 5),
-(7, 'PROD-062', 'ATM 관리 시스템', 800000, 1, 0),
-
--- 주문 8번 상세 (인천공항)
-(8, 'PROD-071', '공항 보안 시스템', 4000000, 1, 0),
-(8, 'PROD-072', '승객 안내 시스템', 2500000, 1, 10),
-
--- 주문 9번 상세 (기아자동차)
-(9, 'PROD-081', '자동차 생산라인 부품', 3000000, 1, 10),
-(9, 'PROD-082', '품질관리 장비', 1200000, 1, 5),
-
--- 주문 10번 상세 (KAIST)
-(10, 'PROD-091', '연구용 컴퓨터 시스템', 800000, 1, 0),
-(10, 'PROD-092', '실험실 측정 장비', 400000, 1, 5),
-
--- 주문 11번 상세 (Sony)
-(11, 'PROD-101', '고급 카메라 시스템', 8000000, 1, 15),
-(11, 'PROD-102', '프로 오디오 장비', 3000000, 1, 10),
-
--- 주문 12번 상세 (Apple)
-(12, 'PROD-111', '기업용 MacBook Pro 세트', 12000000, 1, 20),
-(12, 'PROD-112', '아이패드 프로 대량 구매', 8000000, 1, 15)
-
--- 주문 13번은 취소되어 상세내역 없음
-
-PRINT '주문상세 데이터 입력 완료 (18개)'
-GO
-
--- ========================================
--- 4. Orders 테이블의 SubTotal, TotalAmount 업데이트
--- ========================================
-
-PRINT '주문 금액 재계산 중...'
-
-UPDATE o 
-SET 
-    SubTotal = ISNULL(detail_sum.SubTotal, 0),
-    TotalAmount = ISNULL(detail_sum.SubTotal, 0) + o.TaxAmount + o.Freight
-FROM dbo.Orders o
-LEFT JOIN (
-    SELECT 
-        OrderID,
-        SUM(LineTotal) as SubTotal
-    FROM dbo.OrderDetails
-    GROUP BY OrderID
-) detail_sum ON o.OrderID = detail_sum.OrderID
-
-PRINT '주문 금액 재계산 완료'
-GO
-
--- ========================================
--- 5. 데이터 입력 결과 확인
--- ========================================
-
-PRINT ''
-PRINT '=== 데이터 입력 완료 ==='
-PRINT ''
-
--- 테이블별 데이터 개수 확인
-SELECT 'Customers' as TableName, COUNT(*) as RecordCount FROM dbo.Customers
-UNION ALL
-SELECT 'Orders' as TableName, COUNT(*) as RecordCount FROM dbo.Orders  
-UNION ALL
-SELECT 'OrderDetails' as TableName, COUNT(*) as RecordCount FROM dbo.OrderDetails
-
-PRINT ''
-PRINT '=== 주문 상태별 집계 ==='
-
--- 주문 상태별 집계
-SELECT 
-    OrderStatus,
-    COUNT(*) as OrderCount,
-    SUM(TotalAmount) as TotalAmount
-FROM dbo.Orders
-GROUP BY OrderStatus
-ORDER BY OrderCount DESC
-
-PRINT ''
-PRINT '=== 지역별 고객 수 ==='
-
--- 지역별 고객 수
-SELECT 
-    Region,
-    COUNT(*) as CustomerCount
-FROM dbo.Customers
-WHERE IsActive = 1
-GROUP BY Region
-ORDER BY CustomerCount DESC
-
-PRINT ''
-PRINT '샘플 데이터 입력이 모두 완료되었습니다!'
-GO 
+-- (계속...)
