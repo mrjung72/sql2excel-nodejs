@@ -1,6 +1,64 @@
 # SQL2Excel Version History
 
-## v1.3.0 - Multi-Database Support (2025-10-22)
+## v1.3.0 - Per-sheet Export for CSV/TXT and Routing Rules (2025-10-29)
+
+### ✨ New/Changed
+- Export routing based on output extension
+  - `.xlsx` / `.xls` → Generate a single Excel workbook (existing behavior)
+  - `.csv` → Generate per-sheet CSV files
+  - All other extensions (e.g., `.txt`, `.log`, `.data`, `.sql`, etc.) → Generate per-sheet TXT files (tab-delimited)
+- Output directory naming
+  - If per-sheet export is used, files are written under `<output_basename>_<ext>` (no dot)
+  - Example: `output="d:/temp/report.csv"` → directory `d:/temp/report_csv/`
+- Per-file naming
+  - Each sheet becomes a separate file named after the sheet's original name (`originalName`) with filesystem sanitization
+  - No 31-character truncation applies to CSV/TXT outputs (Excel-only limit)
+  - Max filename length capped at 100 characters; invalid characters replaced with `_`
+- Data formats
+  - CSV: comma-delimited, UTF-8 with BOM, headers included, CRLF line endings
+  - TXT: tab-delimited, UTF-8 with BOM, headers included, CRLF line endings
+
+### 🔧 Code Changes
+- index.js: Route by extension; only `.xlsx`/`.xls` use workbook generation; `.csv` uses per-sheet CSV; others per-sheet TXT
+- excel-generator.js: Implement per-sheet writer, directory naming `<basename>_<ext>`, filename from `originalName`, formatting defaults
+
+### 📝 Documentation
+- README/README_KR: Updated highlights to v1.3.0 with per-sheet export rules and examples
+- USER_MANUAL/USER_MANUAL_KR: Added section describing routing, directory/filename rules, and defaults
+- CHANGELOG/CHANGELOG_KR: Added v1.3.0 entry
+
+## v1.2.11 - TOC Original Name & Sheet Name Length Warning (2025-10-29)
+
+### ✨ New/Changed
+- Sheet name length > 31 characters is now treated as a warning during validation (no failure)
+  - Warning also indicates that Excel may truncate the sheet name
+- Table of Contents (TOC) updated to include a new column: "Original Name"
+  - Shows the originally defined sheet name even if the actual tab was truncated
+  - Removed tooltip note; information is displayed as a dedicated column instead
+
+### 🔧 Code Changes
+- excel-cli.js: Validation now logs warnings for long names, not errors
+- excel-style-helper.js: TOC structure updated (add Original Name column, remove Note column)
+- index.js / excel-generator.js: Pass original sheet name through to TOC
+
+### 📝 Documentation
+- README/README_KR: Updated highlights to v1.2.11, described changes
+- CHANGELOG: Added v1.2.11 entry
+
+## v1.2.10 - Non-interactive CLI & Docs (2025-10-29)
+
+### ✨ New Features
+
+#### Non-interactive CLI (app.js)
+- Added direct execution without interactive menu using `--mode`
+  - Modes: `validate`, `test`, `export`, `help`
+  - Works in Node and packaged EXE
+
+### 📝 Documentation
+- README.md / README_KR.md: Added "Non-interactive CLI" usage and examples
+- Updated highlights to v1.2.10
+
+## v2.0.0-beta - Multi-Database Support (2025-10-22)
 
 ### ✨ New Features
 - **Multi-Database Support**: Support for multiple database types beyond MSSQL

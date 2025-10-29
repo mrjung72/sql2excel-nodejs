@@ -457,15 +457,11 @@ function populateTableOfContents(tocSheet, sheetNames) {
   // 기존 내용 모두 삭제
   tocSheet.spliceRows(1, tocSheet.rowCount);
   
-  // 헤더 추가 (쿼리문 컬럼 추가)
-  tocSheet.addRow(['No', msg.sheetName, msg.records, 'Aggregate Info', 'Query', 'Note']);
+  // 헤더 추가 (원본 시트명/쿼리문 컬럼 포함, Note 제거)
+  tocSheet.addRow(['No', msg.sheetName, 'Original Name', msg.records, 'Aggregate Info', 'Query']);
   
   // 시트 목록 추가
   sheetNames.forEach((obj, idx) => {
-    // 시트명이 잘렸는지 확인
-    const isTruncated = obj.originalName && obj.originalName !== obj.tabName;
-    const noteText = isTruncated ? '(31자 초과로 잘림)' : '';
-    
     // 집계 정보 텍스트 생성 (템플릿 사용)
     let aggregateInfo = '';
     
@@ -523,7 +519,14 @@ function populateTableOfContents(tocSheet, sheetNames) {
       }
     }
     
-    const row = tocSheet.addRow([idx + 1, obj.displayName, obj.recordCount || 0, aggregateInfo, queryText]);
+    const row = tocSheet.addRow([
+      idx + 1,
+      obj.displayName,
+      obj.originalName || '',
+      obj.recordCount || 0,
+      aggregateInfo,
+      queryText
+    ]);
     
     // 하이퍼링크 설정 - 실제 시트명(tabName) 사용
     const sheetNameForLink = obj.tabName.replace(/'/g, "''"); // 작은따옴표 이스케이프
@@ -559,8 +562,8 @@ function populateTableOfContents(tocSheet, sheetNames) {
       }
     }
     
-    // 데이터 건수 스타일링 및 하이퍼링크
-    const recordCountCell = row.getCell(3);
+    // 데이터 건수 스타일링 및 하이퍼링크 (이제 4번째 컬럼)
+    const recordCountCell = row.getCell(4);
     const recordCountText = (obj.recordCount || 0).toString();
     
     // 데이터 건수에도 하이퍼링크 적용
@@ -595,8 +598,8 @@ function populateTableOfContents(tocSheet, sheetNames) {
     recordCountCell.numFmt = '#,##0'; // 천 단위 구분자
     recordCountCell.alignment = { horizontal: 'right' };
     
-    // 집계 데이터 컬럼에 하이퍼링크 적용
-    const aggregateCell = row.getCell(4);
+    // 집계 데이터 컬럼에 하이퍼링크 적용 (이제 5번째 컬럼)
+    const aggregateCell = row.getCell(5);
     if (aggregateInfo) {
       // 집계 정보에도 하이퍼링크 적용
       const aggregateFormula = `HYPERLINK("#'${sheetNameForLink}'!A1","${aggregateInfo.replace(/"/g, '""')}")`;
@@ -639,8 +642,8 @@ function populateTableOfContents(tocSheet, sheetNames) {
       aggregateCell.font = { color: { argb: '999999' } };
     }
     
-    // 쿼리문 컬럼 스타일링 (5번째 컬럼)
-    const queryCell = row.getCell(5);
+    // 쿼리문 컬럼 스타일링 (이제 6번째 컬럼)
+    const queryCell = row.getCell(6);
     if (queryText) {
       queryCell.font = { 
         size: 9,
@@ -655,35 +658,16 @@ function populateTableOfContents(tocSheet, sheetNames) {
       queryCell.value = '';
       queryCell.font = { color: { argb: '999999' } };
     }
-    
-    // 비고 컬럼 스타일링 (6번째 컬럼)
-    if (isTruncated) {
-      row.getCell(6).font = { 
-        italic: true,
-        color: { argb: 'D2691E' } // 주황색으로 경고 표시
-      };
-      
-      // 원본 시트명을 셀 주석으로 추가
-      row.getCell(2).note = {
-        texts: [
-          { text: msg.originalSheetName, font: { bold: true } },
-          { text: obj.originalName, font: { italic: true } },
-          { text: msg.actualTabName, font: { bold: true } },
-          { text: obj.tabName, font: { color: { argb: 'FF0000' } } },
-          { text: msg.sheetNameLimit, font: { size: 9, color: { argb: '666666' } } }
-        ]
-      };
-    }
   });
 
-  // 컬럼 설정 (쿼리문 컬럼 추가)
+  // 컬럼 설정 (Original Name 추가, Note 제거)
   tocSheet.columns = [
     { header: 'No', key: 'no', width: 6 },
     { header: msg.sheetName, key: 'name', width: 25 },
+    { header: 'Original Name', key: 'original', width: 25 },
     { header: msg.records, key: 'records', width: 12 },
     { header: 'Aggregate Info', key: 'aggregate', width: 20 },
-    { header: 'Query', key: 'query', width: 40 },
-    { header: 'Note', key: 'note', width: 18 }
+    { header: 'Query', key: 'query', width: 40 }
   ];
 
   // 헤더 스타일

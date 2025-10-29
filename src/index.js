@@ -282,13 +282,15 @@ async function main() {
     
     let sql = variableProcessor.substituteVars(sheetDef.query, mergedVars, sheetDef.params || {});
     let sheetName = variableProcessor.substituteVars(sheetDef.name, mergedVars, sheetDef.params || {});
+    const originalSheetNameCandidate = sheetName;
     
     // 시트명 자동 수정 (변수 치환 후)
     const sheetNameValidation = queryParser.validateSheetName(sheetName, sheetIndex);
+
     if (!sheetNameValidation.valid) {
       console.warn(`${msg.sheetNameAutoFix} #${sheetIndex + 1}):`);
       console.warn(`${msg.originalSheetName} "${sheetName}"`);
-      
+
       // 허용되지 않는 문자 제거
       const invalidChars = ['\\', '/', '*', '?', '[', ']', ':'];
       invalidChars.forEach(char => {
@@ -363,7 +365,7 @@ async function main() {
       
       createdSheetNames.push({ 
         displayName: sheetName, 
-        originalName: sheetName,
+        originalName: originalSheetNameCandidate,
         tabName: sheetName, 
         recordCount: recordCount,
         aggregateColumn: sheetDef.aggregateColumn,
@@ -375,6 +377,7 @@ async function main() {
       // 처리된 시트 정보 저장
       processedSheets.push({
         name: sheetName,
+        originalName: originalSheetNameCandidate,
         data: result.recordset,
         style: sheetStyle,
         recordCount: recordCount,
@@ -396,14 +399,24 @@ async function main() {
     sheetIndex++;
   }
   
-  // 엑셀 파일 생성
+  // 파일 생성 (엑셀 또는 per-sheet 파일들)
   if (processedSheets.length > 0) {
-    await excelGenerator.generateExcel({
-      sheets: processedSheets,
-      outputPath: outFile,
-      createdSheetNames: createdSheetNames,
-      createdSheetCounts: createdSheetCounts
-    });
+    const ext = FileUtils.getExtension(outFile).toLowerCase();
+    if (ext === '.xlsx' || ext === '.xls') {
+      await excelGenerator.generateExcel({
+        sheets: processedSheets,
+        outputPath: outFile,
+        createdSheetNames: createdSheetNames,
+        createdSheetCounts: createdSheetCounts
+      });
+    } else {
+      const format = (ext === '.csv') ? 'csv' : 'txt';
+      await excelGenerator.exportPerSheetFiles({
+        sheets: processedSheets,
+        outputPath: outFile,
+        format
+      });
+    }
   }
   
   // 모든 DB 연결 정리

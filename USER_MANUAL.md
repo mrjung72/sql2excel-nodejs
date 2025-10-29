@@ -43,6 +43,22 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 - 📋 **SQL Query Formatting**: Preserve original SQL formatting with line breaks in Table of Contents
 - 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 
+### What's New (v1.3.0)
+
+- Per-sheet export routing by extension
+  - `.xlsx` / `.xls` → Generate a single Excel workbook (existing behavior)
+  - `.csv` → Generate per-sheet CSV files
+  - All other extensions (e.g., `.txt`, `.log`, `.data`, `.sql`, etc.) → Generate per-sheet TXT files (tab-delimited)
+- Directory and filename rules (per-sheet export)
+  - Output directory: `<output_basename>_<ext>` (no dot). Example: `output="d:/temp/report.csv"` → `d:/temp/report_csv/`
+  - Each sheet becomes a separate file named after the sheet's `originalName`
+  - No 31-character truncation for CSV/TXT (Excel-only limit). Filenames sanitized and capped at 100 chars
+
+Previously in v1.2.11
+
+- Validation warning for sheet names > 31 chars; note about Excel truncation
+- TOC: Added "Original Name" column; removed note tooltip
+
 ## 🛠️ Installation and Setup
 
 ### 1. System Requirements
@@ -128,6 +144,16 @@ Create `config/dbinfo.json` file:
   }
 }
 ```
+
+### Per-sheet export (CSV/TXT)
+
+- Routing by `excel.output` extension
+  - `.xlsx`/`.xls` → Single Excel workbook
+  - `.csv` → Per-sheet CSV
+  - Others → Per-sheet TXT (tab-delimited)
+- Output directory and filenames
+  - Files are written under `<output_basename>_<ext>` (no dot)
+  - Each file name is the sheet `originalName` (sanitized, max 100 chars). No 31-char limit (Excel-only)
 
 ## 🚀 Basic Usage
 
@@ -249,6 +275,37 @@ node src/excel-cli.js list-styles
 
 # Standalone
 sql2excel.exe list-styles
+```
+
+## Non-interactive CLI (New in v1.2.10)
+
+Run tasks directly without the interactive menu using `--mode`.
+
+### Node.js
+```bash
+# Validate query definition
+node app.js --mode=validate --xml=./queries/sample-queries.xml
+# or JSON
+node app.js --mode=validate --query=./queries/sample-queries.json
+
+# Test DB connections
+node app.js --mode=test
+
+# Export Excel
+node app.js --mode=export --xml=./queries/sample-queries.xml
+# or JSON
+node app.js --mode=export --query=./queries/sample-queries.json
+
+# Help
+node app.js --mode=help
+```
+
+### Standalone EXE
+```bash
+sql2excel.exe --mode=validate --xml=./queries/sample-queries.xml
+sql2excel.exe --mode=test
+sql2excel.exe --mode=export --xml=./queries/sample-queries.xml
+sql2excel.exe --mode=help
 ```
 
 ## 📋 Query Definition File Structure

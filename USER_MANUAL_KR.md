@@ -43,6 +43,22 @@ SQL2Excel은 고급 스타일링, 템플릿 지원, 독립 실행 파일 배포 
 - 📋 **SQL 쿼리 포맷팅**: 목차에서 줄바꿈을 포함한 원본 SQL 포맷 유지
 - 🔧 **입력 유효성 검증**: 파일 경로 입력에 대한 자동 공백 제거
 
+### What's New (v1.3.0)
+
+- 확장자 기반 시트별 내보내기 라우팅
+  - `.xlsx` / `.xls` → 단일 엑셀 통합문서 생성 (기존 동작)
+  - `.csv` → 시트별 CSV 파일 생성
+  - 그 외 모든 확장자(예: `.txt`, `.log`, `.data`, `.sql` 등) → 시트별 TXT 파일 생성 (탭 구분)
+- 디렉토리/파일명 규칙 (시트별 내보내기)
+  - 출력 디렉토리: `<출력파일베이스>_<확장자>` (점 제외). 예: `output="d:/temp/report.csv"` → `d:/temp/report_csv/`
+  - 각 시트는 `originalName`(원본 시트명)으로 파일 생성
+  - CSV/TXT에는 31자 제한 없음(엑셀 전용 제한). 파일명은 안전화 및 최대 100자 제한
+
+이전 버전(v1.2.11)
+
+- 시트명 31자 초과 경고 처리 및 엑셀에서 잘릴 수 있음 안내
+- TOC: "Original Name" 컬럼 추가, Note(툴팁) 제거
+
 ## 🛠️ 설치 및 설정
 
 ### 1. 시스템 요구사항
@@ -251,6 +267,37 @@ node src/excel-cli.js list-styles
 sql2excel.exe list-styles
 ```
 
+## 비대화형 CLI (v1.2.10 신규)
+
+`--mode` 플래그를 사용해 대화형 메뉴 없이 바로 실행할 수 있습니다.
+
+### Node.js
+```bash
+# 쿼리 정의 검증
+node app.js --mode=validate --xml=./queries/sample-queries.xml
+# 또는 JSON
+node app.js --mode=validate --query=./queries/sample-queries.json
+
+# DB 연결 테스트
+node app.js --mode=test
+
+# 엑셀 내보내기
+node app.js --mode=export --xml=./queries/sample-queries.xml
+# 또는 JSON
+node app.js --mode=export --query=./queries/sample-queries.json
+
+# 도움말
+node app.js --mode=help
+```
+
+### 독립 실행 파일(EXE)
+```bash
+sql2excel.exe --mode=validate --xml=./queries/sample-queries.xml
+sql2excel.exe --mode=test
+sql2excel.exe --mode=export --xml=./queries/sample-queries.xml
+sql2excel.exe --mode=help
+```
+
 ## 📋 쿼리 정의 파일 구조
 
 ### XML 형식
@@ -352,6 +399,16 @@ sql2excel.exe list-styles
   ]
 }
 ```
+
+### 시트별 내보내기 (CSV/TXT)
+
+- `excel.output` 확장자에 따른 라우팅
+  - `.xlsx`/`.xls` → 단일 엑셀 통합문서
+  - `.csv` → 시트별 CSV
+  - 그 외 → 시트별 TXT (탭 구분)
+- 출력 디렉토리 및 파일명
+  - 출력은 `<출력파일베이스>_<확장자>` (점 제외) 하위에 생성
+  - 파일명은 시트 `originalName` 사용 (파일시스템 안전화, 최대 100자). 31자 제한 없음(엑셀 전용)
 
 ## 🎨 템플릿 스타일 시스템
 

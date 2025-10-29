@@ -26,6 +26,60 @@ SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니�
 - 📋 **SQL 쿼리 포맷팅**: 목차에서 줄바꿈을 포함한 원본 SQL 포맷 유지
 - 🔧 **입력 유효성 검증**: 파일 경로 입력에 대한 자동 공백 제거
 
+## v1.3.0 하이라이트
+
+- **확장자 기반 시트별 내보내기 라우팅**
+  - `.xlsx` / `.xls` → 단일 엑셀 통합문서 생성 (기존 동작)
+  - `.csv` → 시트별 CSV 파일 생성
+  - 그 외 모든 확장자(예: `.txt`, `.log`, `.data`, `.sql` 등) → 시트별 TXT 파일 생성 (탭 구분)
+- **시트별 내보내기 디렉토리/파일명 규칙**
+  - 출력 디렉토리: `<출력파일베이스>_<확장자>` (점 제외). 예: `output="d:/temp/report.csv"` → `d:/temp/report_csv/`
+  - 각 시트는 `originalName`(원본 시트명)으로 파일 생성
+  - CSV/TXT는 31자 제한 없음(엑셀 전용 제한). 파일명은 안전화 및 최대 100자 제한
+- **포맷 기본값**
+  - CSV: 콤마, UTF-8 BOM, 헤더 포함, CRLF
+  - TXT: 탭, UTF-8 BOM, 헤더 포함, CRLF
+
+### 이전 버전(v1.2.11)
+
+- 시트명 31자 초과 경고 처리 및 엑셀에서 잘릴 수 있음 안내
+- TOC: "Original Name" 컬럼 추가, Note(툴팁) 제거
+
+### 이전 버전(v1.2.10)
+
+- **비대화식 CLI**: 메뉴 없이 `app.js --mode`로 직접 실행
+  - 모드: `validate`, `test`, `export`, `help`
+  - Node 실행 및 배포 EXE 모두 지원
+
+### 비대화형 CLI (신규)
+
+#### Node.js
+```bash
+# 쿼리정의 검증
+node app.js --mode=validate --xml=./queries/sample-queries.xml
+# 또는 JSON
+node app.js --mode=validate --query=./queries/sample-queries.json
+
+# DB 연결 테스트
+node app.js --mode=test
+
+# 엑셀 생성
+node app.js --mode=export --xml=./queries/sample-queries.xml
+# 또는 JSON
+node app.js --mode=export --query=./queries/sample-queries.json
+
+# 도움말
+node app.js --mode=help
+```
+
+#### 독립 실행 파일(EXE)
+```bash
+sql2excel.exe --mode=validate --xml=./queries/sample-queries.xml
+sql2excel.exe --mode=test
+sql2excel.exe --mode=export --xml=./queries/sample-queries.xml
+sql2excel.exe --mode=help
+```
+
 ## 🚀 빠른 시작
 
 ## 🛠️ 설치 및 설정

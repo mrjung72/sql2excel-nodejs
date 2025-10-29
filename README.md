@@ -26,6 +26,60 @@ A Node.js-based tool for generating Excel files from SQL query results.
 - 📋 **SQL Query Formatting**: Preserve original SQL formatting with line breaks in Table of Contents
 - 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 
+## v1.3.0 Highlights
+
+- **Per-sheet export routing by extension**
+  - `.xlsx` / `.xls` → Generate a single Excel workbook (existing behavior)
+  - `.csv` → Generate per-sheet CSV files
+  - All other extensions (e.g., `.txt`, `.log`, `.data`, `.sql`, etc.) → Generate per-sheet TXT files (tab-delimited)
+- **Directory and filename rules for per-sheet export**
+  - Output directory: `<output_basename>_<ext>` (no dot). Example: `output="d:/temp/report.csv"` → `d:/temp/report_csv/`
+  - Each sheet becomes a separate file named after the sheet's `originalName`
+  - No 31-character truncation for CSV/TXT (Excel-only limit). Filenames sanitized and capped at 100 chars
+- **Format defaults**
+  - CSV: comma, UTF-8 with BOM, headers, CRLF
+  - TXT: tab, UTF-8 with BOM, headers, CRLF
+
+### Previously in v1.2.11
+
+- Validation warning for sheet names > 31 chars; note about Excel truncation
+- TOC: Added "Original Name" column; removed note tooltip
+
+### Previously in v1.2.10
+
+- **Non-interactive CLI**: Run tasks directly with `app.js --mode` (no menu)
+  - Modes: `validate`, `test`, `export`, `help`
+  - Works in both Node and packaged EXE
+
+### Non-interactive CLI (New)
+
+#### Node.js
+```bash
+# Validate query definition
+node app.js --mode=validate --xml=./queries/sample-queries.xml
+# or JSON
+node app.js --mode=validate --query=./queries/sample-queries.json
+
+# Test DB connections
+node app.js --mode=test
+
+# Export Excel
+node app.js --mode=export --xml=./queries/sample-queries.xml
+# or JSON
+node app.js --mode=export --query=./queries/sample-queries.json
+
+# Help
+node app.js --mode=help
+```
+
+#### Standalone EXE
+```bash
+sql2excel.exe --mode=validate --xml=./queries/sample-queries.xml
+sql2excel.exe --mode=test
+sql2excel.exe --mode=export --xml=./queries/sample-queries.xml
+sql2excel.exe --mode=help
+```
+
 ## 🚀 Quick Start
 
 ## 🛠️ Installation and Setup
