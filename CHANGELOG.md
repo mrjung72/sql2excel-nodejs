@@ -1,5 +1,32 @@
 # SQL2Excel Version History
 
+## v1.3.0 - Per-sheet Export for CSV/TXT and Routing Rules (2025-10-29)
+
+### ✨ New/Changed
+- Export routing based on output extension
+  - `.xlsx` / `.xls` → Generate a single Excel workbook (existing behavior)
+  - `.csv` → Generate per-sheet CSV files
+  - All other extensions (e.g., `.txt`, `.log`, `.data`, `.sql`, etc.) → Generate per-sheet TXT files (tab-delimited)
+- Output directory naming
+  - If per-sheet export is used, files are written under `<output_basename>_<ext>` (no dot)
+  - Example: `output="d:/temp/report.csv"` → directory `d:/temp/report_csv/`
+- Per-file naming
+  - Each sheet becomes a separate file named after the sheet's original name (`originalName`) with filesystem sanitization
+  - No 31-character truncation applies to CSV/TXT outputs (Excel-only limit)
+  - Max filename length capped at 100 characters; invalid characters replaced with `_`
+- Data formats
+  - CSV: comma-delimited, UTF-8 with BOM, headers included, CRLF line endings
+  - TXT: tab-delimited, UTF-8 with BOM, headers included, CRLF line endings
+
+### 🔧 Code Changes
+- index.js: Route by extension; only `.xlsx`/`.xls` use workbook generation; `.csv` uses per-sheet CSV; others per-sheet TXT
+- excel-generator.js: Implement per-sheet writer, directory naming `<basename>_<ext>`, filename from `originalName`, formatting defaults
+
+### 📝 Documentation
+- README/README_KR: Updated highlights to v1.3.0 with per-sheet export rules and examples
+- USER_MANUAL/USER_MANUAL_KR: Added section describing routing, directory/filename rules, and defaults
+- CHANGELOG/CHANGELOG_KR: Added v1.3.0 entry
+
 ## v1.2.11 - TOC Original Name & Sheet Name Length Warning (2025-10-29)
 
 ### ✨ New/Changed

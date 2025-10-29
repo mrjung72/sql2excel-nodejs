@@ -25,10 +25,24 @@ A Node.js-based tool for generating Excel files from SQL query results.
 - 📋 **SQL Query Formatting**: Preserve original SQL formatting with line breaks in Table of Contents
 - 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 
-## v1.2.11 Highlights
+## v1.3.0 Highlights
 
-- **Validation Warning Change**: Sheet names longer than 31 characters now produce a warning (not an error). The warning also notes that Excel may truncate the sheet name.
-- **TOC Update**: The Table of Contents now includes an "Original Name" column to display the originally defined sheet name (useful when the tab name is truncated by Excel).
+- **Per-sheet export routing by extension**
+  - `.xlsx` / `.xls` → Generate a single Excel workbook (existing behavior)
+  - `.csv` → Generate per-sheet CSV files
+  - All other extensions (e.g., `.txt`, `.log`, `.data`, `.sql`, etc.) → Generate per-sheet TXT files (tab-delimited)
+- **Directory and filename rules for per-sheet export**
+  - Output directory: `<output_basename>_<ext>` (no dot). Example: `output="d:/temp/report.csv"` → `d:/temp/report_csv/`
+  - Each sheet becomes a separate file named after the sheet's `originalName`
+  - No 31-character truncation for CSV/TXT (Excel-only limit). Filenames sanitized and capped at 100 chars
+- **Format defaults**
+  - CSV: comma, UTF-8 with BOM, headers, CRLF
+  - TXT: tab, UTF-8 with BOM, headers, CRLF
+
+### Previously in v1.2.11
+
+- Validation warning for sheet names > 31 chars; note about Excel truncation
+- TOC: Added "Original Name" column; removed note tooltip
 
 ### Previously in v1.2.10
 

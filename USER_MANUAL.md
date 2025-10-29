@@ -42,10 +42,21 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 - 📋 **SQL Query Formatting**: Preserve original SQL formatting with line breaks in Table of Contents
 - 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 
-### What's New (v1.2.11)
+### What's New (v1.3.0)
 
-- Validation: Sheet names longer than 31 characters now trigger a warning (no failure). The warning also notes that Excel may truncate the sheet name.
-- TOC: Added an "Original Name" column to display the originally defined sheet name. Removed tooltip note; information is shown in the column.
+- Per-sheet export routing by extension
+  - `.xlsx` / `.xls` → Generate a single Excel workbook (existing behavior)
+  - `.csv` → Generate per-sheet CSV files
+  - All other extensions (e.g., `.txt`, `.log`, `.data`, `.sql`, etc.) → Generate per-sheet TXT files (tab-delimited)
+- Directory and filename rules (per-sheet export)
+  - Output directory: `<output_basename>_<ext>` (no dot). Example: `output="d:/temp/report.csv"` → `d:/temp/report_csv/`
+  - Each sheet becomes a separate file named after the sheet's `originalName`
+  - No 31-character truncation for CSV/TXT (Excel-only limit). Filenames sanitized and capped at 100 chars
+
+Previously in v1.2.11
+
+- Validation warning for sheet names > 31 chars; note about Excel truncation
+- TOC: Added "Original Name" column; removed note tooltip
 
 ## 🛠️ Installation and Setup
 
@@ -111,6 +122,16 @@ Create `config/dbinfo.json` file:
   }
 }
 ```
+
+### Per-sheet export (CSV/TXT)
+
+- Routing by `excel.output` extension
+  - `.xlsx`/`.xls` → Single Excel workbook
+  - `.csv` → Per-sheet CSV
+  - Others → Per-sheet TXT (tab-delimited)
+- Output directory and filenames
+  - Files are written under `<output_basename>_<ext>` (no dot)
+  - Each file name is the sheet `originalName` (sanitized, max 100 chars). No 31-char limit (Excel-only)
 
 ## 🚀 Basic Usage
 
