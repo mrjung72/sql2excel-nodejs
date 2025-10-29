@@ -24,6 +24,15 @@ SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니�
 - ⏰ **커스텀 DateTime 변수**: 전세계 22개 타임존 지원 및 커스텀 포맷 (`${DATE.UTC:YYYY-MM-DD}`, `${DATE.KST:YYYY년 MM월 DD일}`, `${DATE.EST:YYYY-MM-DD HH:mm}` 등) 또는 로컬 시간 사용 (`${DATE:YYYY-MM-DD}`)
 - 📋 **SQL 쿼리 포맷팅**: 목차에서 줄바꿈을 포함한 원본 SQL 포맷 유지
 - 🔧 **입력 유효성 검증**: 파일 경로 입력에 대한 자동 공백 제거
+- 🗂️ **파일명 변수**: `excel.output`에서 `${DATE:...}`, `${DATE.TZ:...}`, `${DB_NAME}` 사용 가능 (커스텀 `$(DB_NAME}`도 지원)
+
+## v1.3.1 하이라이트
+
+- 출력 경로에서 파일명 변수 지원 강화
+  - `${DB_NAME}` 지원 (현재 기본 DB 키). 커스텀 문법 `$(DB_NAME}`는 자동으로 `${DB_NAME}`로 정규화
+  - `${DATE:...}`(로컬 시간), `${DATE.TZ:...}`(타임존 명시) 파일명에서 사용 가능
+  - 소문자 날짜 토큰 지원: `yyyy, yy, dd, d, hh, h, sss`
+  - 자동 `_yyyymmddhhmmss` 접미사 제거 → DATE 변수로 직접 제어
 
 ## v1.3.0 하이라이트
 

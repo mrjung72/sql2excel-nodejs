@@ -1,5 +1,28 @@
 # SQL2Excel 버전 히스토리
 
+## v1.3.1 - 파일명 변수 및 DATE 개선 (2025-10-30)
+
+### ✨ 변경 사항
+- 출력 파일명 변수 기능 강화
+  - `excel.output`에서 `${DB_NAME}` 사용 지원 (커스텀 문법 `$(DB_NAME}` → `${DB_NAME}`로 자동 정규화)
+  - 타임존 미지정 `${DATE:...}`는 서버 로컬 시간으로 치환
+  - 타임존 지정 `${DATE.TZ:...}` 계속 지원
+- 날짜 포맷 토큰 소문자 지원
+  - 기존 대문자 토큰 외에 `yyyy, yy, dd, d, hh, h, sss` 지원 추가
+  - 긴 토큰 → 짧은 토큰 순서로 안전 치환
+- 자동 타임스탬프 접미사 제거
+  - 파일명에 `_yyyymmddhhmmss` 자동 추가 제거; 필요 시 `excel.output`에 DATE 변수를 사용하세요
+
+### 🔧 코드 변경
+- `src/index.js`: 출력 경로 변수 치환 적용, `DB_NAME` 주입, `$(VAR}` → `${VAR}` 정규화, 자동 타임스탬프 추가 제거
+- `src/mssql-helper.js`: 날짜 포맷터에 소문자 토큰 지원 추가, `formatDateLocal` 추가
+- `src/variable-processor.js`: `${DATE:...}`(로컬 시간) 처리 시 `formatDateLocal` 사용
+
+### 📝 문서
+- README/README_KR: v1.3.1 하이라이트 및 파일명 변수 예시 추가
+- USER_MANUAL/USER_MANUAL_KR: 파일명 변수(`DB_NAME`, DATE), 소문자 토큰, 로컬 시간 동작 설명 추가
+- CHANGELOG/CHANGELOG_KR: v1.3.1 항목 추가
+
 ## v1.3.0 - CSV/TXT 시트별 내보내기 및 라우팅 규칙 (2025-10-29)
 
 ### ✨ 변경 사항

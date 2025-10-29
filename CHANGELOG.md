@@ -1,5 +1,28 @@
 # SQL2Excel Version History
 
+## v1.3.1 - Filename Variables and DATE Fixes (2025-10-30)
+
+### ✨ New/Changed
+- Output filename variable enhancements
+  - Support `${DB_NAME}` in `excel.output` (also normalizes custom syntax `$(DB_NAME}` → `${DB_NAME}`)
+  - Support `${DATE:...}` in `excel.output` using server local time when timezone omitted
+  - Continue to support `${DATE.TZ:...}` for explicit timezones
+- Lowercase token support for DATE formats
+  - Newly supports `yyyy, yy, dd, d, hh, h, sss` in addition to existing uppercase tokens
+  - Safe replacement order from longer to shorter tokens
+- Removed automatic timestamp suffix
+  - No longer appends `_yyyymmddhhmmss` to filenames automatically; use DATE variables in `excel.output` instead
+
+### 🔧 Code Changes
+- `src/index.js`: Apply variable substitution to `excel.output`; inject `DB_NAME`; normalize `$(VAR}` → `${VAR}`; removed auto timestamp append
+- `src/mssql-helper.js`: Extend date formatter to support lowercase tokens; added `formatDateLocal`
+- `src/variable-processor.js`: Use `formatDateLocal` for `${DATE:...}` (local time)
+
+### 📝 Documentation
+- README/README_KR: Added v1.3.1 highlights and filename variable usage examples
+- USER_MANUAL/USER_MANUAL_KR: Documented filename variables (`DB_NAME`, DATE), lowercase tokens, and local-time behavior
+- CHANGELOG/CHANGELOG_KR: Added v1.3.1 entry
+
 ## v1.3.0 - Per-sheet Export for CSV/TXT and Routing Rules (2025-10-29)
 
 ### ✨ New/Changed

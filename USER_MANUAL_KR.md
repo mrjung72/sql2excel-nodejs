@@ -566,6 +566,7 @@ ${DATE:format}
 | `ss` | 2자리 초 (00-59) | `45` |
 | `s` | 초 (0-59) | `45` |
 | `SSS` | 밀리초 (000-999) | `123` |
+| `yyyy, yy, dd, d, hh, h, sss` | 소문자 토큰 지원 | `2024, 24, 09, 9, 07, 7, 123` |
 
 ### 일반적인 형식 예시
 
@@ -612,6 +613,15 @@ ${DATE:format}
 <excel db="sampleDB" output="output/report_${DATE:YYYYMMDD}_${DATE:HHmmss}.xlsx">
 ```
 출력: `output/report_20241021_183045.xlsx` (서버의 로컬 시간 사용)
+
+### 파일명 변수 (출력 경로)
+
+- `excel.output`에 변수를 사용하여 파일명을 제어할 수 있습니다:
+  - `${DB_NAME}`: 현재 기본 DB 키 주입. 커스텀 `$(DB_NAME}`는 자동으로 `${DB_NAME}`로 정규화됩니다.
+  - `${DATE:...}`: 로컬 시간 사용. `${DATE.TZ:...}`는 타임존을 명시합니다.
+  - 소문자 토큰 지원: `yyyy, yy, dd, d, hh, h, sss`.
+- 자동 접미사 제거:
+  - 더 이상 파일명에 `_yyyymmddhhmmss`가 자동으로 붙지 않습니다. 필요한 경우 `excel.output`에 DATE 변수를 사용하세요.
 
 #### 2. XML 쿼리에서 사용
 ```xml
