@@ -268,13 +268,15 @@ async function main() {
     
     let sql = variableProcessor.substituteVars(sheetDef.query, mergedVars, sheetDef.params || {});
     let sheetName = variableProcessor.substituteVars(sheetDef.name, mergedVars, sheetDef.params || {});
+    const originalSheetNameCandidate = sheetName;
     
     // 시트명 자동 수정 (변수 치환 후)
     const sheetNameValidation = queryParser.validateSheetName(sheetName, sheetIndex);
+
     if (!sheetNameValidation.valid) {
       console.warn(`${msg.sheetNameAutoFix} #${sheetIndex + 1}):`);
       console.warn(`${msg.originalSheetName} "${sheetName}"`);
-      
+
       // 허용되지 않는 문자 제거
       const invalidChars = ['\\', '/', '*', '?', '[', ']', ':'];
       invalidChars.forEach(char => {
@@ -346,7 +348,7 @@ async function main() {
       
       createdSheetNames.push({ 
         displayName: sheetName, 
-        originalName: sheetName,
+        originalName: originalSheetNameCandidate,
         tabName: sheetName, 
         recordCount: recordCount,
         aggregateColumn: sheetDef.aggregateColumn,
@@ -358,6 +360,7 @@ async function main() {
       // 처리된 시트 정보 저장
       processedSheets.push({
         name: sheetName,
+        originalName: originalSheetNameCandidate,
         data: result.recordset,
         style: sheetStyle,
         recordCount: recordCount,

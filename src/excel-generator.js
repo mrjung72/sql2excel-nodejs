@@ -108,7 +108,7 @@ class ExcelGenerator {
       
       createdSheets.push({ 
         displayName: sheetDef.name, 
-        originalName: sheetDef.name,
+        originalName: sheetDef.originalName || sheetDef.name,
         tabName: actualSheetName, 
         recordCount: recordCount,
         aggregateColumn: sheetDef.aggregateColumn,

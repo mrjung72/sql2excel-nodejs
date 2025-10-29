@@ -13,6 +13,7 @@ const messages = {
         sheetNameTooLong: 'Sheet name is too long (max 31 characters, current: {length} characters)',
         sheetNameInvalidChars: 'Contains invalid characters: {chars}',
         sheetNameWhitespace: 'Sheet name has leading or trailing whitespace.',
+        sheetNameMayTruncate: 'Sheet name may be truncated in Excel.',
         
         helpMessage: `
         SQL2Excel
@@ -124,6 +125,7 @@ const messages = {
         sheetNameTooLong: '시트명이 너무 깁니다 (최대 31자, 현재: {length}자)',
         sheetNameInvalidChars: '허용되지 않는 문자 포함: {chars}',
         sheetNameWhitespace: '시트명 앞뒤에 공백이 있습니다.',
+        sheetNameMayTruncate: '엑셀에서 시트명이 잘릴 수 있습니다.',
         
         helpMessage: 
         `SQL2Excel
@@ -246,9 +248,7 @@ function validateSheetName(sheetName, skipLengthCheck = false) {
         return { valid: false, errors };
     }
     
-    if (!skipLengthCheck && sheetName.length > 31) {
-        errors.push(msg.sheetNameTooLong.replace('{length}', sheetName.length));
-    }
+    // 31자 초과는 오류가 아니라 경고로 처리 (검증 실패에 포함하지 않음)
     
     const foundInvalidChars = invalidChars.filter(char => sheetName.includes(char));
     if (foundInvalidChars.length > 0) {
@@ -516,11 +516,17 @@ async function validateQueryFile(options) {
                     
                     if (sheetNameValidation.valid) {
                         console.log(msg.sheetValidSuccess.replace('{index}', sheetIndex).replace('{name}', sheetName));
+                        if (!hasVariables && sheetName.length > 31) {
+                            console.warn('      - ' + msg.sheetNameTooLong.replace('{length}', sheetName.length) + ' ' + msg.sheetNameMayTruncate);
+                        }
                     } else {
                         console.error(msg.sheetValidFailed.replace('{index}', sheetIndex).replace('{name}', sheetName));
                         sheetNameValidation.errors.forEach(error => {
                             console.error(msg.sheetValidErrorItem.replace('{error}', error));
                         });
+                        if (!hasVariables && sheetName.length > 31) {
+                            console.warn('      - ' + msg.sheetNameTooLong.replace('{length}', sheetName.length) + ' ' + msg.sheetNameMayTruncate);
+                        }
                         console.error(msg.sheetValidAutoFix);
                         hasValidationErrors = true;
                     }
@@ -589,11 +595,17 @@ async function validateQueryFile(options) {
                 
                 if (sheetNameValidation.valid) {
                     console.log(msg.sheetValidSuccess.replace('{index}', sheetIndex).replace('{name}', sheetName));
+                    if (!hasVariables && sheetName.length > 31) {
+                        console.warn('      - ' + msg.sheetNameTooLong.replace('{length}', sheetName.length) + ' ' + msg.sheetNameMayTruncate);
+                    }
                 } else {
                     console.error(msg.sheetValidFailed.replace('{index}', sheetIndex).replace('{name}', sheetName));
                     sheetNameValidation.errors.forEach(error => {
                         console.error(msg.sheetValidErrorItem.replace('{error}', error));
                     });
+                    if (!hasVariables && sheetName.length > 31) {
+                        console.warn('      - ' + msg.sheetNameTooLong.replace('{length}', sheetName.length) + ' ' + msg.sheetNameMayTruncate);
+                    }
                     console.error(msg.sheetValidAutoFix);
                     hasValidationErrors = true;
                 }
