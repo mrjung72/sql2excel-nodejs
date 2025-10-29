@@ -1,5 +1,18 @@
 # SQL2Excel Version History
 
+## v1.2.10 - Non-interactive CLI & Docs (2025-10-29)
+
+### ✨ New Features
+
+#### Non-interactive CLI (app.js)
+- Added direct execution without interactive menu using `--mode`
+  - Modes: `validate`, `test`, `export`, `help`
+  - Works in Node and packaged EXE
+
+### 📝 Documentation
+- README.md / README_KR.md: Added "Non-interactive CLI" usage and examples
+- Updated highlights to v1.2.10
+
 ## v1.2.9 - Global Timezone System & Local Time Support (2025-10-21)
 
 ### ✨ New Features

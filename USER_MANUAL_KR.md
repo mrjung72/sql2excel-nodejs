@@ -229,6 +229,37 @@ node src/excel-cli.js list-styles
 sql2excel.exe list-styles
 ```
 
+## 비대화형 CLI (v1.2.10 신규)
+
+`--mode` 플래그를 사용해 대화형 메뉴 없이 바로 실행할 수 있습니다.
+
+### Node.js
+```bash
+# 쿼리 정의 검증
+node app.js --mode=validate --xml=./queries/sample-queries.xml
+# 또는 JSON
+node app.js --mode=validate --query=./queries/sample-queries.json
+
+# DB 연결 테스트
+node app.js --mode=test
+
+# 엑셀 내보내기
+node app.js --mode=export --xml=./queries/sample-queries.xml
+# 또는 JSON
+node app.js --mode=export --query=./queries/sample-queries.json
+
+# 도움말
+node app.js --mode=help
+```
+
+### 독립 실행 파일(EXE)
+```bash
+sql2excel.exe --mode=validate --xml=./queries/sample-queries.xml
+sql2excel.exe --mode=test
+sql2excel.exe --mode=export --xml=./queries/sample-queries.xml
+sql2excel.exe --mode=help
+```
+
 ## 📋 쿼리 정의 파일 구조
 
 ### XML 형식

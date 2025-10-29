@@ -576,6 +576,86 @@ async function showHelp() {
     await pause();
 }
 
+function getArgValue(name) {
+    const prefix = `--${name}=`;
+    const found = process.argv.find(a => a.startsWith(prefix));
+    return found ? found.substring(prefix.length) : null;
+}
+
+async function runValidateNonInteractive(filePath, type) {
+    if (!filePath || !type) {
+        process.exit(2);
+        return;
+    }
+    try {
+        if (process.pkg) {
+            const options = { configFilePath: path.join(APP_ROOT, 'config', 'dbinfo.json'), variables: {} };
+            if (type === 'XML') options.xmlFilePath = filePath; else options.queryFilePath = filePath;
+            const ok = await excelCli.validateQueryFile(options);
+            if (!ok) throw new Error('validation failed');
+        } else {
+            const cmd = type === 'XML'
+                ? `node src/excel-cli.js validate --xml "${filePath}"`
+                : `node src/excel-cli.js validate --query "${filePath}"`;
+            execSync(cmd, { cwd: APP_ROOT, stdio: 'inherit', encoding: 'utf8' });
+        }
+        process.exit(0);
+    } catch (e) {
+        process.exit(1);
+    }
+}
+
+async function runTestNonInteractive() {
+    try {
+        if (process.pkg) {
+            const configPath = path.join(APP_ROOT, 'config', 'dbinfo.json');
+            await excelCli.testAllDatabaseConnections(configPath);
+        } else {
+            execSync('node src/excel-cli.js list-dbs', { cwd: APP_ROOT, stdio: 'inherit', encoding: 'utf8' });
+        }
+        process.exit(0);
+    } catch (e) {
+        process.exit(1);
+    }
+}
+
+async function runExportNonInteractive(filePath, type) {
+    if (!filePath || !type) {
+        process.exit(2);
+        return;
+    }
+    try {
+        if (process.pkg) {
+            const originalArgv = process.argv;
+            const originalExit = process.exit;
+            process.exit = (code) => { if (code && code !== 0) throw new Error(String(code)); };
+            const filteredArgs = originalArgv.slice(2).filter(arg => !arg.startsWith('--lang='));
+            process.argv = type === 'XML'
+                ? ['node', 'src/excel-cli.js', 'export', '--xml', filePath, ...filteredArgs]
+                : ['node', 'src/excel-cli.js', 'export', '--query', filePath, ...filteredArgs];
+            try { await excelCli.main(); }
+            finally { process.argv = originalArgv; process.exit = originalExit; }
+        } else {
+            const cmd = type === 'XML'
+                ? `node src/excel-cli.js export --xml "${filePath}"`
+                : `node src/excel-cli.js export --query "${filePath}"`;
+            execSync(cmd, { cwd: APP_ROOT, stdio: 'inherit', encoding: 'utf8' });
+        }
+        process.exit(0);
+    } catch (e) {
+        process.exit(1);
+    }
+}
+
+async function runHelpNonInteractive() {
+    try {
+        await showHelp();
+        process.exit(0);
+    } catch (e) {
+        process.exit(1);
+    }
+}
+
 // 메인 메뉴
 async function mainMenu() {
     while (true) {
@@ -618,6 +698,33 @@ async function mainMenu() {
 // 프로그램 시작
 async function main() {
     try {
+        const mode = getArgValue('mode');
+        if (mode) {
+            const xml = getArgValue('xml');
+            const query = getArgValue('query');
+            if (mode === 'validate') {
+                const filePath = xml || query;
+                const type = xml ? 'XML' : (query ? 'JSON' : null);
+                await runValidateNonInteractive(filePath, type);
+                return;
+            }
+            if (mode === 'test') {
+                await runTestNonInteractive();
+                return;
+            }
+            if (mode === 'export') {
+                const filePath = xml || query;
+                const type = xml ? 'XML' : (query ? 'JSON' : null);
+                await runExportNonInteractive(filePath, type);
+                return;
+            }
+            if (mode === 'help') {
+                await runHelpNonInteractive();
+                return;
+            }
+            process.exit(2);
+            return;
+        }
         await mainMenu();
     } catch (error) {
         console.error(colors.red + `\n  ${msg.error} ${error.message}` + colors.reset);

@@ -229,6 +229,37 @@ node src/excel-cli.js list-styles
 sql2excel.exe list-styles
 ```
 
+## Non-interactive CLI (New in v1.2.10)
+
+Run tasks directly without the interactive menu using `--mode`.
+
+### Node.js
+```bash
+# Validate query definition
+node app.js --mode=validate --xml=./queries/sample-queries.xml
+# or JSON
+node app.js --mode=validate --query=./queries/sample-queries.json
+
+# Test DB connections
+node app.js --mode=test
+
+# Export Excel
+node app.js --mode=export --xml=./queries/sample-queries.xml
+# or JSON
+node app.js --mode=export --query=./queries/sample-queries.json
+
+# Help
+node app.js --mode=help
+```
+
+### Standalone EXE
+```bash
+sql2excel.exe --mode=validate --xml=./queries/sample-queries.xml
+sql2excel.exe --mode=test
+sql2excel.exe --mode=export --xml=./queries/sample-queries.xml
+sql2excel.exe --mode=help
+```
+
 ## 📋 Query Definition File Structure
 
 ### XML Format
