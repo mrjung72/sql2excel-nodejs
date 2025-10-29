@@ -1,6 +1,6 @@
 {
   "name": "sql2excel",
-  "version": "1.2.10",
+  "version": "1.2.11",
   "description": "SQL 쿼리 결과를 엑셀 파일로 저장하는 도구 (시트별 쿼리, 변수, XML/JSON 지원)",
   "main": "app.js",
   "scripts": {

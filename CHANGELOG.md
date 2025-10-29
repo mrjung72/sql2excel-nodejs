@@ -1,5 +1,23 @@
 # SQL2Excel Version History
 
+## v1.2.11 - TOC Original Name & Sheet Name Length Warning (2025-10-29)
+
+### ✨ New/Changed
+- Sheet name length > 31 characters is now treated as a warning during validation (no failure)
+  - Warning also indicates that Excel may truncate the sheet name
+- Table of Contents (TOC) updated to include a new column: "Original Name"
+  - Shows the originally defined sheet name even if the actual tab was truncated
+  - Removed tooltip note; information is displayed as a dedicated column instead
+
+### 🔧 Code Changes
+- excel-cli.js: Validation now logs warnings for long names, not errors
+- excel-style-helper.js: TOC structure updated (add Original Name column, remove Note column)
+- index.js / excel-generator.js: Pass original sheet name through to TOC
+
+### 📝 Documentation
+- README/README_KR: Updated highlights to v1.2.11, described changes
+- CHANGELOG: Added v1.2.11 entry
+
 ## v1.2.10 - Non-interactive CLI & Docs (2025-10-29)
 
 ### ✨ New Features

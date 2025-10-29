@@ -42,6 +42,11 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 - 📋 **SQL Query Formatting**: Preserve original SQL formatting with line breaks in Table of Contents
 - 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 
+### What's New (v1.2.11)
+
+- Validation: Sheet names longer than 31 characters now trigger a warning (no failure). The warning also notes that Excel may truncate the sheet name.
+- TOC: Added an "Original Name" column to display the originally defined sheet name. Removed tooltip note; information is shown in the column.
+
 ## 🛠️ Installation and Setup
 
 ### 1. System Requirements
