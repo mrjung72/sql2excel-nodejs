@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <queries>
-  <excel db="sampleDB" output="d:/temp/sheet_name_validation_test.xlsx">
+  <excel db="sampleDB" output="d:/temp/sheet_name_validation_test.xls">
   </excel>
   
   <!-- Valid sheet name -->

@@ -382,14 +382,24 @@ async function main() {
     sheetIndex++;
   }
   
-  // 엑셀 파일 생성
+  // 파일 생성 (엑셀 또는 per-sheet 파일들)
   if (processedSheets.length > 0) {
-    await excelGenerator.generateExcel({
-      sheets: processedSheets,
-      outputPath: outFile,
-      createdSheetNames: createdSheetNames,
-      createdSheetCounts: createdSheetCounts
-    });
+    const ext = FileUtils.getExtension(outFile).toLowerCase();
+    if (ext === '.xlsx' || ext === '.xls') {
+      await excelGenerator.generateExcel({
+        sheets: processedSheets,
+        outputPath: outFile,
+        createdSheetNames: createdSheetNames,
+        createdSheetCounts: createdSheetCounts
+      });
+    } else {
+      const format = (ext === '.csv') ? 'csv' : 'txt';
+      await excelGenerator.exportPerSheetFiles({
+        sheets: processedSheets,
+        outputPath: outFile,
+        format
+      });
+    }
   }
   
   // 모든 DB 연결 정리
