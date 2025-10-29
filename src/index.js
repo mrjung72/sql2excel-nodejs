@@ -247,17 +247,19 @@ async function main() {
   }
 
   // 엑셀 파일 경로 결정 (CLI > excel > 쿼리파일 > 기본값)
+  // DB 이름 변수를 합성하여 파일명에 사용할 수 있도록 주입
+  const mergedOutVars = { ...mergedVars, DB_NAME: defaultDbKey };
   let outFile = argv.out || excelOutput || outputPath || 'output.xlsx';
+  // 사용자 지정 형식 $(VAR} → 표준 ${VAR} 로 정규화 (예: $(DB_NAME} 지원)
+  outFile = outFile.replace(/\$\((\w+)\}/g, '${$1}');
+  outFile = variableProcessor.substituteVars(outFile, mergedOutVars);
   outFile = FileUtils.resolvePath(outFile);
-  // 파일명에 _yyyymmddhhmmss 추가
-  outFile = excelGenerator.generateOutputPath(outFile, FileUtils.getNowTimestampStr());
   FileUtils.ensureDirExists(outFile);
+
 
   const createdSheetNames = [];
   const createdSheetCounts = [];
   const processedSheets = [];
-
-  // 시트 처리
   let sheetIndex = 0;
   for (const sheetDef of sheets) {
     // robust use 속성 체크

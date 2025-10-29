@@ -107,27 +107,94 @@ class MSSQLHelper {
   formatDate(date, format) {
     // UTC 기준으로 날짜/시간 추출
     const map = {
-      'YYYY': date.getUTCFullYear(),
+      // Year
+      'YYYY': String(date.getUTCFullYear()),
+      'yyyy': String(date.getUTCFullYear()),
       'YY': String(date.getUTCFullYear()).slice(-2),
+      'yy': String(date.getUTCFullYear()).slice(-2),
+      // Month
       'MM': String(date.getUTCMonth() + 1).padStart(2, '0'),
-      'M': date.getUTCMonth() + 1,
+      'M': String(date.getUTCMonth() + 1),
+      // Day
       'DD': String(date.getUTCDate()).padStart(2, '0'),
-      'D': date.getUTCDate(),
+      'dd': String(date.getUTCDate()).padStart(2, '0'),
+      'D': String(date.getUTCDate()),
+      'd': String(date.getUTCDate()),
+      // Hour
       'HH': String(date.getUTCHours()).padStart(2, '0'),
-      'H': date.getUTCHours(),
+      'hh': String(date.getUTCHours()).padStart(2, '0'),
+      'H': String(date.getUTCHours()),
+      'h': String(date.getUTCHours()),
+      // Minute
       'mm': String(date.getUTCMinutes()).padStart(2, '0'),
-      'm': date.getUTCMinutes(),
+      'm': String(date.getUTCMinutes()),
+      // Second
       'ss': String(date.getUTCSeconds()).padStart(2, '0'),
-      's': date.getUTCSeconds(),
-      'SSS': String(date.getUTCMilliseconds()).padStart(3, '0')
+      's': String(date.getUTCSeconds()),
+      // Milliseconds
+      'SSS': String(date.getUTCMilliseconds()).padStart(3, '0'),
+      'sss': String(date.getUTCMilliseconds()).padStart(3, '0')
     };
 
     let result = format;
-    // 긴 패턴부터 먼저 치환 (YYYY를 YY보다 먼저)
-    ['YYYY', 'MM', 'DD', 'HH', 'mm', 'ss', 'SSS', 'YY', 'M', 'D', 'H', 'm', 's'].forEach(token => {
+    // 긴 패턴부터 먼저 치환해 부분 중복을 방지
+    const tokensInOrder = [
+      'YYYY', 'yyyy', 'SSS', 'sss',
+      'HH', 'hh', 'MM', 'DD', 'dd', 'YY', 'yy',
+      'H', 'h', 'M', 'D', 'd', 'mm', 'ss', 'm', 's'
+    ];
+    tokensInOrder.forEach(token => {
       result = result.replace(new RegExp(token, 'g'), map[token]);
     });
-    
+    return result;
+  }
+
+  /**
+   * 날짜 포맷팅 함수 (로컬 시간 기준)
+   * @param {Date} date - Date 객체
+   * @param {string} format - 포맷 문자열 (yyyy, MM, dd, HH, mm, ss 등)
+   * @returns {string} 포맷팅된 날짜 문자열
+   */
+  formatDateLocal(date, format) {
+    const map = {
+      // Year
+      'YYYY': String(date.getFullYear()),
+      'yyyy': String(date.getFullYear()),
+      'YY': String(date.getFullYear()).slice(-2),
+      'yy': String(date.getFullYear()).slice(-2),
+      // Month
+      'MM': String(date.getMonth() + 1).padStart(2, '0'),
+      'M': String(date.getMonth() + 1),
+      // Day
+      'DD': String(date.getDate()).padStart(2, '0'),
+      'dd': String(date.getDate()).padStart(2, '0'),
+      'D': String(date.getDate()),
+      'd': String(date.getDate()),
+      // Hour
+      'HH': String(date.getHours()).padStart(2, '0'),
+      'hh': String(date.getHours()).padStart(2, '0'),
+      'H': String(date.getHours()),
+      'h': String(date.getHours()),
+      // Minute
+      'mm': String(date.getMinutes()).padStart(2, '0'),
+      'm': String(date.getMinutes()),
+      // Second
+      'ss': String(date.getSeconds()).padStart(2, '0'),
+      's': String(date.getSeconds()),
+      // Milliseconds
+      'SSS': String(date.getMilliseconds()).padStart(3, '0'),
+      'sss': String(date.getMilliseconds()).padStart(3, '0')
+    };
+
+    let result = format;
+    const tokensInOrder = [
+      'YYYY', 'yyyy', 'SSS', 'sss',
+      'HH', 'hh', 'MM', 'DD', 'dd', 'YY', 'yy',
+      'H', 'h', 'M', 'D', 'd', 'mm', 'ss', 'm', 's'
+    ];
+    tokensInOrder.forEach(token => {
+      result = result.replace(new RegExp(token, 'g'), map[token]);
+    });
     return result;
   }
 

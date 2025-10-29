@@ -331,7 +331,7 @@ class VariableProcessor {
       try {
         // 로컬 시간 사용 (시스템 타임존)
         const now = new Date();
-        const formattedDate = this.mssqlHelper.formatDate(now, format);
+        const formattedDate = this.mssqlHelper.formatDateLocal(now, format);
         result = result.replace(fullMatch, formattedDate);
         
         if (debugVariables) {

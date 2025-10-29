@@ -3,17 +3,15 @@
   <!-- default style -->
   <style id="default" name="default style" description="default style">
     <header>
-      <font name="Arial" size="12" color="FFFFFF" bold="true"/>
+      <font name="Arial" size="11" color="FFFFFF" bold="true"/>
       <fill color="4F81BD"/>
-      <colwidths min="20" max="50"/>
       <alignment horizontal="center" vertical="middle"/>
       <border>
         <all style="thin" color="000000"/>
       </border>
     </header>
     <body>
-      <font name="Arial" size="11" color="000000" bold="false"/>
-      <fill color="FFFFCC"/>
+      <font name="Arial" size="10" color="000000" bold="false"/>
       <alignment horizontal="left" vertical="middle"/>
       <border>
         <all style="thin" color="CCCCCC"/>
