@@ -1,5 +1,5 @@
 <queries>
-  <excel db="sampleDB" output="d:/temp/dynamic_variables_test_2024.log" maxRows="20" style="modern" aggregateInfoTemplate="Related data {count} records {details}">
+  <excel db="sampleDB" output="d:/temp/dynamic_variables_test_${DATE:yyyy-MM-dd}.csv" maxRows="20" style="modern" aggregateInfoTemplate="Related data {count} records {details}">
     <!-- Style template ID (default: default) -->
     <!-- Available templates: default, modern, dark, colorful, minimal, business, premium -->
     <!-- Can be overridden with individual style attributes if needed -->

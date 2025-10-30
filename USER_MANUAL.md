@@ -588,6 +588,7 @@ ${DATE:format}
 | `ss` | 2-digit seconds (00-59) | `45` |
 | `s` | Seconds (0-59) | `45` |
 | `SSS` | Milliseconds (000-999) | `123` |
+| `yyyy, yy, dd, d, hh, h, sss` | Lowercase variants supported | `2024, 24, 09, 9, 07, 7, 123` |
 
 ### Common Format Examples
 
@@ -634,6 +635,15 @@ Output: `output/report_20241021_153045.xlsx`
 <excel db="sampleDB" output="output/report_${DATE:YYYYMMDD}_${DATE:HHmmss}.xlsx">
 ```
 Output: `output/report_20241021_183045.xlsx` (using server's local time)
+
+### Filename Variables (Output Path)
+
+- You can use variables in `excel.output` to control file naming:
+  - `${DB_NAME}`: Injects the current default DB key. Custom `$(DB_NAME}` is normalized to `${DB_NAME}`.
+  - `${DATE:...}`: Local time; `${DATE.TZ:...}` for explicit timezone.
+  - Lowercase tokens are supported: `yyyy, yy, dd, d, hh, h, sss`.
+- Automatic suffix removal:
+  - The tool no longer appends `_yyyymmddhhmmss` automatically. Use DATE variables in `excel.output` instead.
 
 #### 2. Use in XML Queries
 ```xml

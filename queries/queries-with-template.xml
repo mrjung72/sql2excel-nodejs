@@ -1,5 +1,5 @@
 <queries>
-  <excel db="sampleDB" output="d:/temp/sales_summary_template_2024.xlsx" maxRows="20" style="business">
+  <excel db="sampleDB" output="d:/temp/sales_summary_template_${DB_NAME}_${DATE:yyyyMMddhhmmss}.xlsx" maxRows="20" style="business">
     <!-- Global style template ID (default: default) -->
     <!-- Individual styles can be specified per sheet -->
     <!-- Available templates: default, modern, dark, colorful, minimal, business, premium -->
