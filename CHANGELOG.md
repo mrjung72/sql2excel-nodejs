@@ -1,5 +1,11 @@
 # SQL2Excel Version History
 
+## v1.3.3 - Docs Sync & Version Bump (2025-10-31)
+
+### 📝 Documentation
+- Synchronized KR/EN documents (README, USER_MANUAL, CHANGELOG)
+- Updated package version to 1.3.3
+
 ## v1.3.2 - CSV/TXT Formatting & Directory Naming (2025-10-31)
 
 ### ✨ New/Changed

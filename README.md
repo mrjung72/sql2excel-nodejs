@@ -2,6 +2,11 @@
 
 A Node.js-based tool for generating Excel files from SQL query results.
 
+## v1.3.3 Highlights
+
+- Documentation synchronization (KR/EN) and minor updates
+- Package version updated to 1.3.3
+
 ### Key Features
 - 📊 **Multi-Sheet Support**: Save multiple SQL query results in separate sheets within one Excel file
 - 🎨 **Template Style System**: Pre-defined Excel styling templates for consistent design with 7 built-in styles
