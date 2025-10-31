@@ -26,6 +26,18 @@ A Node.js-based tool for generating Excel files from SQL query results.
 - 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 - 🗂️ **Filename Variables**: Use `${DATE:...}`, `${DATE.TZ:...}`, and `${DB_NAME}` in `excel.output` (also supports custom `$(DB_NAME}`)
 
+## v1.3.2 Highlights
+
+- Per-sheet export directory naming simplified
+  - Directory is now `<output_basename>` (extension suffix removed)
+  - Example: `output="d:/temp/report.csv"` → directory `d:/temp/report/`
+- CSV/TXT field formatting changes
+  - Apply CSV quoting/escaping rules only for `.csv`
+  - Non-CSV (e.g., `.txt`, `.sql`) writes plain values without quoting
+  - Normalize internal newlines in fields (\r/\n → space) for both CSV and TXT
+  - Record separators remain CRLF; headers included
+  - Date values are serialized as `yyyy-MM-dd HH:mm:ss` (24-hour) in CSV/TXT and SQL literals
+
 ## v1.3.1 Highlights
 
 - Filename variables in output path
@@ -41,12 +53,14 @@ A Node.js-based tool for generating Excel files from SQL query results.
   - `.csv` → Generate per-sheet CSV files
   - All other extensions (e.g., `.txt`, `.log`, `.data`, `.sql`, etc.) → Generate per-sheet TXT files (tab-delimited)
 - **Directory and filename rules for per-sheet export**
-  - Output directory: `<output_basename>_<ext>` (no dot). Example: `output="d:/temp/report.csv"` → `d:/temp/report_csv/`
+  - Output directory (updated in v1.3.2): `<output_basename>`
+    - Example: `output="d:/temp/report.csv"` → `d:/temp/report/`
   - Each sheet becomes a separate file named after the sheet's `originalName`
   - No 31-character truncation for CSV/TXT (Excel-only limit). Filenames sanitized and capped at 100 chars
 - **Format defaults**
-  - CSV: comma, UTF-8 with BOM, headers, CRLF
-  - TXT: tab, UTF-8 with BOM, headers, CRLF
+  - CSV: comma, UTF-8 with BOM, headers, CRLF; quoting only for `.csv`; internal newlines normalized
+  - TXT: tab, UTF-8 with BOM, headers, CRLF; no quoting; internal newlines normalized
+  - Dates: `yyyy-MM-dd HH:mm:ss` (24-hour)
 
 ### Previously in v1.2.11
 

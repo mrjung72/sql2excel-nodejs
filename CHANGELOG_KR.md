@@ -1,5 +1,30 @@
 # SQL2Excel 버전 히스토리
 
+## v1.3.2 - CSV/TXT 포맷팅 및 디렉토리 명명 변경 (2025-10-31)
+
+### ✨ 변경 사항
+- 시트별 내보내기 디렉토리 명명 단순화
+  - 디렉토리가 이제 `<출력파일베이스>`로 생성됩니다 (확장자 접미사 제거)
+  - 예: `output="d:/temp/report.csv"` → 디렉토리 `d:/temp/report/`
+- CSV/TXT 필드 포맷팅 변경
+  - CSV 인용/이스케이프 규칙은 출력 확장자가 `.csv`일 때만 적용
+  - 비-CSV(예: `.txt`, `.sql` 등)는 인용 없이 값 그대로 출력
+  - 필드 내부 줄바꿈(\r/\n)은 CSV/TXT 모두 공백으로 정규화
+  - 레코드 구분 개행은 CRLF 유지, 헤더는 계속 포함
+  - 날짜 값은 CSV/TXT 및 SQL 리터럴에서 `yyyy-MM-dd HH:mm:ss`(24시간) 형식으로 직렬화
+
+### 🔧 코드 변경
+- `src/excel-generator.js`
+  - `isCsv` 플래그 추가 및 포맷별 값 포매터 분기
+  - `escapeCsv()`에서 인용 전 내부 줄바꿈 정규화
+  - 비-CSV용 `toPlain()`에 내부 줄바꿈 정규화 추가
+  - 시트별 대상 디렉토리 `<base>_<ext>` → `<base>`로 변경
+
+### 📝 문서
+- README/README_KR: 시트별 디렉토리 규칙 및 CSV/TXT 줄바꿈 정규화, 인용 적용 범위 반영
+- USER_MANUAL/USER_MANUAL_KR: 시트별 내보내기 섹션에 디렉토리 명명 및 포맷팅 규칙 업데이트
+- CHANGELOG/CHANGELOG_KR: v1.3.2 항목 추가
+
 ## v1.3.1 - 파일명 변수 및 DATE 개선 (2025-10-30)
 
 ### ✨ 변경 사항
