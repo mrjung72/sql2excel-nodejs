@@ -348,6 +348,17 @@ async function main() {
         }
       }
       
+      // 제외 컬럼 적용 (시트 정의의 exceptColumns가 있는 경우 해당 컬럼 제거)
+      let processedRecordset = result.recordset;
+      if (Array.isArray(sheetDef.exceptColumns) && sheetDef.exceptColumns.length > 0) {
+        const excludes = new Set(sheetDef.exceptColumns.map(x => x.toString()));
+        processedRecordset = result.recordset.map(row => {
+          const copy = { ...row };
+          excludes.forEach(col => { if (Object.prototype.hasOwnProperty.call(copy, col)) delete copy[col]; });
+          return copy;
+        });
+      }
+      
       createdSheetNames.push({ 
         displayName: sheetName, 
         originalName: originalSheetNameCandidate,
@@ -363,7 +374,7 @@ async function main() {
       processedSheets.push({
         name: sheetName,
         originalName: originalSheetNameCandidate,
-        data: result.recordset,
+        data: processedRecordset,
         style: sheetStyle,
         recordCount: recordCount,
         dbKey: sheetDbKey,
