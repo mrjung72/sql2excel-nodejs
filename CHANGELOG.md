@@ -2,9 +2,21 @@
 
 ## v1.3.3 - Docs Sync & Version Bump (2025-10-31)
 
-### 📝 Documentation
+### ✨ New/Changed
+- Added `exceptColumns` attribute to exclude specific columns from sheet output
+  - XML: `<sheet name="..." exceptColumns="ColA, ColB">` (comma-separated)
+  - JSON: supports `"exceptColumns": ["ColA", "ColB"]` or legacy `"except_columns": ["ColA", "ColB"]`
+  - Case-insensitive key detection; backward compatible with `except_columns`
+- Behavior: specified columns are removed from the recordset before writing files (Excel/CSV/TXT), so they are not included in outputs
 - Synchronized KR/EN documents (README, USER_MANUAL, CHANGELOG)
 - Updated package version to 1.3.3
+
+### 🔧 Code Changes
+- `src/query-parser.js`: Parse `exceptColumns` (and `except_columns`) from XML/JSON and normalize to array
+- `src/index.js`: When a sheet defines `exceptColumns`, remove those columns from result rows prior to export
+
+### 📝 Documentation
+- README/README_KR, USER_MANUAL/USER_MANUAL_KR, CHANGELOG/CHANGELOG_KR updated accordingly
 
 ## v1.3.2 - CSV/TXT Formatting & Directory Naming (2025-10-31)
 

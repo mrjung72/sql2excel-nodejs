@@ -21,8 +21,7 @@ SQL2Excel은 고급 스타일링, 템플릿 지원, 독립 실행 파일 배포 
 
 ### v1.3.3 주요 변경
 
-- KR/EN 문서 동기화 및 소규모 정리
-- 패키지 버전을 1.3.3으로 업데이트
+- 시트에서 특정 컬럼 제외를 위한 `exceptColumns` 속성 추가 (XML/JSON)
 
 ### 주요 기능
 - 📊 **다중 시트 지원**: 하나의 엑셀 파일 내에서 여러 SQL 쿼리 결과를 별도의 시트에 저장
@@ -129,6 +128,34 @@ npm run build
     }
   }
 }
+```
+
+### 시트별 내보내기 (CSV/TXT)
+
+- Routing by `excel.output` extension
+  - `.xlsx`/`.xls` → Single Excel workbook
+  - `.csv` → Per-sheet CSV
+  - Others → Per-sheet TXT (tab-delimited)
+- Output directory and filenames
+  - Files are written under `<output_basename>` (updated in v1.3.2)
+  - Each file name is the sheet `originalName` (sanitized, max 100 chars). No 31-char limit (Excel-only)
+  - CSV/TXT formatting: `.csv` applies CSV quoting/escaping; non-CSV writes plain values; internal newlines (\r/\n) normalized to spaces for both
+  - Dates: `yyyy-MM-dd HH:mm:ss` (24-hour)
+
+### Sheet 옵션: exceptColumns (v1.3.3)
+
+- 목적: 시트 쿼리 결과에서 특정 컬럼을 최종 파일(Excel/CSV/TXT)에 포함하지 않도록 제외
+- XML: `<sheet name="..." exceptColumns="ColA, ColB">`  (쉼표로 구분)
+- JSON: `"exceptColumns": ["ColA", "ColB"]` 또는 하위호환 `"except_columns": ["ColA", "ColB"]`
+- 키 대소문자 구분 없이 탐색 (case-insensitive)
+- 동작: 내보내기 직전에 지정 컬럼을 레코드셋에서 제거하여 모든 출력 포맷에서 배제
+- 예시:
+  ```xml
+  <sheet name="UserList" use="true" exceptColumns="password, email">
+    <![CDATA[
+      SELECT * FROM users
+    ]]>
+  </sheet>
 ```
 
 ## 🚀 기본 사용법

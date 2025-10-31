@@ -21,6 +21,7 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 
 ### What's New (v1.3.3)
 
+- Added `exceptColumns` sheet option (XML/JSON) to exclude specific columns from outputs
 - Documentation synchronization across KR/EN
 - Package version updated to 1.3.3
 
@@ -141,6 +142,22 @@ Create `config/dbinfo.json` file:
   - Each file name is the sheet `originalName` (sanitized, max 100 chars). No 31-char limit (Excel-only)
   - CSV/TXT formatting: `.csv` applies CSV quoting/escaping; non-CSV writes plain values; internal newlines (\r/\n) normalized to spaces for both
   - Dates: `yyyy-MM-dd HH:mm:ss` (24-hour)
+
+### Sheet option: exceptColumns (v1.3.3)
+  
+- Purpose: Exclude specific columns from the final files (Excel/CSV/TXT) for a sheet
+- XML: `<sheet name="..." exceptColumns="ColA, ColB">` (comma-separated)
+- JSON: supports `"exceptColumns": ["ColA", "ColB"]` and legacy `"except_columns": ["ColA", "ColB"]`
+- Case-insensitive key detection
+- Behavior: columns listed are removed from the recordset just before export, so they never appear in outputs
+- Example:
+    ```xml
+    <sheet name="UserList" use="true" exceptColumns="password, email">
+      <![CDATA[
+        SELECT * FROM users
+      ]]>
+    </sheet>
+    ```
 
 ## 🚀 Basic Usage
 
