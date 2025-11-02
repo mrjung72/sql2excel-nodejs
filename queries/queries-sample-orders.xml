@@ -1,5 +1,5 @@
 <queries>
-  <excel db="sampleDB" output="d:/temp/sales_summary_2024.xlsx" maxRows="20" style="modern">
+  <excel db="sampleDB" output="d:/temp/sales_summary_${DATE.KST:yyyyMMddhhmmss}.xlsx" maxRows="20" style="modern">
     <!-- Style template ID (default: default) -->
     <!-- Available templates: default, modern, dark, colorful, minimal, business, premium -->
     <!-- Can be overridden with individual style attributes if needed -->
@@ -29,17 +29,8 @@
   </sheet>
   <sheet name="Customer_List" use="true" aggregateColumn="Region" style="dark">
     <![CDATA[
-      SELECT 
-        CustomerCode as CustomerCode,
-        CustomerName as CustomerName,
-        ContactName as ContactName,
-        City as City,
-        Region as Region,
-        CustomerType as CustomerType,
-        FORMAT(CreditLimit, 'N0') as CreditLimit
+      SELECT *
       FROM SampleDB.dbo.Customers
-      WHERE Region IN (${regionList}) AND IsActive = 1
-      ORDER BY CreditLimit DESC
     ]]>
   </sheet>
   <sheet name="Customer_Details_Regional_Statistics_Summary" use="true">
@@ -58,7 +49,7 @@
       ORDER BY o.OrderDate DESC
     ]]>
   </sheet>
-  <sheet name="Wildcard_Customer" use="true">
+  <sheet name="Wildcard_Customer" use="true" exceptColumns="IsActive,CreatedDate,LastUpdated">
     <![CDATA[
       SELECT c.*
       FROM SampleDB.dbo.Orders o
@@ -68,7 +59,7 @@
       ORDER BY o.OrderDate DESC
     ]]>
   </sheet>
-  <sheet name="Wildcard_Order" use="true">
+  <sheet name="Wildcard_Order" use="true" exceptColumns="OrderDate,RequiredDate,ShippedDate,OrderStatus,ShipVia,Freight,ShipName,ShipAddress,ShipCity">
     <![CDATA[
       SELECT o.*
       FROM SampleDB.dbo.Orders o
@@ -78,15 +69,9 @@
       ORDER BY o.OrderDate DESC
     ]]>
   </sheet>
-  <sheet name="Orders_By_Status" use="true" aggregateColumn="OrderStatus">
+  <sheet name="Orders_By_Status" use="true" aggregateColumn="OrderStatus" exceptColumns="OrderDate,RequiredDate,ShippedDate">
     <![CDATA[
-      SELECT 
-        OrderNumber as OrderNumber,
-        FORMAT(OrderDate, 'yyyy-MM-dd') as OrderDate,
-        OrderStatus as OrderStatus,
-        PaymentStatus as PaymentStatus,
-        FORMAT(TotalAmount, 'N0') as TotalAmount,
-        PaymentMethod as PaymentMethod
+      SELECT *
       FROM SampleDB.dbo.Orders
       WHERE OrderDate >= '${startDate}' 
         AND OrderDate <= '${endDate}'
@@ -94,14 +79,9 @@
       ORDER BY OrderDate DESC
     ]]>
   </sheet>
-  <sheet name="Products_By_Category" use="true" aggregateColumn="CategoryName">
+  <sheet name="Products_By_Category" use="true" aggregateColumn="CategoryName" exceptColumns="OrderDate,RequiredDate,ShippedDate">
     <![CDATA[
-      SELECT 
-        p.ProductID as ProductID,
-        p.ProductName as ProductName,
-        c.CategoryName as CategoryName,
-        FORMAT(p.UnitPrice, 'N0') as UnitPrice,
-        p.UnitsInStock as UnitsInStock
+      SELECT P.*
       FROM SampleDB.dbo.Products p
       INNER JOIN SampleDB.dbo.Categories c ON p.CategoryID = c.CategoryID
       WHERE p.CategoryID IN (${categoryIds})

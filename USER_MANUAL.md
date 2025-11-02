@@ -19,6 +19,12 @@
 
 SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL query results with advanced styling, template support, and standalone executable distribution.
 
+### What's New (v1.3.3)
+
+- Added `exceptColumns` sheet option (XML/JSON) to exclude specific columns from outputs
+- Documentation synchronization across KR/EN
+- Package version updated to 1.3.3
+
 ### Key Features
 - 📊 **Multi-Sheet Support**: Save multiple SQL query results in separate sheets within one Excel file
 - 🎨 **Template Style System**: Pre-defined Excel styling templates for consistent design with 7 built-in styles
@@ -43,16 +49,18 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 - 📋 **SQL Query Formatting**: Preserve original SQL formatting with line breaks in Table of Contents
 - 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 
-### What's New (v1.3.0)
+### What's New (v1.3.2)
 
 - Per-sheet export routing by extension
   - `.xlsx` / `.xls` → Generate a single Excel workbook (existing behavior)
   - `.csv` → Generate per-sheet CSV files
   - All other extensions (e.g., `.txt`, `.log`, `.data`, `.sql`, etc.) → Generate per-sheet TXT files (tab-delimited)
 - Directory and filename rules (per-sheet export)
-  - Output directory: `<output_basename>_<ext>` (no dot). Example: `output="d:/temp/report.csv"` → `d:/temp/report_csv/`
+  - Output directory: `<output_basename>` (updated in v1.3.2). Example: `output="d:/temp/report.csv"` → `d:/temp/report/`
   - Each sheet becomes a separate file named after the sheet's `originalName`
   - No 31-character truncation for CSV/TXT (Excel-only limit). Filenames sanitized and capped at 100 chars
+  - CSV/TXT formatting: CSV quoting only for `.csv`; internal newlines normalized to space for both
+  - Date values are serialized as `yyyy-MM-dd HH:mm:ss` (24-hour) in CSV/TXT and SQL literals
 
 Previously in v1.2.11
 
@@ -152,8 +160,26 @@ Create `config/dbinfo.json` file:
   - `.csv` → Per-sheet CSV
   - Others → Per-sheet TXT (tab-delimited)
 - Output directory and filenames
-  - Files are written under `<output_basename>_<ext>` (no dot)
+  - Files are written under `<output_basename>` (updated in v1.3.2)
   - Each file name is the sheet `originalName` (sanitized, max 100 chars). No 31-char limit (Excel-only)
+  - CSV/TXT formatting: `.csv` applies CSV quoting/escaping; non-CSV writes plain values; internal newlines (\r/\n) normalized to spaces for both
+  - Dates: `yyyy-MM-dd HH:mm:ss` (24-hour)
+
+### Sheet option: exceptColumns (v1.3.3)
+  
+- Purpose: Exclude specific columns from the final files (Excel/CSV/TXT) for a sheet
+- XML: `<sheet name="..." exceptColumns="ColA, ColB">` (comma-separated)
+- JSON: supports `"exceptColumns": ["ColA", "ColB"]` and legacy `"except_columns": ["ColA", "ColB"]`
+- Case-insensitive key detection
+- Behavior: columns listed are removed from the recordset just before export, so they never appear in outputs
+- Example:
+    ```xml
+    <sheet name="UserList" use="true" exceptColumns="password, email">
+      <![CDATA[
+        SELECT * FROM users
+      ]]>
+    </sheet>
+    ```
 
 ## 🚀 Basic Usage
 

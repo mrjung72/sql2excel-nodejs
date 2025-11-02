@@ -137,7 +137,8 @@ class QueryParser {
       var: ['name'],
       dynamicVar: ['name', 'description', 'type', 'database'],
       queryDef: ['id', 'description'],
-      sheet: ['name', 'use', 'queryRef', 'aggregateColumn', 'aggregateInfoTemplate', 'maxRows', 'db', 'style'],
+      // exceptColumns 속성 사용 (대소문자 구분 없이 허용), 하위호환: except_columns도 파싱에서 지원
+      sheet: ['name', 'use', 'queryRef', 'aggregateColumn', 'aggregateInfoTemplate', 'maxRows', 'db', 'style', 'exceptColumns'],
       param: ['name']
     };
     
@@ -216,7 +217,9 @@ class QueryParser {
         sheets.forEach((sheet, i) => {
           if (sheet.$) {
             const attrs = Object.keys(sheet.$);
-            const invalidAttrs = attrs.filter(attr => !allowedAttributes.sheet.includes(attr));
+            // sheet 속성은 대소문자를 구분하지 않고 허용 목록과 비교
+            const allowedLower = new Set(allowedAttributes.sheet.map(a => a.toLowerCase()));
+            const invalidAttrs = attrs.filter(attr => !allowedLower.has(attr.toLowerCase()));
             if (invalidAttrs.length > 0) {
               errors.push(`sheet element #${i + 1}의 허용되지 않는 속성: ${invalidAttrs.join(', ')}`);
             }
@@ -419,6 +422,18 @@ class QueryParser {
         }
       }
       
+      // exceptColumns 속성(case-insensitive) 탐색: exceptColumns / except_columns 둘 다 지원
+      let exceptColumnsArr = [];
+      if (s.$) {
+        const key = Object.keys(s.$).find(k => {
+          const lk = k.toLowerCase();
+          return lk === 'exceptcolumns' || lk === 'except_columns';
+        });
+        if (key && typeof s.$[key] === 'string') {
+          exceptColumnsArr = s.$[key].split(',').map(x => x.trim()).filter(Boolean);
+        }
+      }
+
       return {
         name: s.$.name,
         use: s.$.use,
@@ -428,6 +443,8 @@ class QueryParser {
         db: s.$.db || null,
         queryRef: s.$.queryRef || null,
         style: s.$.style || null, // 시트별 스타일 추가
+        // 제외 컬럼 (쉼표 구분 문자열 → 배열)
+        exceptColumns: exceptColumnsArr,
         params: sheetParams, // 시트별 파라미터 추가
         query: query
       };
@@ -473,9 +490,24 @@ class QueryParser {
         }
       }
       
+      // JSON의 exceptColumns 키를 대소문자 구분 없이 탐색 (하위호환: except_columns)
+      let jsonExceptCols = [];
+      if (sheet) {
+        const key = Object.keys(sheet).find(k => {
+          const lk = k.toLowerCase();
+          return lk === 'exceptcolumns' || lk === 'except_columns';
+        });
+        if (key) {
+          const val = sheet[key];
+          if (Array.isArray(val)) jsonExceptCols = val.map(x => x.toString());
+          else if (typeof val === 'string') jsonExceptCols = val.split(',').map(x => x.trim()).filter(Boolean);
+        }
+      }
+
       return {
         ...sheet,
         aggregateInfoTemplate: sheet.aggregateInfoTemplate || null, // 집계 정보 템플릿 추가
+        exceptColumns: jsonExceptCols,
         params: sheetParams,
         query: query
       };

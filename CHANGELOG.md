@@ -1,5 +1,48 @@
 # SQL2Excel Version History
 
+## v1.3.3 - Docs Sync & Version Bump (2025-10-31)
+
+### ✨ New/Changed
+- Added `exceptColumns` attribute to exclude specific columns from sheet output
+  - XML: `<sheet name="..." exceptColumns="ColA, ColB">` (comma-separated)
+  - JSON: supports `"exceptColumns": ["ColA", "ColB"]` or legacy `"except_columns": ["ColA", "ColB"]`
+  - Case-insensitive key detection; backward compatible with `except_columns`
+- Behavior: specified columns are removed from the recordset before writing files (Excel/CSV/TXT), so they are not included in outputs
+- Synchronized KR/EN documents (README, USER_MANUAL, CHANGELOG)
+- Updated package version to 1.3.3
+
+### 🔧 Code Changes
+- `src/query-parser.js`: Parse `exceptColumns` (and `except_columns`) from XML/JSON and normalize to array
+- `src/index.js`: When a sheet defines `exceptColumns`, remove those columns from result rows prior to export
+
+### 📝 Documentation
+- README/README_KR, USER_MANUAL/USER_MANUAL_KR, CHANGELOG/CHANGELOG_KR updated accordingly
+
+## v1.3.2 - CSV/TXT Formatting & Directory Naming (2025-10-31)
+
+### ✨ New/Changed
+- Per-sheet export directory naming simplified
+  - Directory is now `<output_basename>` (extension suffix removed)
+  - Example: `output="d:/temp/report.csv"` → directory `d:/temp/report/`
+- CSV/TXT field formatting changes
+  - Apply CSV quoting/escaping rules only when output extension is `.csv`
+  - For non-CSV (e.g., `.txt`, `.sql`, etc.), write plain values without quoting
+  - Internal newlines inside field values are normalized (\r/\n → space) for both CSV and TXT
+  - Record separators remain CRLF; headers still included
+  - Date values are serialized as `yyyy-MM-dd HH:mm:ss` (24-hour) in CSV/TXT and SQL literals
+
+### 🔧 Code Changes
+- `src/excel-generator.js`
+  - Add `isCsv` flag; branch value formatter per format
+  - `escapeCsv()` now normalizes internal newlines before quoting
+  - Introduce `toPlain()` with newline normalization for non-CSV
+  - Change per-sheet target directory from `<base>_<ext>` to `<base>`
+
+### 📝 Documentation
+- README/README_KR: Updated highlights and per-sheet export directory rules; noted CSV/TXT newline normalization and quoting scope
+- USER_MANUAL/USER_MANUAL_KR: Updated per-sheet export section to reflect new directory naming and formatting rules
+- CHANGELOG/CHANGELOG_KR: Added v1.3.2 entry
+
 ## v1.3.1 - Filename Variables and DATE Fixes (2025-10-30)
 
 ### ✨ New/Changed

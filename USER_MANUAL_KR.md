@@ -19,6 +19,10 @@
 
 SQL2Excel은 고급 스타일링, 템플릿 지원, 독립 실행 파일 배포 기능을 갖춘 SQL 쿼리 결과로 엑셀 파일을 생성하는 강력한 Node.js 기반 도구입니다.
 
+### v1.3.3 주요 변경
+
+- 시트에서 특정 컬럼 제외를 위한 `exceptColumns` 속성 추가 (XML/JSON)
+
 ### 주요 기능
 - 📊 **다중 시트 지원**: 하나의 엑셀 파일 내에서 여러 SQL 쿼리 결과를 별도의 시트에 저장
 - 🎨 **템플릿 스타일 시스템**: 일관된 디자인을 위한 사전 정의된 엑셀 스타일링 템플릿 (7가지 내장 스타일)
@@ -43,16 +47,19 @@ SQL2Excel은 고급 스타일링, 템플릿 지원, 독립 실행 파일 배포 
 - 📋 **SQL 쿼리 포맷팅**: 목차에서 줄바꿈을 포함한 원본 SQL 포맷 유지
 - 🔧 **입력 유효성 검증**: 파일 경로 입력에 대한 자동 공백 제거
 
-### What's New (v1.3.0)
+### What's New (v1.3.2)
 
-- 확장자 기반 시트별 내보내기 라우팅
+- 확장자 기반 시트별 내보내기 라우팅(유지)
   - `.xlsx` / `.xls` → 단일 엑셀 통합문서 생성 (기존 동작)
   - `.csv` → 시트별 CSV 파일 생성
   - 그 외 모든 확장자(예: `.txt`, `.log`, `.data`, `.sql` 등) → 시트별 TXT 파일 생성 (탭 구분)
-- 디렉토리/파일명 규칙 (시트별 내보내기)
-  - 출력 디렉토리: `<출력파일베이스>_<확장자>` (점 제외). 예: `output="d:/temp/report.csv"` → `d:/temp/report_csv/`
-  - 각 시트는 `originalName`(원본 시트명)으로 파일 생성
-  - CSV/TXT에는 31자 제한 없음(엑셀 전용 제한). 파일명은 안전화 및 최대 100자 제한
+- 디렉토리/파일명 및 포맷팅 규칙 (시트별 내보내기)
+  - 출력 디렉토리: `<출력파일베이스>`로 단순화 (확장자 접미사 제거)
+    - 예: `output="d:/temp/report.csv"` → `d:/temp/report/`
+  - 각 시트는 `originalName`(원본 시트명)으로 파일 생성 (파일시스템 안전화, 최대 100자)
+  - CSV 인용/이스케이프는 `.csv`일 때만 적용, 비-CSV는 인용 없이 기록
+  - CSV/TXT 모두 필드 내부 줄바꿈(\r/\n)을 공백으로 정규화
+  - 날짜 값은 CSV/TXT 및 SQL 리터럴에서 `yyyy-MM-dd HH:mm:ss`(24시간) 형식으로 직렬화
 
 이전 버전(v1.2.11)
 
@@ -143,6 +150,34 @@ npm run build
     }
   }
 }
+```
+
+### 시트별 내보내기 (CSV/TXT)
+
+- Routing by `excel.output` extension
+  - `.xlsx`/`.xls` → Single Excel workbook
+  - `.csv` → Per-sheet CSV
+  - Others → Per-sheet TXT (tab-delimited)
+- Output directory and filenames
+  - Files are written under `<output_basename>` (updated in v1.3.2)
+  - Each file name is the sheet `originalName` (sanitized, max 100 chars). No 31-char limit (Excel-only)
+  - CSV/TXT formatting: `.csv` applies CSV quoting/escaping; non-CSV writes plain values; internal newlines (\r/\n) normalized to spaces for both
+  - Dates: `yyyy-MM-dd HH:mm:ss` (24-hour)
+
+### Sheet 옵션: exceptColumns (v1.3.3)
+
+- 목적: 시트 쿼리 결과에서 특정 컬럼을 최종 파일(Excel/CSV/TXT)에 포함하지 않도록 제외
+- XML: `<sheet name="..." exceptColumns="ColA, ColB">`  (쉼표로 구분)
+- JSON: `"exceptColumns": ["ColA", "ColB"]` 또는 하위호환 `"except_columns": ["ColA", "ColB"]`
+- 키 대소문자 구분 없이 탐색 (case-insensitive)
+- 동작: 내보내기 직전에 지정 컬럼을 레코드셋에서 제거하여 모든 출력 포맷에서 배제
+- 예시:
+  ```xml
+  <sheet name="UserList" use="true" exceptColumns="password, email">
+    <![CDATA[
+      SELECT * FROM users
+    ]]>
+  </sheet>
 ```
 
 ## 🚀 기본 사용법
@@ -407,8 +442,11 @@ sql2excel.exe --mode=help
   - `.csv` → 시트별 CSV
   - 그 외 → 시트별 TXT (탭 구분)
 - 출력 디렉토리 및 파일명
-  - 출력은 `<출력파일베이스>_<확장자>` (점 제외) 하위에 생성
+  - 출력은 `<출력파일베이스>` 하위에 생성 (v1.3.2 변경)
   - 파일명은 시트 `originalName` 사용 (파일시스템 안전화, 최대 100자). 31자 제한 없음(엑셀 전용)
+  - 포맷팅: `.csv`는 CSV 인용/이스케이프 적용, 비-CSV는 인용 없음
+  - 내부 줄바꿈(\r/\n)은 CSV/TXT 모두 공백으로 정규화
+  - 날짜 직렬화: `yyyy-MM-dd HH:mm:ss` (24시간)
 
 ## 🎨 템플릿 스타일 시스템
 

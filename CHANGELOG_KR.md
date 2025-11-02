@@ -1,5 +1,28 @@
 # SQL2Excel 버전 히스토리
 
+## v1.3.3 - 문서 동기화 및 버전 올림 (2025-10-31)
+
+### ✨ 변경 사항
+- 시트에서 특정 컬럼을 결과에서 제외하는 `exceptColumns` 속성 추가
+  - XML: `<sheet name="..." exceptColumns="ColA, ColB">`와 같이 쉼표로 구분해 지정
+  - JSON: `"exceptColumns": ["ColA", "ColB"]` 또는 `"except_columns": ["ColA", "ColB"]` 지원
+  - 대소문자 구분 없이 키 탐색, 하위 호환으로 `except_columns`도 인식
+- 동작: 내보내기 전에 지정된 컬럼을 레코드셋에서 제거하여 파일(Excel/CSV/TXT)에 포함되지 않도록 처리
+- 예시:
+  ```sql
+  <sheet name="사용자 목록" exceptColumns="password, email">
+    SELECT * FROM users
+  </sheet>
+  ```
+
+### 🔧 코드 변경
+- `src/query-parser.js`: XML/JSON에서 `exceptColumns`(및 `except_columns`) 파싱하여 배열로 표준화
+- `src/index.js`: 시트 정의의 `exceptColumns`가 있으면 해당 컬럼들을 결과에서 제거하는 전처리 적용
+
+### 📝 문서
+- KR/EN 문서(README, USER_MANUAL, CHANGELOG) 동기화
+- 패키지 버전을 1.3.3으로 업데이트
+
 ## v1.3.1 - 파일명 변수 및 DATE 개선 (2025-10-30)
 
 ### ✨ 변경 사항

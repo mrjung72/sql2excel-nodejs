@@ -68,14 +68,14 @@ class ExcelGenerator {
     const ext = FileUtils.getExtension(outputPath).toLowerCase();
     const dir = FileUtils.getDirname(outputPath);
     const base = FileUtils.getBasename(outputPath);
-    const extNoDot = ext.startsWith('.') ? ext.slice(1) : ext;
-    const targetDir = path.join(dir, `${base}_${extNoDot}`);
+    const targetDir = path.join(dir, `${base}`);
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true });
     }
     const delimiter = format === 'txt' ? '\t' : ',';
     const withBOM = true;
     const crlf = '\r\n';
+    const isCsv = format === 'csv';
 
     function sanitizeFilename(name) {
       const replaced = String(name).replace(/[\\/:*?"<>|]/g, '_').trim();
@@ -86,19 +86,34 @@ class ExcelGenerator {
       if (/^[0-9]/.test(id)) id = 'T_' + id;
       return id || 'T_SHEET';
     }
+    function formatDateTimeLocal(date) {
+      // 'yyyy-MM-dd HH:mm:ss' (local time)
+      const YYYY = String(date.getFullYear());
+      const MM = String(date.getMonth() + 1).padStart(2, '0');
+      const DD = String(date.getDate()).padStart(2, '0');
+      const HH = String(date.getHours()).padStart(2, '0');
+      const mm = String(date.getMinutes()).padStart(2, '0');
+      const ss = String(date.getSeconds()).padStart(2, '0');
+      return `${YYYY}-${MM}-${DD} ${HH}:${mm}:${ss}`;
+    }
     function escapeCsv(val) {
       if (val === null || val === undefined) return '';
-      const s = String(val);
-      if (s.includes('"') || s.includes('\n') || s.includes('\r') || s.includes(delimiter)) {
-        return '"' + s.replace(/"/g, '""') + '"';
+      const s = val instanceof Date ? formatDateTimeLocal(val) : String(val);
+      const t = s.replace(/\r?\n/g, ' ');
+      if (t.includes('"') || t.includes('\n') || t.includes('\r') || t.includes(delimiter)) {
+        return '"' + t.replace(/"/g, '""') + '"';
       }
-      return s;
+      return t;
+    }
+    function toPlain(val) {
+      if (val === null || val === undefined) return '';
+      return val instanceof Date ? formatDateTimeLocal(val) : String(val).replace(/\r?\n/g, ' ');
     }
     function toSqlLiteral(val) {
       if (val === null || val === undefined) return 'NULL';
       if (typeof val === 'number') return String(val);
       if (typeof val === 'boolean') return val ? '1' : '0';
-      if (val instanceof Date) return `'${val.toISOString().slice(0, 19).replace('T', ' ')}'`;
+      if (val instanceof Date) return `'${formatDateTimeLocal(val)}'`;
       const s = String(val).replace(/'/g, "''");
       return `'${s}'`;
     }
@@ -139,7 +154,10 @@ class ExcelGenerator {
       const lines = [];
       if (columns.length > 0) lines.push(columns.join(delimiter));
       for (const r of rows) {
-        const vals = columns.map(c => escapeCsv(r && r[c] !== undefined ? r[c] : ''));
+        const vals = columns.map(c => {
+          const v = r && r[c] !== undefined ? r[c] : '';
+          return isCsv ? escapeCsv(v) : toPlain(v);
+        });
         lines.push(vals.join(delimiter));
       }
       const content = lines.join(crlf) + crlf;
