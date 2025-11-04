@@ -2,6 +2,7 @@ const MSSQLAdapter = require('./MSSQLAdapter');
 const MySQLAdapter = require('./MySQLAdapter');
 const PostgreSQLAdapter = require('./PostgreSQLAdapter');
 const SQLiteAdapter = require('./SQLiteAdapter');
+const OracleAdapter = require('./OracleAdapter');
 const { getMessages } = require('../utils/messages');
 
 /**
@@ -37,6 +38,11 @@ class DatabaseFactory {
       case 'sqlite3':
         return new SQLiteAdapter(config, language);
       
+      case 'oracle':
+      case 'oracledb':
+      case 'oci':
+        return new OracleAdapter(config, language);
+      
       default:
         throw new Error(`${msg.unsupportedDbType} ${dbType}`);
     }
@@ -52,7 +58,8 @@ class DatabaseFactory {
       { type: 'mysql', name: 'MySQL', defaultPort: 3306 },
       { type: 'mariadb', name: 'MariaDB', defaultPort: 3306 },
       { type: 'postgresql', name: 'PostgreSQL', defaultPort: 5432 },
-      { type: 'sqlite', name: 'SQLite', defaultPort: null }
+      { type: 'sqlite', name: 'SQLite', defaultPort: null },
+      { type: 'oracle', name: 'Oracle Database', defaultPort: 1521 }
     ];
   }
 

@@ -75,5 +75,20 @@
     "options": {
       "mode": null
     }
+  },
+  "oracleDB": {
+    "type": "oracle",
+    "user": "system",
+    "password": "oracle",
+    "server": "localhost",
+    "port": 1521,
+    "serviceName": "XEPDB1",
+    "options": {
+      "poolMin": 0,
+      "poolMax": 4,
+      "poolIncrement": 1,
+      "queueTimeout": 30000,
+      "stmtCacheSize": 30
+    }
   }
-} 
+}
