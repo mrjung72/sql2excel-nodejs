@@ -78,11 +78,11 @@
   },
   "oracleDB": {
     "type": "oracle",
-    "user": "system",
-    "password": "oracle",
+    "user": "c##scott",
+    "password": "tiger",
     "server": "localhost",
     "port": 1521,
-    "serviceName": "XEPDB1",
+    "serviceName": "xe",
     "options": {
       "poolMin": 0,
       "poolMax": 4,

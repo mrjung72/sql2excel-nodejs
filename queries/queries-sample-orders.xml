@@ -1,5 +1,5 @@
 <queries>
-  <excel db="sampleDB" output="d:/temp/sales_summary_${DATE.KST:yyyyMMddhhmmss}.xlsx" maxRows="20" style="modern">
+  <excel db="oracleDB" output="d:/temp/sales_summary_${DATE.KST:yyyyMMddhhmmss}.xlsx" maxRows="20" style="modern">
     <!-- Style template ID (default: default) -->
     <!-- Available templates: default, modern, dark, colorful, minimal, business, premium -->
     <!-- Can be overridden with individual style attributes if needed -->
@@ -22,7 +22,7 @@
         PaymentStatus as PaymentStatus,
         FORMAT(TotalAmount, 'N0') as TotalAmount,
         PaymentMethod as PaymentMethod
-      FROM SampleDB.dbo.Orders
+      FROM Orders
       WHERE OrderDate >= '${startDate}' AND OrderDate <= '${endDate}'
       ORDER BY OrderDate DESC
     ]]>
@@ -30,7 +30,7 @@
   <sheet name="Customer_List" use="true" aggregateColumn="Region" style="dark">
     <![CDATA[
       SELECT *
-      FROM SampleDB.dbo.Customers
+      FROM Customers
     ]]>
   </sheet>
   <sheet name="Customer_Details_Regional_Statistics_Summary" use="true">
@@ -42,9 +42,9 @@
         FORMAT(od.UnitPrice, 'N0') as UnitPrice,
         od.Quantity as Quantity,
         FORMAT(od.LineTotal, 'N0') as LineTotal
-      FROM SampleDB.dbo.Orders o
-      INNER JOIN SampleDB.dbo.Customers c ON o.CustomerID = c.CustomerID
-      INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID
+      FROM Orders o
+      INNER JOIN Customers c ON o.CustomerID = c.CustomerID
+      INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
       WHERE o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}'
       ORDER BY o.OrderDate DESC
     ]]>
@@ -52,9 +52,9 @@
   <sheet name="Wildcard_Customer" use="true" exceptColumns="IsActive,CreatedDate,LastUpdated">
     <![CDATA[
       SELECT c.*
-      FROM SampleDB.dbo.Orders o
-      INNER JOIN SampleDB.dbo.Customers c ON o.CustomerID = c.CustomerID
-      INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID
+      FROM Orders o
+      INNER JOIN Customers c ON o.CustomerID = c.CustomerID
+      INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
       WHERE o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}'
       ORDER BY o.OrderDate DESC
     ]]>
@@ -62,9 +62,9 @@
   <sheet name="Wildcard_Order" use="true" exceptColumns="OrderDate,RequiredDate,ShippedDate,OrderStatus,ShipVia,Freight,ShipName,ShipAddress,ShipCity">
     <![CDATA[
       SELECT o.*
-      FROM SampleDB.dbo.Orders o
-      INNER JOIN SampleDB.dbo.Customers c ON o.CustomerID = c.CustomerID
-      INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID
+      FROM Orders o
+      INNER JOIN Customers c ON o.CustomerID = c.CustomerID
+      INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
       WHERE o.OrderDate >= '${startDate}' AND o.OrderDate <= '${endDate}'
       ORDER BY o.OrderDate DESC
     ]]>
@@ -72,7 +72,7 @@
   <sheet name="Orders_By_Status" use="true" aggregateColumn="OrderStatus" exceptColumns="OrderDate,RequiredDate,ShippedDate">
     <![CDATA[
       SELECT *
-      FROM SampleDB.dbo.Orders
+      FROM Orders
       WHERE OrderDate >= '${startDate}' 
         AND OrderDate <= '${endDate}'
         AND OrderStatus IN (${statusList})
@@ -82,8 +82,8 @@
   <sheet name="Products_By_Category" use="true" aggregateColumn="CategoryName" exceptColumns="OrderDate,RequiredDate,ShippedDate">
     <![CDATA[
       SELECT P.*
-      FROM SampleDB.dbo.Products p
-      INNER JOIN SampleDB.dbo.Categories c ON p.CategoryID = c.CategoryID
+      FROM Products p
+      INNER JOIN Categories c ON p.CategoryID = c.CategoryID
       WHERE p.CategoryID IN (${categoryIds})
         AND p.Discontinued = 0
       ORDER BY c.CategoryName, p.ProductName
