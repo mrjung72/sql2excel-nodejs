@@ -7,6 +7,9 @@
 
 import random
 from datetime import datetime, timedelta
+import argparse
+import os
+import sys
 
 # 한글 데이터
 korean_companies = [
@@ -112,40 +115,243 @@ english_products = [
     ('Storage Locker', 'Furniture'), ('Privacy Screen', 'Furniture')
 ]
 
-def generate_mssql_customers():
-    """MSSQL용 Customers INSERT 문 생성"""
-    sql = []
-    
-    for i in range(50):
-        code = f"'CUST{i+1:03d}'"
-        company = f"'(주){korean_companies[i]}'" if i < 10 else f"'{korean_companies[i]}'"
-        name = f"'{korean_names[i]}'"
-        email = f"'{korean_names[i].replace(' ', '').lower()}@{korean_companies[i].replace(' ', '').lower()}.co.kr'"
-        phone = f"'02-{random.randint(1000,9999)}-{random.randint(1000,9999)}'"
-        city = f"'{korean_cities[i % len(korean_cities)]}'"
-        region = f"'{korean_regions[i % len(korean_regions)]}'"
-        ctype = random.choice(['Premium', 'Regular', 'VIP'])
-        credit = random.randint(150, 2000) * 100000
-        
-        sql.append(f"({code}, {company}, {name}, {email}, {phone}, '서울시 강남구', {city}, {region}, '대한민국', '{ctype}', {credit}.00, 1)")
-    
-    for i in range(50):
-        code = f"'CUST{i+51:03d}'"
-        company = f"'{english_companies[i]}'"
-        name = f"'{english_names[i]}'"
-        email = f"'{english_names[i].split()[0].lower()}@{english_companies[i].split()[0].lower()}.com'"
-        phone = f"'+1-555-{random.randint(1000,9999)}'"
-        city = f"'{english_cities[i]}'"
-        ctype = random.choice(['Premium', 'Regular', 'VIP'])
-        credit = random.randint(200, 2500) * 100000
-        
-        sql.append(f"({code}, {company}, {name}, {email}, {phone}, 'Address', {city}, 'State', 'USA', '{ctype}', {credit}.00, 1)")
-    
-    return ",\n".join(sql)
+def _fmt_str(s):
+    return "'" + str(s).replace("'", "''") + "'"
+
+def _fmt_bool(dialect, v):
+    if dialect == 'postgresql':
+        return 'TRUE' if v else 'FALSE'
+    # others accept 1/0, Oracle uses NUMBER(1)
+    return '1' if v else '0'
+
+def _fmt_dt_str(dt):
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+def _fmt_datetime(dialect, dt):
+    s = _fmt_dt_str(dt)
+    if dialect == 'oracle':
+        return f"TO_TIMESTAMP({_fmt_str(s)}, 'YYYY-MM-DD HH24:MI:SS')"
+    return _fmt_str(s)
+
+def _now():
+    return datetime.utcnow()
+
+def gen_customers(rows):
+    data = []
+    for i in range(rows // 2):
+        data.append({
+            'code': f"CUST{i+1:03d}",
+            'name': ("(주)" if i < 10 else "") + korean_companies[i % len(korean_companies)],
+            'contact': korean_names[i % len(korean_names)],
+            'email': f"{korean_names[i % len(korean_names)].replace(' ', '').lower()}@{korean_companies[i % len(korean_companies)].replace(' ', '').lower()}.co.kr",
+            'phone': f"02-{random.randint(1000,9999)}-{random.randint(1000,9999)}",
+            'address': '서울시 강남구',
+            'city': korean_cities[i % len(korean_cities)],
+            'region': korean_regions[i % len(korean_regions)],
+            'country': '대한민국',
+            'ctype': random.choice(['Premium','Regular','VIP']),
+            'credit': float(random.randint(150,2000) * 100000),
+            'active': True
+        })
+    for i in range(rows - len(data)):
+        data.append({
+            'code': f"CUST{i+1+len(data):03d}",
+            'name': english_companies[i % len(english_companies)],
+            'contact': english_names[i % len(english_names)],
+            'email': f"{english_names[i % len(english_names)].split()[0].lower()}@{english_companies[i % len(english_companies)].split()[0].lower()}.com",
+            'phone': f"+1-555-{random.randint(1000,9999)}",
+            'address': 'Address',
+            'city': english_cities[i % len(english_cities)],
+            'region': 'State',
+            'country': 'USA',
+            'ctype': random.choice(['Premium','Regular','VIP']),
+            'credit': float(random.randint(200,2500) * 100000),
+            'active': True
+        })
+    return data
+
+def gen_products(rows):
+    data = []
+    for i in range(rows // 2):
+        name, cat = korean_products[i % len(korean_products)]
+        data.append({
+            'code': f"P-{100+i}", 'name': name, 'cat': cat,
+            'price': round(random.uniform(10, 2000), 2),
+            'stock': random.randint(0, 500), 'onorder': random.randint(0, 200),
+            'reorder': random.randint(0, 50), 'disc': False,
+            'desc': None
+        })
+    for i in range(rows - len(data)):
+        name, cat = english_products[i % len(english_products)]
+        data.append({
+            'code': f"P-{200+i}", 'name': name, 'cat': cat,
+            'price': round(random.uniform(10, 2000), 2),
+            'stock': random.randint(0, 500), 'onorder': random.randint(0, 200),
+            'reorder': random.randint(0, 50), 'disc': False,
+            'desc': None
+        })
+    return data
+
+def gen_employees(rows):
+    data = []
+    base = datetime(1980, 1, 1)
+    for i in range(rows):
+        first = random.choice(['Alice','Brian','Cathy','David','Evan','Fiona','George','Hanna','Ian','Julia'])
+        last = random.choice(['Kim','Lee','Park','Choi','Jung','Kang','Yoon','Lim','Song','Han'])
+        hire = _now() - timedelta(days=random.randint(0, 3650))
+        birth = datetime(1970,1,1) + timedelta(days=random.randint(0, 20000))
+        data.append({
+            'code': f"E-{i+1:03d}", 'first': first, 'last': last,
+            'title': random.choice(['Manager','Engineer','Analyst','Assistant','Director']),
+            'birth': birth.date(), 'hire': hire.date(),
+            'email': f"{first.lower()}.{last.lower()}@example.com",
+            'phone': f"010-{random.randint(1000,9999)}-{random.randint(1000,9999)}",
+            'dept': random.choice(['Sales','IT','Finance','HR','Marketing']),
+            'salary': round(random.uniform(3000,9000),2),
+            'reports': None if i==0 else random.randint(1, i),
+            'active': True
+        })
+    return data
+
+def gen_orders(rows, customers_count, employees_count):
+    data = []
+    start = datetime(2024,1,1)
+    for i in range(rows):
+        odt = start + timedelta(days=random.randint(0,60), hours=random.randint(0,23), minutes=random.randint(0,59))
+        ship = None if random.random() < 0.3 else (odt + timedelta(days=random.randint(1,7)))
+        req = odt + timedelta(days=random.randint(1,10))
+        subtotal = round(random.uniform(50, 5000), 2)
+        tax = round(subtotal * 0.1, 2)
+        total = round(subtotal + tax, 2)
+        data.append({
+            'number': f"SO-2024{i+1:05d}",
+            'customer_id': random.randint(1, customers_count),
+            'order_date': odt,
+            'required_date': req,
+            'shipped_date': ship,
+            'status': random.choice(['Pending','Shipped','Delivered']),
+            'subtotal': subtotal,
+            'tax': tax,
+            'total': total,
+            'pay_method': random.choice(['Card','Wire','Cash']),
+            'pay_status': random.choice(['Unpaid','Paid']),
+            'emp_id': random.randint(1, max(1, employees_count)),
+            'notes': None
+        })
+    return data
+
+def gen_order_details(rows, orders_count, products_count):
+    data = []
+    for _ in range(rows):
+        qty = random.randint(1,5)
+        price = round(random.uniform(5, 2000),2)
+        data.append({
+            'order_id': random.randint(1, orders_count),
+            'product_id': random.randint(1, products_count),
+            'unit_price': price,
+            'qty': qty,
+            'discount': round(random.choice([0,0,0,5,10]),2)
+        })
+    return data
+
+def render_inserts(dialect, table, rows):
+    lines = []
+    if table == 'customers':
+        cols = '(CustomerCode, CustomerName, ContactName, Email, Phone, Address, City, Region, Country, CustomerType, CreditLimit, IsActive)'
+        for r in rows:
+            vals = [
+                _fmt_str(r['code']), _fmt_str(r['name']), _fmt_str(r['contact']), _fmt_str(r['email']), _fmt_str(r['phone']),
+                _fmt_str(r['address']), _fmt_str(r['city']), _fmt_str(r['region']), _fmt_str(r['country']), _fmt_str(r['ctype']),
+                f"{r['credit']:.2f}", _fmt_bool(dialect, r['active'])
+            ]
+            lines.append(f"INSERT INTO Customers {cols} VALUES (" + ", ".join(vals) + ");")
+    elif table == 'products':
+        cols = '(ProductCode, ProductName, Category, UnitPrice, UnitsInStock, UnitsOnOrder, ReorderLevel, Discontinued, Description)'
+        for r in rows:
+            vals = [
+                _fmt_str(r['code']), _fmt_str(r['name']), _fmt_str(r['cat']), f"{r['price']:.2f}",
+                str(r['stock']), str(r['onorder']), str(r['reorder']), _fmt_bool(dialect, r['disc']), 'NULL' if r['desc'] is None else _fmt_str(r['desc'])
+            ]
+            lines.append(f"INSERT INTO Products {cols} VALUES (" + ", ".join(vals) + ");")
+    elif table == 'employees':
+        cols = '(EmployeeCode, FirstName, LastName, Title, BirthDate, HireDate, Email, Phone, Department, Salary, ReportsTo, IsActive)'
+        for r in rows:
+            birth = _fmt_str(r['birth'].strftime('%Y-%m-%d')) if dialect != 'oracle' else f"TO_DATE({_fmt_str(r['birth'].strftime('%Y-%m-%d'))}, 'YYYY-MM-DD')"
+            hire = _fmt_str(r['hire'].strftime('%Y-%m-%d')) if dialect != 'oracle' else f"TO_DATE({_fmt_str(r['hire'].strftime('%Y-%m-%d'))}, 'YYYY-MM-DD')"
+            vals = [
+                _fmt_str(r['code']), _fmt_str(r['first']), _fmt_str(r['last']), _fmt_str(r['title']),
+                birth, hire, _fmt_str(r['email']), _fmt_str(r['phone']), _fmt_str(r['dept']), f"{r['salary']:.2f}",
+                'NULL' if r['reports'] is None else str(r['reports']), _fmt_bool(dialect, r['active'])
+            ]
+            lines.append(f"INSERT INTO Employees {cols} VALUES (" + ", ".join(vals) + ");")
+    elif table == 'orders':
+        cols = '(OrderNumber, CustomerID, OrderDate, RequiredDate, ShippedDate, OrderStatus, SubTotal, TaxAmount, TotalAmount, PaymentMethod, PaymentStatus, EmployeeID, Notes)'
+        for r in rows:
+            order_dt = _fmt_datetime(dialect, r['order_date'])
+            req_dt = _fmt_datetime(dialect, r['required_date'])
+            ship_dt = 'NULL' if r['shipped_date'] is None else _fmt_datetime(dialect, r['shipped_date'])
+            vals = [
+                _fmt_str(r['number']), str(r['customer_id']), order_dt, req_dt, ship_dt,
+                _fmt_str(r['status']), f"{r['subtotal']:.2f}", f"{r['tax']:.2f}", f"{r['total']:.2f}",
+                _fmt_str(r['pay_method']), _fmt_str(r['pay_status']), str(r['emp_id']), 'NULL'
+            ]
+            lines.append(f"INSERT INTO Orders {cols} VALUES (" + ", ".join(vals) + ");")
+    elif table == 'orderdetails':
+        cols = '(OrderID, ProductID, UnitPrice, Quantity, Discount)'
+        for r in rows:
+            vals = [str(r['order_id']), str(r['product_id']), f"{r['unit_price']:.2f}", str(r['qty']), f"{r['discount']:.2f}"]
+            lines.append(f"INSERT INTO OrderDetails {cols} VALUES (" + ", ".join(vals) + ");")
+    return lines
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dialect', '--db', dest='dialect', choices=['mssql','mysql','postgresql','oracle','sqlite'], default='mssql')
+    parser.add_argument('--tables', default='customers,products,employees,orders,orderdetails')
+    parser.add_argument('--rows', type=int, default=100)
+    parser.add_argument('--output', default='')
+    args = parser.parse_args()
+
+    # Normalize dialect (accept common synonyms via --db/--dialect)
+    alias_map = {
+        'postgres': 'postgresql', 'pg': 'postgresql',
+        'maria': 'mysql', 'mariadb': 'mysql'
+    }
+    dialect = alias_map.get(args.dialect.lower(), args.dialect.lower())
+    tables = [t.strip().lower() for t in args.tables.split(',') if t.strip()]
+    rows = args.rows
+
+    customers = gen_customers(rows)
+    products = gen_products(rows)
+    employees = gen_employees(min(100, max(10, rows//2)))
+    orders = gen_orders(min(100, rows), len(customers), len(employees))
+    orderdetails = gen_order_details(rows*2, len(orders), len(products))
+
+    all_lines = []
+    if 'customers' in tables:
+        all_lines.append(f"-- Customers ({len(customers)} records)")
+        all_lines.extend(render_inserts(dialect, 'customers', customers))
+    if 'products' in tables:
+        all_lines.append(f"-- Products ({len(products)} records)")
+        all_lines.extend(render_inserts(dialect, 'products', products))
+    if 'employees' in tables:
+        all_lines.append(f"-- Employees ({len(employees)} records)")
+        all_lines.extend(render_inserts(dialect, 'employees', employees))
+    if 'orders' in tables:
+        all_lines.append(f"-- Orders ({len(orders)} records)")
+        all_lines.extend(render_inserts(dialect, 'orders', orders))
+    if 'orderdetails' in tables:
+        all_lines.append(f"-- OrderDetails ({len(orderdetails)} records)")
+        all_lines.extend(render_inserts(dialect, 'orderdetails', orderdetails))
+
+    output = "\n".join(all_lines) + "\n"
+    out_path = args.output
+    if not out_path:
+        script_dir = os.path.dirname(__file__)
+        out_path = os.path.join(script_dir, f"sample_data_{dialect}.sql")
+    with open(out_path, 'w', encoding='utf-8') as f:
+        f.write(output)
+    sys.stdout.write(out_path + "\n")
 
 if __name__ == "__main__":
-    print("-- Customers (100 records)")
-    print("INSERT INTO dbo.Customers (CustomerCode, CustomerName, ContactName, Email, Phone, Address, City, Region, Country, CustomerType, CreditLimit, IsActive) VALUES")
-    print(generate_mssql_customers())
-    print("GO\n")
+    main()
 
