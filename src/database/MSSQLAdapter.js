@@ -181,6 +181,11 @@ class MSSQLAdapter {
   getType() {
     return this.dbType;
   }
+
+  /** 연결 테스트용 쿼리 */
+  getTestQuery() {
+    return 'SELECT 1 as test';
+  }
 }
 
 module.exports = MSSQLAdapter;

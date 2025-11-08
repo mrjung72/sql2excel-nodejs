@@ -350,7 +350,6 @@ function loadDatabaseConfig(configPath) {
     }
 }
 
-// 데이터베이스 연결 테스트
 async function testDatabaseConnection(dbKey, dbConfig) {
     let connection = null;
     let adapter = null;
@@ -364,8 +363,9 @@ async function testDatabaseConnection(dbKey, dbConfig) {
         adapter = DatabaseFactory.createAdapter(dbType, dbConfig, LANGUAGE);
         connection = await adapter.createConnectionPool(dbConfig, dbKey);
         
-        // 연결 테스트 쿼리 실행
-        await adapter.executeQuery(connection, 'SELECT 1 as test');
+        // 연결 테스트 쿼리 실행 (각 Adapter에 정의된 테스트 쿼리 사용)
+        const testSql = (typeof adapter.getTestQuery === 'function') ? adapter.getTestQuery() : 'SELECT 1 as test';
+        await adapter.executeQuery(connection, testSql);
         
         console.log(msg.dbConnectionSuccess.replace('{dbKey}', dbKey));
         return { success: true, message: msg.dbConnectionSuccess.replace('{dbKey}', '') };

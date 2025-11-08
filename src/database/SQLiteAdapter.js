@@ -227,6 +227,11 @@ class SQLiteAdapter {
   getType() {
     return this.dbType;
   }
+
+  /** 연결 테스트용 쿼리 */
+  getTestQuery() {
+    return 'SELECT 1';
+  }
 }
 
 module.exports = SQLiteAdapter;
