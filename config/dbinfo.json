@@ -59,9 +59,9 @@
   "postgresDB": {
     "type": "postgresql",
     "user": "postgres",
-    "password": "password",
+    "password": "1111",
     "server": "localhost",
-    "database": "mydb",
+    "database": "postgres",
     "port": 5432,
     "options": {
       "max": 10,
