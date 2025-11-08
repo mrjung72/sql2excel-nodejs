@@ -19,6 +19,16 @@
 
 SQL2Excel은 고급 스타일링, 템플릿 지원, 독립 실행 파일 배포 기능을 갖춘 SQL 쿼리 결과로 엑셀 파일을 생성하는 강력한 Node.js 기반 도구입니다.
 
+### v1.3.4 주요 변경
+
+- 어댑터별 DB 연결 테스트 쿼리 도입
+  - 모든 DB 어댑터에 `getTestQuery()` 추가
+    - MSSQL: `SELECT 1 as test`, MySQL/MariaDB: `SELECT 1 as test`, PostgreSQL: `SELECT 1`, SQLite: `SELECT 1`, Oracle: `SELECT 1 FROM dual`
+  - `excel-cli.js`가 어댑터의 테스트 쿼리를 사용하여 연결 검증 수행 (Oracle 검증 이슈 해결)
+- 샘플 스키마 정합성(Orders)
+  - PostgreSQL/MySQL: `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID` 추가
+  - 샘플 데이터와 컬럼 일치, MSSQL 스키마와의 정합성 향상
+
 ### v1.3.3 주요 변경
 
 - 시트에서 특정 컬럼 제외를 위한 `exceptColumns` 속성 추가 (XML/JSON)

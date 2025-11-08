@@ -2,6 +2,16 @@
 
 SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니다.
 
+## v1.3.4 하이라이트
+
+- 어댑터별 DB 연결 테스트 쿼리 도입
+  - 모든 DB 어댑터에 `getTestQuery()` 추가
+    - MSSQL/MySQL/MariaDB: `SELECT 1 as test`, PostgreSQL/SQLite: `SELECT 1`, Oracle: `SELECT 1 FROM dual`
+  - `excel-cli.js`가 어댑터의 테스트 쿼리를 사용하여 연결 검증 수행 (Oracle 검증 이슈 해결)
+- 샘플 스키마 정합성(Orders)
+  - PostgreSQL/MySQL: `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID` 추가
+  - 샘플 데이터와 컬럼 일치, MSSQL 스키마와의 정합성 향상
+
 ## v1.3.3 하이라이트
 
 - 문서 동기화(KR/EN) 및 소규모 정리

@@ -1,5 +1,40 @@
 # SQL2Excel 버전 히스토리
 
+## v1.3.4 - DB 어댑터 테스트 쿼리 도입 및 스키마 정합성 (2025-11-08)
+
+### ✨ 변경 사항
+- 어댑터 단위 연결 테스트 SQL 도입
+  - 모든 DB 어댑터에 `getTestQuery()` 추가
+    - MSSQL: `SELECT 1 as test`
+    - MySQL/MariaDB: `SELECT 1 as test`
+    - PostgreSQL: `SELECT 1`
+    - SQLite: `SELECT 1`
+    - Oracle: `SELECT 1 FROM dual`
+  - `excel-cli.js`는 연결 검증 시 어댑터의 `getTestQuery()`를 사용
+
+- 샘플 스키마 정합성(Orders)
+  - PostgreSQL: `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID` 추가
+  - MySQL: `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID` 추가
+  - 목적: 샘플 데이터 컬럼과 일치 및 MSSQL 스키마와의 정합성 향상
+
+### 🐛 버그 수정
+- Oracle 연결 검증 오류 수정 (`list-dbs`/검증 플로우)
+  - 하드코딩된 `SELECT 1 as test` → 어댑터 제공 테스트 쿼리로 대체
+- `excel-cli.js`: `loadDatabaseConfig()`의 깨진 `catch` 블록 수정 및 오류 메시지 개선(`configFileLoadFailed`)
+
+### 🔧 코드 변경
+- `src/database/OracleAdapter.js`: `getTestQuery()` 추가
+- `src/database/MSSQLAdapter.js`: `getTestQuery()` 추가
+- `src/database/MySQLAdapter.js`: `getTestQuery()` 추가
+- `src/database/PostgreSQLAdapter.js`: `getTestQuery()` 추가
+- `src/database/SQLiteAdapter.js`: `getTestQuery()` 추가
+- `src/excel-cli.js`: 어댑터의 테스트 쿼리 사용; `loadDatabaseConfig()` catch 블록 수정
+- `resources/create_sample_tables_postgresql.sql`: Orders 컬럼 추가 (`SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`)
+- `resources/create_sample_tables_mysql.sql`: Orders 컬럼 추가 (`SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`)
+
+### 📝 비고
+- 본 변경으로 샘플 데이터(PostgreSQL)가 각 DB 스키마 적용 시 원활히 적재되도록 정합성이 개선되었습니다.
+
 ## v1.3.3 - 문서 동기화 및 버전 올림 (2025-10-31)
 
 ### ✨ 변경 사항

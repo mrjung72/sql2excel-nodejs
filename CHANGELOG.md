@@ -1,5 +1,40 @@
 # SQL2Excel Version History
 
+## v1.3.4 - DB Adapter Test Query & Schema Alignment (2025-11-08)
+
+### ✨ New/Changed
+- Adapter-level connection test SQL
+  - Added `getTestQuery()` to all DB adapters
+    - MSSQL: `SELECT 1 as test`
+    - MySQL/MariaDB: `SELECT 1 as test`
+    - PostgreSQL: `SELECT 1`
+    - SQLite: `SELECT 1`
+    - Oracle: `SELECT 1 FROM dual`
+  - `excel-cli.js` uses `adapter.getTestQuery()` for connection validation
+
+- Sample schema alignment for cross-DB consistency (Orders)
+  - PostgreSQL: added `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`
+  - MySQL: added `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`
+  - Purpose: match sample data columns and improve parity with MSSQL schema
+
+### 🐛 Fixes
+- Oracle connection validation fixed during `list-dbs`/validation flows
+  - Replaced hardcoded `SELECT 1 as test` with adapter-provided query
+- `excel-cli.js`: fixed broken `catch` in `loadDatabaseConfig()` and improved error message (`configFileLoadFailed`)
+
+### 🔧 Code Changes
+- `src/database/OracleAdapter.js`: add `getTestQuery()`
+- `src/database/MSSQLAdapter.js`: add `getTestQuery()`
+- `src/database/MySQLAdapter.js`: add `getTestQuery()`
+- `src/database/PostgreSQLAdapter.js`: add `getTestQuery()`
+- `src/database/SQLiteAdapter.js`: add `getTestQuery()`
+- `src/excel-cli.js`: use `adapter.getTestQuery()`; fix `loadDatabaseConfig()` catch block
+- `resources/create_sample_tables_postgresql.sql`: add Orders columns (`SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`)
+- `resources/create_sample_tables_mysql.sql`: add Orders columns (`SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`)
+
+### 📝 Notes
+- These changes ensure sample data (PostgreSQL) loads cleanly across DBs when schemas are applied accordingly.
+
 ## v1.3.3 - Docs Sync & Version Bump (2025-10-31)
 
 ### ✨ New/Changed
