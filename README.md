@@ -2,7 +2,25 @@
 
 A Node.js-based tool for generating Excel files from SQL query results.
 
-## v1.3.3 Highlights
+## v2.1.5 Highlights
+
+- DynamicVar DB routing
+  - `dynamicVar` now supports `db` (alias of `database`) attribute in XML.
+  - Each dynamic variable executes on its specified DB adapter (falls back to default DB when omitted).
+- XML validation update
+  - `queryDef` now allows `db` attribute in XML schema validation. Note: current execution still uses sheet-level `db` or global default; `queryDef.db` is for future use/documentation.
+
+## v2.1.4 Highlights
+
+- Adapter-level DB connection test queries
+  - Added `getTestQuery()` to all DB adapters
+    - MSSQL: `SELECT 1 as test`, MySQL/MariaDB: `SELECT 1 as test`, PostgreSQL: `SELECT 1`, SQLite: `SELECT 1`, Oracle: `SELECT 1 FROM dual`
+  - `excel-cli.js` now uses the adapter’s test query for connection validation (fixes Oracle validation)
+- Sample schema alignment (Orders)
+  - PostgreSQL/MySQL: added `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`
+  - Aligns with sample data and improves parity with MSSQL schema
+
+## v2.1.3-beta (v1.3.3) Highlights
 
 - Documentation synchronization (KR/EN) and minor updates
 - Package version updated to 1.3.3
@@ -11,6 +29,7 @@ A Node.js-based tool for generating Excel files from SQL query results.
 - 📊 **Multi-Sheet Support**: Save multiple SQL query results in separate sheets within one Excel file
 - 🎨 **Template Style System**: Pre-defined Excel styling templates for consistent design with 7 built-in styles
 - 🔗 **Multiple DB Connections**: Use different database connections for each sheet
+- 🗄️ **Multi-Database Support (v2.0.0-beta+)**: Support for MSSQL, MySQL, and MariaDB with unified interface
 - 📝 **Variable System**: Use variables in queries for dynamic query generation
 - 🔄 **Enhanced Dynamic Variables**: Extract values from database in real-time with advanced processing
 - 🔄 **Query Reuse**: Define common queries and reuse them across multiple sheets
@@ -31,7 +50,19 @@ A Node.js-based tool for generating Excel files from SQL query results.
 - 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 - 🗂️ **Filename Variables**: Use `${DATE:...}`, `${DATE.TZ:...}`, and `${DB_NAME}` in `excel.output` (also supports custom `$(DB_NAME}`)
 
-## v1.3.2 Highlights
+## 🔗 Multi-Database Usage
+
+- **Supported drivers**: MSSQL (`mssql`), MySQL (`mysql2`), MariaDB (`mysql2`), PostgreSQL (`pg`), SQLite (`better-sqlite3`), Oracle (`oracledb`)
+- **Configuration**: `config/dbinfo.json` with per-DB keys and `type` (optional for MSSQL default)
+- **Runtime DB selection precedence**
+  - Default DB key: `--db` (CLI) > `excel.db` (XML/JSON)
+  - Sheet: `sheet.db` > Default DB
+  - Dynamic variables: `dynamicVar.database` or `dynamicVar.db` > Default DB
+- **Connection test**
+  - Dev: `npm run list-dbs`
+  - EXE: `sql2excel.exe list-dbs`
+
+## v2.1.2(v1.3.2) Highlights
 
 - Per-sheet export directory naming simplified
   - Directory is now `<output_basename>` (extension suffix removed)
@@ -43,7 +74,7 @@ A Node.js-based tool for generating Excel files from SQL query results.
   - Record separators remain CRLF; headers included
   - Date values are serialized as `yyyy-MM-dd HH:mm:ss` (24-hour) in CSV/TXT and SQL literals
 
-## v1.3.1 Highlights
+## v2.1.1-beta (v1.3.1) Highlights
 
 - Filename variables in output path
   - Support `${DB_NAME}` (current DB key), custom syntax `$(DB_NAME}` normalized automatically
@@ -51,7 +82,7 @@ A Node.js-based tool for generating Excel files from SQL query results.
   - Lowercase date tokens supported: `yyyy, yy, dd, d, hh, h, sss`
   - Removed auto `_yyyymmddhhmmss` suffix; control naming via DATE variables
 
-## v1.3.0 Highlights
+## v2.1.0-beta (v1.3.0) Highlights
 
 - **Per-sheet export routing by extension**
   - `.xlsx` / `.xls` → Generate a single Excel workbook (existing behavior)
@@ -99,6 +130,10 @@ node app.js --mode=export --query=./queries/sample-queries.json
 node app.js --mode=help
 ```
 
+Notes:
+- Attributes supported on `dynamicVar`: `name`, `description`, `type`, `db`, `database` (`db` is an alias). When both are present, `database` takes precedence.
+- `queryDef` accepts `db` for validation purposes; execution DB is determined by sheet's `db` or the global default DB.
+
 #### Standalone EXE
 ```bash
 sql2excel.exe --mode=validate --xml=./queries/sample-queries.xml
@@ -115,12 +150,12 @@ sql2excel.exe --mode=help
 
 #### For Development/Source Code Usage
 - Node.js 16.0 or higher
-- SQL Server 2012 or higher
+- Database Server (MSSQL 2012+, MySQL 5.7+, or MariaDB 10.2+)
 - Appropriate database permissions
 
 #### For Standalone Executable Usage
 - Windows 10 or higher (64-bit)
-- SQL Server 2012 or higher
+- Database Server (MSSQL 2012+, MySQL 5.7+, or MariaDB 10.2+)
 - Appropriate database permissions
 - **No Node.js installation required**
 
@@ -147,32 +182,46 @@ npm run build
 Create `config/dbinfo.json` file:
 ```json
 {
-  "dbs": {
-    "sampleDB": {
-      "server": "localhost",
-      "port": 1433,
-      "database": "SampleDB",
-      "user": "sa",
-      "password": "yourpassword",
-      "options": {
-        "encrypt": false,
-        "trustServerCertificate": true
-      }
-    },
-    "erpDB": {
-      "server": "erp-server.com",
-      "port": 1433,
-      "database": "ERP_Database",
-      "user": "erp_user",
-      "password": "erp_password",
-      "options": {
-        "encrypt": true,
-        "trustServerCertificate": false
-      }
+  "sampleDB": {
+    "type": "mssql",
+    "server": "localhost",
+    "port": 1433,
+    "database": "SampleDB",
+    "user": "sa",
+    "password": "yourpassword",
+    "options": {
+      "encrypt": false,
+      "trustServerCertificate": true
+    }
+  },
+  "mysqlDB": {
+    "type": "mysql",
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password",
+    "options": {
+      "connectionTimeout": 30000
+    }
+  },
+  "mariaDB": {
+    "type": "mariadb",
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password",
+    "options": {
+      "connectionTimeout": 30000
     }
   }
 }
 ```
+
+**Note:** 
+- `type` field is optional. If not specified, defaults to `mssql` for backward compatibility.
+- Supported types: `mssql`, `mysql`, `mariadb`
 
 ## 🚀 Basic Usage
 
@@ -366,7 +415,7 @@ The tool supports dynamic variables that can extract data at runtime and use it 
 
 ```xml
 <!-- Using column_identified (default) -->
-<dynamicVar name="customerData" description="Customer information">
+<dynamicVar name="customerData" description="Customer information" db="sampleDB">
   <![CDATA[
     SELECT CustomerID, CustomerName, Region FROM Customers
   ]]>
@@ -374,7 +423,7 @@ The tool supports dynamic variables that can extract data at runtime and use it 
 </dynamicVar>
 
 <!-- Using key_value_pairs -->
-<dynamicVar name="statusMapping" description="Status mapping">
+<dynamicVar name="statusMapping" description="Status mapping" database="mariaDB">
   <![CDATA[
     SELECT StatusCode, StatusName FROM StatusCodes
   ]]>

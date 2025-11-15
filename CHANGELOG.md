@@ -1,6 +1,65 @@
 # SQL2Excel Version History
 
-## v1.3.3 - Docs Sync & Version Bump (2025-10-31)
+## v2.1.5 - DynamicVar DB Routing & XML Validation Update (2025-11-15)
+
+### ✨ New/Changed
+- Dynamic variable DB routing
+  - XML `dynamicVar` supports `db` (alias of `database`) attribute
+  - Each dynamic variable is executed using the adapter for its specified DB key
+  - Fallback to default DB when not specified
+- XML validation update
+  - `queryDef` now allows `db` attribute during structure validation (for documentation/future use). Execution DB remains sheet-level `db` or global default
+
+### 🔧 Code Changes
+- `src/query-parser.js`
+  - Allow `db` attribute on `dynamicVar`; parse `database || db`
+  - Allow `db` attribute on `queryDef` in validation
+- `src/variable-processor.js`
+  - Execute dynamic variables on their own DB adapters (`dbAdapters[targetDbKey]`)
+- `src/index.js`
+  - Pass `dbAdapters` and `defaultDbKey` to dynamic variable processor
+
+### 📝 Documentation
+- README/README_KR: Added v2.1.5 highlights, dynamicVar `db`/`database` usage notes and examples
+- USER_MANUAL/USER_MANUAL_KR: Documented dynamicVar attributes and per-variable DB routing
+- CHANGELOG/CHANGELOG_KR: Added v2.1.5 entries
+
+## v2.1.4 - DB Adapter Test Query & Schema Alignment (2025-11-08)
+
+### ✨ New/Changed
+- Adapter-level connection test SQL
+  - Added `getTestQuery()` to all DB adapters
+    - MSSQL: `SELECT 1 as test`
+    - MySQL/MariaDB: `SELECT 1 as test`
+    - PostgreSQL: `SELECT 1`
+    - SQLite: `SELECT 1`
+    - Oracle: `SELECT 1 FROM dual`
+  - `excel-cli.js` uses `adapter.getTestQuery()` for connection validation
+
+- Sample schema alignment for cross-DB consistency (Orders)
+  - PostgreSQL: added `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`
+  - MySQL: added `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`
+  - Purpose: match sample data columns and improve parity with MSSQL schema
+
+### 🐛 Fixes
+- Oracle connection validation fixed during `list-dbs`/validation flows
+  - Replaced hardcoded `SELECT 1 as test` with adapter-provided query
+- `excel-cli.js`: fixed broken `catch` in `loadDatabaseConfig()` and improved error message (`configFileLoadFailed`)
+
+### 🔧 Code Changes
+- `src/database/OracleAdapter.js`: add `getTestQuery()`
+- `src/database/MSSQLAdapter.js`: add `getTestQuery()`
+- `src/database/MySQLAdapter.js`: add `getTestQuery()`
+- `src/database/PostgreSQLAdapter.js`: add `getTestQuery()`
+- `src/database/SQLiteAdapter.js`: add `getTestQuery()`
+- `src/excel-cli.js`: use `adapter.getTestQuery()`; fix `loadDatabaseConfig()` catch block
+- `resources/create_sample_tables_postgresql.sql`: add Orders columns (`SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`)
+- `resources/create_sample_tables_mysql.sql`: add Orders columns (`SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`)
+
+### 📝 Notes
+- These changes ensure sample data (PostgreSQL) loads cleanly across DBs when schemas are applied accordingly.
+
+## v2.1.4(v1.3.3) - Docs Sync & Version Bump (2025-10-31)
 
 ### ✨ New/Changed
 - Added `exceptColumns` attribute to exclude specific columns from sheet output
@@ -18,7 +77,7 @@
 ### 📝 Documentation
 - README/README_KR, USER_MANUAL/USER_MANUAL_KR, CHANGELOG/CHANGELOG_KR updated accordingly
 
-## v1.3.2 - CSV/TXT Formatting & Directory Naming (2025-10-31)
+## v2.1.2(v1.3.2) - CSV/TXT Formatting & Directory Naming (2025-10-31)
 
 ### ✨ New/Changed
 - Per-sheet export directory naming simplified
@@ -43,7 +102,7 @@
 - USER_MANUAL/USER_MANUAL_KR: Updated per-sheet export section to reflect new directory naming and formatting rules
 - CHANGELOG/CHANGELOG_KR: Added v1.3.2 entry
 
-## v1.3.1 - Filename Variables and DATE Fixes (2025-10-30)
+## v2.1.1-beta (v1.3.1) - Filename Variables and DATE Fixes (2025-10-30)
 
 ### ✨ New/Changed
 - Output filename variable enhancements
@@ -66,7 +125,7 @@
 - USER_MANUAL/USER_MANUAL_KR: Documented filename variables (`DB_NAME`, DATE), lowercase tokens, and local-time behavior
 - CHANGELOG/CHANGELOG_KR: Added v1.3.1 entry
 
-## v1.3.0 - Per-sheet Export for CSV/TXT and Routing Rules (2025-10-29)
+## v2.1.0-beta (v1.3.0) - Per-sheet Export for CSV/TXT and Routing Rules (2025-10-29)
 
 ### ✨ New/Changed
 - Export routing based on output extension
@@ -93,7 +152,7 @@
 - USER_MANUAL/USER_MANUAL_KR: Added section describing routing, directory/filename rules, and defaults
 - CHANGELOG/CHANGELOG_KR: Added v1.3.0 entry
 
-## v1.2.11 - TOC Original Name & Sheet Name Length Warning (2025-10-29)
+## v2.0.2-beta (v1.2.11) - TOC Original Name & Sheet Name Length Warning (2025-10-29)
 
 ### ✨ New/Changed
 - Sheet name length > 31 characters is now treated as a warning during validation (no failure)
@@ -111,7 +170,7 @@
 - README/README_KR: Updated highlights to v1.2.11, described changes
 - CHANGELOG: Added v1.2.11 entry
 
-## v1.2.10 - Non-interactive CLI & Docs (2025-10-29)
+## v2.0.1-beta (v1.2.10) - Non-interactive CLI & Docs (2025-10-29)
 
 ### ✨ New Features
 
@@ -123,6 +182,95 @@
 ### 📝 Documentation
 - README.md / README_KR.md: Added "Non-interactive CLI" usage and examples
 - Updated highlights to v1.2.10
+
+## v2.0.0-beta - Multi-Database Support (2025-10-22)
+
+### ✨ New Features
+- **Multi-Database Support**: Support for multiple database types beyond MSSQL
+  - **Supported Databases**: MSSQL, MySQL, MariaDB
+  - **Unified Interface**: Consistent API across all database types
+  - **Database Factory Pattern**: Automatic adapter selection based on database type
+  - **Backward Compatibility**: Existing MSSQL configurations work without changes
+
+### 🔧 Configuration
+```json
+{
+  "sampleDB": {
+    "type": "mssql",      // Optional, defaults to "mssql" if not specified
+    "server": "localhost",
+    "port": 1433,
+    "database": "SampleDB",
+    "user": "sa",
+    "password": "password"
+  },
+  "mysqlDB": {
+    "type": "mysql",      // New: MySQL support
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  },
+  "mariaDB": {
+    "type": "mariadb",    // New: MariaDB support
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  }
+}
+```
+
+### 📦 Technical Changes
+- **New Architecture**:
+  - `src/database/DatabaseFactory.js`: Factory for creating database adapters
+  - `src/database/MSSQLAdapter.js`: MSSQL implementation (refactored from mssql-helper.js)
+  - `src/database/MySQLAdapter.js`: MySQL/MariaDB implementation
+  
+- **Updated Files**:
+  - `src/index.js`: Uses DatabaseFactory instead of direct MSSQLHelper
+  - `src/variable-processor.js`: Database-agnostic implementation
+  - `package.json`: Added `mysql2` dependency
+
+### 🔄 Database-Specific Features
+- **MSSQL**: 
+  - Uses `TOP N` for row limiting
+  - Supports `GETDATE()` function
+  
+- **MySQL/MariaDB**: 
+  - Uses `LIMIT N` for row limiting
+  - Converts `GETDATE()` to `NOW()` automatically
+  - Connection pooling with automatic reconnection
+
+### 💡 Usage Examples
+```xml
+<!-- Mix different database types in one Excel file -->
+<excel output="multi_db_report_${DATE.UTC:YYYYMMDD}.xlsx" db="mysqlDB">
+  <sheet name="MySQL Users" db="mysqlDB">
+    <query>SELECT * FROM users</query>
+  </sheet>
+  
+  <sheet name="MSSQL Orders" db="sampleDB">
+    <query>SELECT * FROM orders</query>
+  </sheet>
+  
+  <sheet name="MariaDB Products" db="mariaDB">
+    <query>SELECT * FROM products</query>
+  </sheet>
+</excel>
+```
+
+### ⚠️ Notes
+- **Type Field**: The `type` field in database configuration is optional. If omitted, defaults to `mssql` for backward compatibility.
+- **Port Numbers**: Default ports are used if not specified (MSSQL: 1433, MySQL/MariaDB: 3306)
+- **Connection Pooling**: All database types use connection pooling for optimal performance
+
+### 📚 Dependencies
+- Added: `mysql2@^3.6.0` - MySQL/MariaDB driver with promise support
+- Maintained: `mssql@^10.0.0` - Microsoft SQL Server driver
+
+---
 
 ## v1.2.9 - Global Timezone System & Local Time Support (2025-10-21)
 

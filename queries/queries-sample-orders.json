@@ -1,6 +1,6 @@
 {
   "excel": {
-    "db": "sampleDB",
+    "db": "oracleDB",
     "output": "output/sales_summary_2024.xlsx",
     "maxRows": 1500,
     "header": {

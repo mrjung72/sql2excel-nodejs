@@ -2,7 +2,25 @@
 
 SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니다.
 
-## v1.3.3 하이라이트
+## v2.1.5 하이라이트
+
+- 동적 변수 DB 라우팅
+  - XML의 `dynamicVar`에서 `db`(= `database` 별칭) 속성 지원.
+  - 각 동적 변수는 지정한 DB 어댑터에서 실행되며, 미지정 시 기본 DB 사용.
+- XML 검증 업데이트
+  - XML 스키마 검증에서 `queryDef`의 `db` 속성을 허용. 주의: 현재 실행 DB는 시트의 `db` 또는 전역 기본 DB가 사용되며, `queryDef.db`는 향후 문서/확장용.
+
+## v2.1.4 하이라이트
+
+- 어댑터별 DB 연결 테스트 쿼리 도입
+  - 모든 DB 어댑터에 `getTestQuery()` 추가
+    - MSSQL/MySQL/MariaDB: `SELECT 1 as test`, PostgreSQL/SQLite: `SELECT 1`, Oracle: `SELECT 1 FROM dual`
+  - `excel-cli.js`가 어댑터의 테스트 쿼리를 사용하여 연결 검증 수행 (Oracle 검증 이슈 해결)
+- 샘플 스키마 정합성(Orders)
+  - PostgreSQL/MySQL: `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID` 추가
+  - 샘플 데이터와 컬럼 일치, MSSQL 스키마와의 정합성 향상
+
+## v2.1.3-beta (v1.3.3) 하이라이트
 
 - 문서 동기화(KR/EN) 및 소규모 정리
 - 패키지 버전을 1.3.3으로 업데이트
@@ -11,6 +29,7 @@ SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니�
 - 📊 **다중 시트 지원**: 하나의 엑셀 파일 내에서 여러 SQL 쿼리 결과를 별도의 시트에 저장
 - 🎨 **템플릿 스타일 시스템**: 일관된 디자인을 위한 사전 정의된 엑셀 스타일링 템플릿 (7가지 내장 스타일)
 - 🔗 **다중 DB 연결**: 각 시트마다 다른 데이터베이스 연결 사용 가능
+- 🗄️ **다중 데이터베이스 지원 (v2.0.0-beta+)**: MSSQL, MySQL, MariaDB를 통합 인터페이스로 지원
 - 📝 **변수 시스템**: 동적 쿼리 생성을 위한 변수 사용
 - 🔄 **향상된 동적 변수**: 실시간으로 데이터베이스에서 값을 추출하여 고급 처리
 - 🔄 **쿼리 재사용**: 공통 쿼리를 정의하고 여러 시트에서 재사용
@@ -31,7 +50,19 @@ SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니�
 - 🔧 **입력 유효성 검증**: 파일 경로 입력에 대한 자동 공백 제거
 - 🗂️ **파일명 변수**: `excel.output`에서 `${DATE:...}`, `${DATE.TZ:...}`, `${DB_NAME}` 사용 가능 (커스텀 `$(DB_NAME}`도 지원)
 
-## v1.3.2 하이라이트
+## 🔗 다중 데이터베이스 사용
+
+- **지원 드라이버**: MSSQL(`mssql`), MySQL(`mysql2`), MariaDB(`mysql2`), PostgreSQL(`pg`), SQLite(`better-sqlite3`), Oracle(`oracledb`)
+- **설정 파일**: `config/dbinfo.json`에 DB 키별 접속 정보와 `type` 지정 (MSSQL은 생략 시 기본값)
+- **런타임 DB 선택 우선순위**
+  - 기본 DB 키: `--db`(CLI) > `excel.db`(XML/JSON)
+  - 시트: `sheet.db` > 기본 DB
+  - 동적 변수: `dynamicVar.database` 또는 `dynamicVar.db` > 기본 DB
+- **연결 테스트**
+  - 개발: `npm run list-dbs`
+  - EXE: `sql2excel.exe list-dbs`
+
+## v2.1.2(v1.3.2) 하이라이트
 
 - 시트별 내보내기 디렉토리 명명 단순화
   - 디렉토리는 이제 `<출력파일베이스>` (확장자 접미사 제거)
@@ -43,7 +74,7 @@ SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니�
   - 레코드 구분 개행은 CRLF 유지, 헤더 포함
   - 날짜 값은 CSV/TXT 및 SQL 리터럴에서 `yyyy-MM-dd HH:mm:ss`(24시간) 형식으로 직렬화
 
-## v1.3.1 하이라이트
+## v2.1.1-beta (v1.3.1) 하이라이트
 
 - 출력 경로에서 파일명 변수 지원 강화
   - `${DB_NAME}` 지원 (현재 기본 DB 키). 커스텀 문법 `$(DB_NAME}`는 자동으로 `${DB_NAME}`로 정규화
@@ -51,7 +82,7 @@ SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니�
   - 소문자 날짜 토큰 지원: `yyyy, yy, dd, d, hh, h, sss`
   - 자동 `_yyyymmddhhmmss` 접미사 제거 → DATE 변수로 직접 제어
 
-## v1.3.0 하이라이트
+## v2.1.0-beta (v1.3.0) 하이라이트
 
 - **확장자 기반 시트별 내보내기 라우팅**
   - `.xlsx` / `.xls` → 단일 엑셀 통합문서 생성 (기존 동작)
@@ -99,6 +130,10 @@ node app.js --mode=export --query=./queries/sample-queries.json
 node app.js --mode=help
 ```
 
+참고:
+- `dynamicVar`에서 지원하는 속성: `name`, `description`, `type`, `db`, `database` (`db`는 별칭). 둘 다 있으면 `database`가 우선합니다.
+- `queryDef`는 검증 목적상 `db`를 허용합니다. 실제 실행 DB는 시트의 `db` 혹은 전역 기본 DB가 사용됩니다.
+
 #### 독립 실행 파일(EXE)
 ```bash
 sql2excel.exe --mode=validate --xml=./queries/sample-queries.xml
@@ -115,12 +150,12 @@ sql2excel.exe --mode=help
 
 #### 개발/소스 코드 사용 시
 - Node.js 16.0 이상
-- SQL Server 2012 이상
+- 데이터베이스 서버 (MSSQL 2012+, MySQL 5.7+, 또는 MariaDB 10.2+)
 - 적절한 데이터베이스 권한
 
 #### 독립 실행 파일 사용 시
 - Windows 10 이상 (64비트)
-- SQL Server 2012 이상
+- 데이터베이스 서버 (MSSQL 2012+, MySQL 5.7+, 또는 MariaDB 10.2+)
 - 적절한 데이터베이스 권한
 - **Node.js 설치 불필요**
 
@@ -147,32 +182,46 @@ npm run build
 `config/dbinfo.json` 파일을 생성하세요:
 ```json
 {
-  "dbs": {
-    "sampleDB": {
-      "server": "localhost",
-      "port": 1433,
-      "database": "SampleDB",
-      "user": "sa",
-      "password": "yourpassword",
-      "options": {
-        "encrypt": false,
-        "trustServerCertificate": true
-      }
-    },
-    "erpDB": {
-      "server": "erp-server.com",
-      "port": 1433,
-      "database": "ERP_Database",
-      "user": "erp_user",
-      "password": "erp_password",
-      "options": {
-        "encrypt": true,
-        "trustServerCertificate": false
-      }
+  "sampleDB": {
+    "type": "mssql",
+    "server": "localhost",
+    "port": 1433,
+    "database": "SampleDB",
+    "user": "sa",
+    "password": "yourpassword",
+    "options": {
+      "encrypt": false,
+      "trustServerCertificate": true
+    }
+  },
+  "mysqlDB": {
+    "type": "mysql",
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password",
+    "options": {
+      "connectionTimeout": 30000
+    }
+  },
+  "mariaDB": {
+    "type": "mariadb",
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password",
+    "options": {
+      "connectionTimeout": 30000
     }
   }
 }
 ```
+
+**참고:** 
+- `type` 필드는 선택사항입니다. 지정하지 않으면 하위 호환성을 위해 기본값 `mssql`을 사용합니다.
+- 지원 타입: `mssql`, `mysql`, `mariadb`
 
 ## 🚀 기본 사용법
 
@@ -366,7 +415,7 @@ node src/excel-cli.js export --xml ./queries/sales-report.xml \
 
 ```xml
 <!-- column_identified 사용 (기본값) -->
-<dynamicVar name="customerData" description="고객 정보">
+<dynamicVar name="customerData" description="고객 정보" db="sampleDB">
   <![CDATA[
     SELECT CustomerID, CustomerName, Region FROM Customers
   ]]>
@@ -374,7 +423,7 @@ node src/excel-cli.js export --xml ./queries/sales-report.xml \
 </dynamicVar>
 
 <!-- key_value_pairs 사용 -->
-<dynamicVar name="statusMapping" description="상태 매핑">
+<dynamicVar name="statusMapping" description="상태 매핑" database="mariaDB">
   <![CDATA[
     SELECT StatusCode, StatusName FROM StatusCodes
   ]]>

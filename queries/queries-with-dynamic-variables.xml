@@ -1,5 +1,5 @@
 <queries>
-  <excel db="sampleDB" output="d:/temp/dynamic_variables_test_${DATE:yyyy-MM-dd}.csv" maxRows="20" style="modern" aggregateInfoTemplate="Related data {count} records {details}">
+  <excel db="sampleDB" output="d:/temp/dynamic_variables_test_${DATE:yyyyMMddhhmmss}.xlsx" maxRows="20" style="modern" aggregateInfoTemplate="Related data {count} records {details}">
     <!-- Style template ID (default: default) -->
     <!-- Available templates: default, modern, dark, colorful, minimal, business, premium -->
     <!-- Can be overridden with individual style attributes if needed -->
@@ -11,7 +11,7 @@
     <var name="startDate">2024-01-01</var>
     <var name="endDate">2024-06-30</var>
     <var name="regionList">["Seoul", "Busan"]</var>
-    <var name="statusList">["ACTIVE", "PENDING", "COMPLETED"]</var>
+    <var name="statusList">["Pending", "Shipped"]</var>
     <var name="categoryIds">[1, 2, 3, 5]</var>
     <var name="maxRows">1000</var>
   </vars>
@@ -19,9 +19,9 @@
   <!-- Dynamic variable definitions -->
   <dynamicVars>
          <!-- Default type (column_identified): Create arrays for each column -->
-    <dynamicVar name="customerData" description="Customer data by column" database="sampleDB">
+    <dynamicVar name="customerData" description="Customer data by column">
       <![CDATA[
-        SELECT CustomerID, CustomerName, City, Region, CustomerType
+        SELECT distinct CustomerID, CustomerName, City, Region, CustomerType
         FROM SampleDB.dbo.Customers
         WHERE IsActive = 1
         ORDER BY CustomerID
@@ -31,31 +31,26 @@
     <!-- key_value_pairs type: First column as key, second column as value -->
     <dynamicVar name="orderDetails" type="key_value_pairs" description="Order detail information" database="sampleDB">
       <![CDATA[
-        SELECT OrderID, OrderDetailID
+        SELECT distinct OrderID, OrderDetailID
         FROM SampleDB.dbo.OrderDetails
         ORDER BY OrderID
       ]]>
     </dynamicVar>
     
-                   <!-- Default type (column_identified): Create arrays for each column -->
-      <dynamicVar name="activeOrders" description="Active orders list" database="sampleDB">
+      <!-- Default type (column_identified): Create arrays for each column -->
+      <dynamicVar name="activeOrders" description="Active orders list" db="sampleDB">
        <![CDATA[
-         SELECT OrderID
-         FROM SampleDB.dbo.Orders
+         SELECT distinct OrderID
+         FROM Orders
          WHERE OrderStatus = 'Pending'
-         ORDER BY OrderID
        ]]>
      </dynamicVar>
      
            <!-- Default type (column_identified): Dynamic variable combining datetime functions and regular variables -->
-      <dynamicVar name="recentOrders" description="Recent orders information" database="sampleDB">
+      <dynamicVar name="recentOrders" description="Recent orders information" db="sampleDB">
        <![CDATA[
-         SELECT OrderID, OrderNumber, OrderDate
-         FROM SampleDB.dbo.Orders
-         WHERE OrderDate >= '${startDate}' 
-           AND OrderDate <= '${endDate}'
-           AND OrderDate >= DATEADD(day, -30, '${CURRENT_DATE}')
-         ORDER BY OrderDate DESC
+         SELECT distinct OrderID, OrderNumber, OrderDate
+         FROM Orders
        ]]>
      </dynamicVar>
   </dynamicVars>
@@ -70,9 +65,8 @@
         c.City as City,
         c.Region as Region,
         c.CustomerType as CustomerType
-      FROM SampleDB.dbo.Customers c
-      WHERE c.CustomerID IN (${customerData.CustomerID})
-        AND c.Region IN (${regionList})
+      FROM Customers c
+      WHERE c.Region IN (${regionList})
       ORDER BY c.CustomerID
       ]]>
     </queryDef>
@@ -80,63 +74,58 @@
 
 
   <!-- Sheet definitions -->
-  <sheet name="${envType}_DynamicVar_Seoul_Busan_Test" use="true" queryRef="customer_base" aggregateColumn="Region" aggregateInfoTemplate="Customer distribution by region: {count} records {details}" maxRows="100" db="sampleDB">
+  <sheet name="${envType}_DynamicVar_Seoul_Busan_Test" use="true" queryRef="customer_base" aggregateColumn="Region" aggregateInfoTemplate="Customer distribution by region: {count} records {details}" maxRows="100" db="mariaDB">
     <params>
-      <param name="regionList">["Seoul", "Busan"]</param>
+      <param name="regionList">["서울", "부산"]</param>
     </params>
   </sheet>
   
-  <sheet name="${envType}_DynamicVar_Busan_Test" use="true" queryRef="customer_base" aggregateColumn="Region" aggregateInfoTemplate="Customer distribution by region: {count} records {details}" maxRows="100" db="sampleDB">
-    <params>
-      <param name="regionList">["Busan"]</param>
-    </params>
-  </sheet>
   
-  <sheet name="OrderDetail_DynamicVar_Test2" use="true" aggregateColumn="OrderStatus" aggregateInfoTemplate="Order status summary: {count} records {details}">
+  <sheet name="OrderDetail_DynamicVar_Test2" use="true" aggregateColumn="OrderStatus" aggregateInfoTemplate="Order status summary: {count} records {details}" db="postgresDB">
     <![CDATA[
       SELECT 
         o.OrderID as OrderID,
         o.OrderNumber as OrderNumber,
         o.OrderStatus as OrderStatus,
         od.OrderDetailID as DetailID,
-        FORMAT(o.TotalAmount, 'N0') as TotalAmount
-      FROM SampleDB.dbo.Orders o
-      INNER JOIN SampleDB.dbo.OrderDetails od ON o.OrderID = od.OrderID
+        o.TotalAmount
+      FROM Orders o
+      INNER JOIN OrderDetails od ON o.OrderID = od.OrderID
              WHERE o.OrderID IN (${orderDetails.OrderID})
          AND o.OrderID IN (${activeOrders.OrderID})
        ORDER BY o.OrderID DESC
     ]]>
   </sheet>
   
-  <sheet name="OrderDetail_DynamicVar_Test" use="true" aggregateColumn="OrderStatus" aggregateInfoTemplate="Order status analysis: {count} records {details}">
+  <sheet name="OrderDetail_DynamicVar_Test" use="true" aggregateColumn="OrderStatus" aggregateInfoTemplate="Order status analysis: {count} records {details}" db="postgresDB">
     <![CDATA[
       SELECT 
         o.OrderNumber as OrderNumber,
-        FORMAT(o.OrderDate, 'yyyy-MM-dd') as OrderDate,
+        o.OrderDate as OrderDate,
         o.OrderStatus as OrderStatus,
         c.CustomerName as CustomerName,
-        FORMAT(o.TotalAmount, 'N0') as TotalAmount
-      FROM SampleDB.dbo.Orders o
-      INNER JOIN SampleDB.dbo.Customers c ON o.CustomerID = c.CustomerID
+        o.TotalAmount
+      FROM Orders o
+      INNER JOIN Customers c ON o.CustomerID = c.CustomerID
       WHERE o.OrderID IN (${recentOrders.OrderID})
         AND o.OrderStatus IN (${statusList})
       ORDER BY o.OrderDate DESC
     ]]>
   </sheet>
   
-  <sheet name="Combined_DynamicVar_Test" use="true" aggregateInfoTemplate="Related data {count} records">
+  <sheet name="Combined_DynamicVar_Test" use="true" aggregateInfoTemplate="Related data {count} records" db="oracleDB">
     <![CDATA[
       SELECT 
         c.CustomerName as CustomerName,
         c.Region as Region,
         COUNT(o.OrderID) as OrderCount,
-        FORMAT(SUM(o.TotalAmount), 'N0') as TotalOrderAmount
-      FROM SampleDB.dbo.Customers c
-      INNER JOIN SampleDB.dbo.Orders o ON c.CustomerID = o.CustomerID
+        SUM(o.TotalAmount) as TotalOrderAmount
+      FROM Customers c
+      INNER JOIN Orders o ON c.CustomerID = o.CustomerID
       WHERE c.CustomerID IN (${customerData.CustomerID})
         AND c.Region IN (${customerData.Region})
-                 AND o.OrderID IN (${activeOrders.OrderID})
-         AND o.OrderDate >= '${startDate}'
+        AND o.OrderID IN (${activeOrders.OrderID})
+        AND o.OrderDate >= '${startDate}'
         AND o.OrderDate <= '${endDate}'
       GROUP BY c.CustomerName, c.Region
       ORDER BY TotalOrderAmount DESC

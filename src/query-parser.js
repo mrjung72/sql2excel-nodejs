@@ -135,8 +135,8 @@ class QueryParser {
     const allowedAttributes = {
       excel: ['db', 'output', 'maxRows', 'style', 'aggregateInfoTemplate'],
       var: ['name'],
-      dynamicVar: ['name', 'description', 'type', 'database'],
-      queryDef: ['id', 'description'],
+      dynamicVar: ['name', 'description', 'type', 'database', 'db'],
+      queryDef: ['id', 'description', 'db'],
       // exceptColumns 속성 사용 (대소문자 구분 없이 허용), 하위호환: except_columns도 파싱에서 지원
       sheet: ['name', 'use', 'queryRef', 'aggregateColumn', 'aggregateInfoTemplate', 'maxRows', 'db', 'style', 'exceptColumns'],
       param: ['name']
@@ -339,7 +339,7 @@ class QueryParser {
           const query = dv._.toString().trim();
           const type = dv.$.type || 'column_identified';
           const description = dv.$.description || '';
-          const database = dv.$.database || '';
+          const database = dv.$.database || dv.$.db || '';
           
           dynamicVars.push({
             name: dv.$.name,
@@ -413,7 +413,13 @@ class QueryParser {
         }
       } else {
         // 직접 쿼리가 있으면 사용
-        query = (s._ || (s["_"] ? s["_"] : (s["$"] ? s["$"] : '')) || (s["__cdata"] ? s["__cdata"] : '') || (s["cdata"] ? s["cdata"] : '') || (s["#cdata-section"] ? s["#cdata-section"] : '') || (s["__text"] ? s["__text"] : '') || (s["#text"] ? s["#text"] : '') || (s["$text"] ? s["$text"] : '') || (s["$value"] ? s["$value"] : '') || (s["value"] ? s["value"] : '') || '').toString().trim();
+        // <query> 태그가 있는 경우: s.query[0]
+        if (s.query && s.query[0]) {
+          query = (typeof s.query[0] === 'string' ? s.query[0] : (s.query[0]._ || s.query[0]['#text'] || '')).toString().trim();
+        } else {
+          // 직접 텍스트로 작성된 경우: s._
+          query = (s._ || (s["_"] ? s["_"] : (s["$"] ? s["$"] : '')) || (s["__cdata"] ? s["__cdata"] : '') || (s["cdata"] ? s["cdata"] : '') || (s["#cdata-section"] ? s["#cdata-section"] : '') || (s["__text"] ? s["__text"] : '') || (s["#text"] ? s["#text"] : '') || (s["$text"] ? s["$text"] : '') || (s["$value"] ? s["$value"] : '') || (s["value"] ? s["value"] : '') || '').toString().trim();
+        }
       }
       
       // exceptColumns 속성(case-insensitive) 탐색: exceptColumns / except_columns 둘 다 지원

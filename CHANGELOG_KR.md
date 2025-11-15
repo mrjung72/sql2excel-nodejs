@@ -1,6 +1,65 @@
 # SQL2Excel 버전 히스토리
 
-## v1.3.3 - 문서 동기화 및 버전 올림 (2025-10-31)
+## v2.1.5 - 동적 변수 DB 라우팅 & XML 검증 업데이트 (2025-11-15)
+
+### ✨ 변경 사항
+- 동적 변수 DB 라우팅
+  - XML `dynamicVar`에서 `db` 속성 지원 (`database`의 별칭)
+  - 각 동적 변수는 지정된 DB 키의 어댑터로 실행
+  - 미지정 시 전역 기본 DB로 폴백
+- XML 검증 업데이트
+  - XML 구조 검증에서 `queryDef`의 `db` 속성을 허용 (문서/향후 확장용). 실제 실행 DB는 시트의 `db` 또는 전역 기본 DB가 적용됨
+
+### 🔧 코드 변경
+- `src/query-parser.js`
+  - `dynamicVar`에 `db` 속성 허용; 파싱 시 `database || db` 처리
+  - XML 검증에서 `queryDef`의 `db` 속성 허용
+- `src/variable-processor.js`
+  - 동적 변수를 해당 DB 어댑터로 실행 (`dbAdapters[targetDbKey]`)
+- `src/index.js`
+  - 동적 변수 처리에 `dbAdapters`와 `defaultDbKey` 전달
+
+### 📝 문서
+- README/README_KR: v2.1.5 하이라이트, `dynamicVar`의 `db`/`database` 속성 사용 노트 및 예시 추가
+- USER_MANUAL/USER_MANUAL_KR: 동적 변수 속성 및 변수별 DB 라우팅 동작 문서화
+- CHANGELOG/CHANGELOG_KR: v2.1.5 항목 추가
+
+## v2.1.4 - DB 어댑터 테스트 쿼리 도입 및 스키마 정합성 (2025-11-08)
+
+### ✨ 변경 사항
+- 어댑터 단위 연결 테스트 SQL 도입
+  - 모든 DB 어댑터에 `getTestQuery()` 추가
+    - MSSQL: `SELECT 1 as test`
+    - MySQL/MariaDB: `SELECT 1 as test`
+    - PostgreSQL: `SELECT 1`
+    - SQLite: `SELECT 1`
+    - Oracle: `SELECT 1 FROM dual`
+  - `excel-cli.js`는 연결 검증 시 어댑터의 `getTestQuery()`를 사용
+
+- 샘플 스키마 정합성(Orders)
+  - PostgreSQL: `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID` 추가
+  - MySQL: `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID` 추가
+  - 목적: 샘플 데이터 컬럼과 일치 및 MSSQL 스키마와의 정합성 향상
+
+### 🐛 버그 수정
+- Oracle 연결 검증 오류 수정 (`list-dbs`/검증 플로우)
+  - 하드코딩된 `SELECT 1 as test` → 어댑터 제공 테스트 쿼리로 대체
+- `excel-cli.js`: `loadDatabaseConfig()`의 깨진 `catch` 블록 수정 및 오류 메시지 개선(`configFileLoadFailed`)
+
+### 🔧 코드 변경
+- `src/database/OracleAdapter.js`: `getTestQuery()` 추가
+- `src/database/MSSQLAdapter.js`: `getTestQuery()` 추가
+- `src/database/MySQLAdapter.js`: `getTestQuery()` 추가
+- `src/database/PostgreSQLAdapter.js`: `getTestQuery()` 추가
+- `src/database/SQLiteAdapter.js`: `getTestQuery()` 추가
+- `src/excel-cli.js`: 어댑터의 테스트 쿼리 사용; `loadDatabaseConfig()` catch 블록 수정
+- `resources/create_sample_tables_postgresql.sql`: Orders 컬럼 추가 (`SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`)
+- `resources/create_sample_tables_mysql.sql`: Orders 컬럼 추가 (`SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`)
+
+### 📝 비고
+- 본 변경으로 샘플 데이터(PostgreSQL)가 각 DB 스키마 적용 시 원활히 적재되도록 정합성이 개선되었습니다.
+
+## v2.1.3-beta (v1.3.3) - 문서 동기화 및 버전 올림 (2025-10-31)
 
 ### ✨ 변경 사항
 - 시트에서 특정 컬럼을 결과에서 제외하는 `exceptColumns` 속성 추가
@@ -23,7 +82,7 @@
 - KR/EN 문서(README, USER_MANUAL, CHANGELOG) 동기화
 - 패키지 버전을 1.3.3으로 업데이트
 
-## v1.3.1 - 파일명 변수 및 DATE 개선 (2025-10-30)
+## v2.1.1-beta (v1.3.1) - 파일명 변수 및 DATE 개선 (2025-10-30)
 
 ### ✨ 변경 사항
 - 출력 파일명 변수 기능 강화
@@ -46,7 +105,7 @@
 - USER_MANUAL/USER_MANUAL_KR: 파일명 변수(`DB_NAME`, DATE), 소문자 토큰, 로컬 시간 동작 설명 추가
 - CHANGELOG/CHANGELOG_KR: v1.3.1 항목 추가
 
-## v1.3.0 - CSV/TXT 시트별 내보내기 및 라우팅 규칙 (2025-10-29)
+## v2.1.0-beta (v1.3.0) - CSV/TXT 시트별 내보내기 및 라우팅 규칙 (2025-10-29)
 
 ### ✨ 변경 사항
 - 출력 확장자에 따른 라우팅
@@ -73,7 +132,7 @@
 - USER_MANUAL/USER_MANUAL_KR: 라우팅, 디렉토리/파일명 규칙, 기본값 섹션 추가
 - CHANGELOG/CHANGELOG_KR: v1.3.0 항목 추가
 
-## v1.2.11 - TOC 원본 시트명 컬럼 및 시트명 길이 경고 (2025-10-29)
+## v2.0.2-beta (v1.2.11) - TOC 원본 시트명 컬럼 및 시트명 길이 경고 (2025-10-29)
 
 ### ✨ 변경 사항
 - 시트명 길이 31자 초과 시 이제 검증에서 오류가 아닌 경고로 처리합니다.
@@ -91,7 +150,7 @@
 - README/README_KR: v1.2.11 하이라이트 및 변경점 반영
 - CHANGELOG/CHANGELOG_KR: v1.2.11 항목 추가
 
-## v1.2.10 - 비대화식 CLI 및 문서 업데이트 (2025-10-29)
+## v2.0.1-beta (v1.2.10) - 비대화식 CLI 및 문서 업데이트 (2025-10-29)
 
 ### ✨ 새로운 기능
 
@@ -102,7 +161,96 @@
 
 ### 📝 문서
 - README.md / README_KR.md: "비대화식 CLI" 사용법과 예시 추가
-- 하이라이트를 v1.3.0으로 업데이트
+
+
+## v2.0.0-beta - 다중 데이터베이스 지원 (2025-10-22)
+
+### ✨ 새로운 기능
+- **다중 데이터베이스 지원**: MSSQL 외 다양한 데이터베이스 타입 지원
+  - **지원 데이터베이스**: MSSQL, MySQL, MariaDB
+  - **통합 인터페이스**: 모든 데이터베이스 타입에 대한 일관된 API
+  - **데이터베이스 팩토리 패턴**: 데이터베이스 타입에 따라 자동으로 적절한 어댑터 선택
+  - **하위 호환성**: 기존 MSSQL 설정은 변경 없이 그대로 작동
+
+### 🔧 설정
+```json
+{
+  "sampleDB": {
+    "type": "mssql",      // 선택사항, 지정하지 않으면 "mssql" 기본값 사용
+    "server": "localhost",
+    "port": 1433,
+    "database": "SampleDB",
+    "user": "sa",
+    "password": "password"
+  },
+  "mysqlDB": {
+    "type": "mysql",      // 신규: MySQL 지원
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  },
+  "mariaDB": {
+    "type": "mariadb",    // 신규: MariaDB 지원
+    "server": "localhost",
+    "port": 3306,
+    "database": "mydb",
+    "user": "root",
+    "password": "password"
+  }
+}
+```
+
+### 📦 기술적 변경사항
+- **새로운 아키텍처**:
+  - `src/database/DatabaseFactory.js`: 데이터베이스 어댑터 생성 팩토리
+  - `src/database/MSSQLAdapter.js`: MSSQL 구현 (mssql-helper.js에서 리팩토링)
+  - `src/database/MySQLAdapter.js`: MySQL/MariaDB 구현
+  
+- **업데이트된 파일**:
+  - `src/index.js`: MSSQLHelper 대신 DatabaseFactory 사용
+  - `src/variable-processor.js`: 데이터베이스 독립적인 구현
+  - `package.json`: `mysql2` 의존성 추가
+
+### 🔄 데이터베이스별 특징
+- **MSSQL**: 
+  - 행 제한에 `TOP N` 사용
+  - `GETDATE()` 함수 지원
+  
+- **MySQL/MariaDB**: 
+  - 행 제한에 `LIMIT N` 사용
+  - `GETDATE()`를 `NOW()`로 자동 변환
+  - 자동 재연결 기능이 있는 연결 풀링
+
+### 💡 사용 예시
+```xml
+<!-- 하나의 엑셀 파일에 다양한 데이터베이스 타입 혼합 -->
+<excel output="multi_db_report_${DATE.UTC:YYYYMMDD}.xlsx" db="mysqlDB">
+  <sheet name="MySQL 사용자" db="mysqlDB">
+    <query>SELECT * FROM users</query>
+  </sheet>
+  
+  <sheet name="MSSQL 주문" db="sampleDB">
+    <query>SELECT * FROM orders</query>
+  </sheet>
+  
+  <sheet name="MariaDB 제품" db="mariaDB">
+    <query>SELECT * FROM products</query>
+  </sheet>
+</excel>
+```
+
+### ⚠️ 참고사항
+- **Type 필드**: 데이터베이스 설정의 `type` 필드는 선택사항입니다. 생략하면 하위 호환성을 위해 `mssql`을 기본값으로 사용합니다.
+- **포트 번호**: 지정하지 않으면 기본 포트를 사용합니다 (MSSQL: 1433, MySQL/MariaDB: 3306)
+- **연결 풀링**: 모든 데이터베이스 타입은 최적의 성능을 위해 연결 풀링을 사용합니다
+
+### 📚 의존성
+- 추가: `mysql2@^3.6.0` - Promise 지원이 포함된 MySQL/MariaDB 드라이버
+- 유지: `mssql@^10.0.0` - Microsoft SQL Server 드라이버
+
+---
 
 ## v1.2.9 - 글로벌 타임존 시스템 및 로컬 시간 지원 (2025-10-21)
 

@@ -1,9 +1,8 @@
-const MSSQLHelper = require('./mssql-helper');
+const { getMessages, LANGUAGE } = require('./utils/messages');
+const { formatDate, createInClause, timezoneOffsets } = require('./utils/date-utils');
 
-// 언어 설정 (환경 변수 사용, 기본값 영어)
-const LANGUAGE = process.env.LANGUAGE || 'en';
-
-// 다국어 메시지
+// 다국어 메시지는 utils/messages.js에서 관리
+// 하위 호환성을 위해 여기에 재정의
 const messages = {
     en: {
         dynamicVarSet: 'Dynamic variable set:',
@@ -95,8 +94,21 @@ const msg = messages[LANGUAGE] || messages.en;
 class VariableProcessor {
   constructor() {
     this.dynamicVariables = {};
-    this.mssqlHelper = new MSSQLHelper(LANGUAGE);
-    this.msg = msg;
+    this.msg = getMessages('variable', LANGUAGE);
+  }
+  
+  /**
+   * IN 절 생성 유틸리티 (재사용)
+   */
+  createInClause(values) {
+    return createInClause(values);
+  }
+  
+  /**
+   * 날짜 포맷팅 함수 (재사용)
+   */
+  formatDate(date, format) {
+    return formatDate(date, format);
   }
 
   /**
@@ -112,12 +124,12 @@ class VariableProcessor {
   /**
    * 동적 변수 처리
    * @param {Array} dynamicVars - 동적 변수 정의 배열
-   * @param {MSSQLHelper} mssqlHelper - MSSQL 헬퍼 인스턴스
-   * @param {string} dbKey - 데이터베이스 키
+   * @param {Object} dbAdapters - 데이터베이스 어댑터 맵 (dbKey -> adapter)
+   * @param {string} defaultDbKey - 기본 데이터베이스 키
    * @param {Object} globalVars - 전역 변수
    * @param {Object} configObj - 데이터베이스 설정 객체
    */
-  async processDynamicVariables(dynamicVars, mssqlHelper, dbKey, globalVars, configObj) {
+  async processDynamicVariables(dynamicVars, dbAdapters, defaultDbKey, globalVars, configObj) {
     // 동적 변수 초기화
     this.dynamicVariables = {};
     
@@ -128,17 +140,23 @@ class VariableProcessor {
         if (dynamicVar.name && dynamicVar.query) {
           try {
             console.log(`${this.msg.dynamicVarProcessing} ${dynamicVar.name} (${dynamicVar.description || this.msg.noDesc})`);
-            
+              
             // 쿼리에서 변수 치환 (기존 변수들로)
             const processedQuery = this.substituteVars(dynamicVar.query, globalVars);
             
             // 동적 변수에 지정된 데이터베이스 사용 (있으면), 없으면 기본값 사용
-            const targetDbKey = dynamicVar.database || dbKey;
+            const targetDbKey = dynamicVar.database || defaultDbKey;
             console.log(`${this.msg.database} ${targetDbKey} (${dynamicVar.database ? this.msg.dynamicVarSpecified : this.msg.default})`);
             
+            // 대상 DB에 맞는 어댑터 선택
+            const adapter = dbAdapters[targetDbKey] || dbAdapters[defaultDbKey];
+            if (!adapter) {
+              throw new Error(`DB adapter not found for key: ${targetDbKey}`);
+            }
+            
             // DB에서 데이터 조회
-            const pool = await mssqlHelper.createConnectionPool(configObj[targetDbKey], targetDbKey);
-            const result = await mssqlHelper.executeQuery(pool, processedQuery);
+            const pool = await adapter.createConnectionPool(configObj[targetDbKey], targetDbKey);
+            const result = await adapter.executeQuery(pool, processedQuery);
             
             if (result.recordset && result.recordset.length > 0) {
               const data = result.recordset;
@@ -229,7 +247,7 @@ class VariableProcessor {
       try {
         // 배열 타입인 경우 IN절 처리
         if (Array.isArray(value)) {
-          const inClause = this.mssqlHelper.createInClause(value);
+          const inClause = this.createInClause(value);
           result = result.replace(pattern, inClause);
           
           if (debugVariables && beforeReplace !== result) {
@@ -246,12 +264,12 @@ class VariableProcessor {
             
             if (Array.isArray(keyValue)) {
               // column_identified: 배열 값을 IN절로 변환
-              const inClause = this.mssqlHelper.createInClause(keyValue);
+              const inClause = this.createInClause(keyValue);
               result = result.replace(keyPattern, inClause);
             } else {
               // key_value_pairs: 키 값들을 배열로 반환 (IN절용)
               if (Array.isArray(keyValue)) {
-                const inClause = this.mssqlHelper.createInClause(keyValue);
+                const inClause = this.createInClause(keyValue);
                 result = result.replace(keyPattern, inClause);
               } else {
                 // 단일 값인 경우
@@ -270,11 +288,11 @@ class VariableProcessor {
           if (allValues.every(v => Array.isArray(v))) {
             // column_identified: 모든 배열 값을 통합하여 IN절로
             const flatValues = allValues.flat();
-            const inClause = this.mssqlHelper.createInClause(flatValues);
+            const inClause = this.createInClause(flatValues);
             result = result.replace(pattern, inClause);
           } else {
             // key_value_pairs: 모든 값들을 IN절로
-            const inClause = this.mssqlHelper.createInClause(allValues);
+            const inClause = this.createInClause(allValues);
             result = result.replace(pattern, inClause);
           }
           
@@ -295,32 +313,7 @@ class VariableProcessor {
       }
     });
     
-    // 타임존별 오프셋 설정 (UTC 기준, 분 단위)
-    const timezoneOffsets = {
-      'UTC': 0,           // 협정 세계시
-      'GMT': 0,           // 그리니치 표준시 (UTC와 동일)
-      'KST': 540,         // 한국 표준시 (UTC+9)
-      'JST': 540,         // 일본 표준시 (UTC+9)
-      'CST': 480,         // 중국 표준시 (UTC+8)
-      'SGT': 480,         // 싱가포르 표준시 (UTC+8)
-      'PHT': 480,         // 필리핀 표준시 (UTC+8)
-      'AEST': 600,        // 호주 동부 표준시 (UTC+10)
-      'ICT': 420,         // 인도차이나 표준시 (UTC+7) - 태국, 베트남
-      'CET': 60,          // 중앙 유럽 표준시 (UTC+1) - 독일, 프랑스, 이탈리아, 폴란드
-      'EET': 120,         // 동유럽 표준시 (UTC+2)
-      'IST': 330,         // 인도 표준시 (UTC+5:30)
-      'GST': 240,         // 걸프 표준시 (UTC+4)
-      'EST': -300,        // 미국 동부 표준시 (UTC-5)
-      'CST_US': -360,     // 미국/캐나다/멕시코 중부 표준시 (UTC-6)
-      'MST': -420,        // 미국 산악 표준시 (UTC-7)
-      'PST': -480,        // 미국 서부 표준시 (UTC-8)
-      'AST': -240,        // 대서양 표준시 (UTC-4) - 캐나다 동부
-      'AKST': -540,       // 알래스카 표준시 (UTC-9)
-      'HST': -600,        // 하와이 표준시 (UTC-10)
-      'BRT': -180,        // 브라질 표준시 (UTC-3)
-      'ART': -180         // 아르헨티나 표준시 (UTC-3)
-    };
-    
+    // 타임존별 오프셋은 utils/date-utils.js에서 관리
     // 타임존 지정 없는 로컬 날짜 변수 치환 (예: ${DATE:YYYY-MM-DD})
     const localDatePattern = /\$\{DATE:([^}]+)\}/g;
     let localDateMatch;
@@ -331,7 +324,7 @@ class VariableProcessor {
       try {
         // 로컬 시간 사용 (시스템 타임존)
         const now = new Date();
-        const formattedDate = this.mssqlHelper.formatDateLocal(now, format);
+        const formattedDate = this.formatDate(now, format);
         result = result.replace(fullMatch, formattedDate);
         
         if (debugVariables) {
@@ -360,7 +353,7 @@ class VariableProcessor {
         // 타임존 오프셋을 적용한 날짜 계산
         const date = new Date(now.getTime() + (offsetMinutes * 60 * 1000));
         
-        const formattedDate = this.mssqlHelper.formatDate(date, format);
+        const formattedDate = this.formatDate(date, format);
         result = result.replace(fullMatch, formattedDate);
         
         if (debugVariables) {
@@ -379,7 +372,7 @@ class VariableProcessor {
       
       // 배열 타입인 경우 IN절 처리
       if (Array.isArray(value)) {
-        const inClause = this.mssqlHelper.createInClause(value);
+        const inClause = this.createInClause(value);
         
         if (debugVariables) {
           console.log(`${this.msg.generalVar} [${v}] ${this.msg.substituted} ${this.msg.array} ${value.length}개 ${this.msg.toInClause}`);
@@ -415,7 +408,7 @@ class VariableProcessor {
           // 환경 변수가 배열 형태인지 확인 (JSON 형태로 저장된 경우)
           const parsed = JSON.parse(envValue);
           if (Array.isArray(parsed)) {
-            const inClause = this.mssqlHelper.createInClause(parsed);
+            const inClause = this.createInClause(parsed);
             result = result.replace(fullMatch, inClause);
             
             if (debugVariables) {
