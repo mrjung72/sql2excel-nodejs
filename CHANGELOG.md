@@ -24,7 +24,7 @@
 - USER_MANUAL/USER_MANUAL_KR: Documented dynamicVar attributes and per-variable DB routing
 - CHANGELOG/CHANGELOG_KR: Added v2.1.5 entries
 
-## v2.1.4(v1.3.4) - DB Adapter Test Query & Schema Alignment (2025-11-08)
+## v2.1.4 - DB Adapter Test Query & Schema Alignment (2025-11-08)
 
 ### ✨ New/Changed
 - Adapter-level connection test SQL
@@ -102,7 +102,7 @@
 - USER_MANUAL/USER_MANUAL_KR: Updated per-sheet export section to reflect new directory naming and formatting rules
 - CHANGELOG/CHANGELOG_KR: Added v1.3.2 entry
 
-## v2.1.1(v1.3.1) - Filename Variables and DATE Fixes (2025-10-30)
+## v2.1.1-beta (v1.3.1) - Filename Variables and DATE Fixes (2025-10-30)
 
 ### ✨ New/Changed
 - Output filename variable enhancements
@@ -125,7 +125,7 @@
 - USER_MANUAL/USER_MANUAL_KR: Documented filename variables (`DB_NAME`, DATE), lowercase tokens, and local-time behavior
 - CHANGELOG/CHANGELOG_KR: Added v1.3.1 entry
 
-## v2.1.0(v1.3.0) - Per-sheet Export for CSV/TXT and Routing Rules (2025-10-29)
+## v2.1.0-beta (v1.3.0) - Per-sheet Export for CSV/TXT and Routing Rules (2025-10-29)
 
 ### ✨ New/Changed
 - Export routing based on output extension
@@ -152,7 +152,7 @@
 - USER_MANUAL/USER_MANUAL_KR: Added section describing routing, directory/filename rules, and defaults
 - CHANGELOG/CHANGELOG_KR: Added v1.3.0 entry
 
-## v2.0.11(v1.2.11) - TOC Original Name & Sheet Name Length Warning (2025-10-29)
+## v2.0.2-beta (v1.2.11) - TOC Original Name & Sheet Name Length Warning (2025-10-29)
 
 ### ✨ New/Changed
 - Sheet name length > 31 characters is now treated as a warning during validation (no failure)
@@ -170,7 +170,7 @@
 - README/README_KR: Updated highlights to v1.2.11, described changes
 - CHANGELOG: Added v1.2.11 entry
 
-## v2.0.10(v1.2.10) - Non-interactive CLI & Docs (2025-10-29)
+## v2.0.1-beta (v1.2.10) - Non-interactive CLI & Docs (2025-10-29)
 
 ### ✨ New Features
 
@@ -183,7 +183,7 @@
 - README.md / README_KR.md: Added "Non-interactive CLI" usage and examples
 - Updated highlights to v1.2.10
 
-## v2.0.0 - Multi-Database Support (2025-10-22)
+## v2.0.0-beta - Multi-Database Support (2025-10-22)
 
 ### ✨ New Features
 - **Multi-Database Support**: Support for multiple database types beyond MSSQL

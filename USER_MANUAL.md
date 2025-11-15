@@ -47,7 +47,7 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 - 📊 **Multi-Sheet Support**: Save multiple SQL query results in separate sheets within one Excel file
 - 🎨 **Template Style System**: Pre-defined Excel styling templates for consistent design with 7 built-in styles
 - 🔗 **Multiple DB Connections**: Use different database connections for each sheet
-- 🗄️ **Multi-Database Support (v2.0.0+)**: Support for MSSQL, MySQL, and MariaDB with unified interface
+- 🗄️ **Multi-Database Support (v2.0.0-beta+)**: Support for MSSQL, MySQL, and MariaDB with unified interface
 - 📝 **Variable System**: Use variables in queries for dynamic query generation
 - 🔄 **Enhanced Dynamic Variables**: Extract values from database in real-time with advanced processing
 - 🔄 **Query Reuse**: Define common queries and reuse them across multiple sheets
@@ -122,7 +122,7 @@ npm run build
 ### 3. Database Connection Setup
 Create `config/dbinfo.json` file:
 
-#### Multi-Database Support (v2.0.0+)
+#### Multi-Database Support (v2.0.0-beta+)
 ```json
 {
   "sampleDB": {
@@ -459,12 +459,12 @@ sql2excel.exe --mode=help
 This tool supports multiple databases with unified adapters and flexible routing.
 
 - **Supported drivers**: MSSQL (`mssql`), MySQL (`mysql2`), MariaDB (`mysql2`), PostgreSQL (`pg`), SQLite (`better-sqlite3`), Oracle (`oracledb`)
-- **Configuration**: Define multiple DB keys in `config/dbinfo.json` with optional `type` (defaults to `mssql`) and connection fields. See examples above and in “Multi-Database Support (v2.0.0+)”.
+- **Configuration**: Define multiple DB keys in `config/dbinfo.json` with optional `type` (defaults to `mssql`) and connection fields. See examples above and in “Multi-Database Support (v2.0.0-beta+)”.
 - **Runtime DB selection precedence (v2.1.5+)**
   - Default DB key: CLI `--db` > `excel.db`
   - Per sheet: `sheet.db` overrides default DB
   - Dynamic variables: `dynamicVar.database` or `dynamicVar.db` overrides default DB
-- **Mixed-DB usage**: You can query different DBs within a single export. See “Multi-Database Support (v2.0.0+)” for XML/JSON examples.
+- **Mixed-DB usage**: You can query different DBs within a single export. See “Multi-Database Support (v2.0.0-beta+)” for XML/JSON examples.
 - **Connection test**: Validate connectivity before export with `node src/excel-cli.js list-dbs` (dev) or `sql2excel.exe list-dbs` (EXE).
 - **Adapter behavior**: Row limiting and functions are adapted per DB (e.g., MSSQL uses TOP, MySQL/MariaDB use LIMIT).
 
@@ -838,7 +838,7 @@ This feature works automatically - no configuration required!
 
 ## 🎨 Advanced Features
 
-### 1. Multi-Database Support (v2.0.0+)
+### 1. Multi-Database Support (v2.0.0-beta+)
 
 SQL2Excel now supports multiple database types with a unified interface:
 

@@ -10,7 +10,7 @@ A Node.js-based tool for generating Excel files from SQL query results.
 - XML validation update
   - `queryDef` now allows `db` attribute in XML schema validation. Note: current execution still uses sheet-level `db` or global default; `queryDef.db` is for future use/documentation.
 
-## v2.1.4(v1.3.4) Highlights
+## v2.1.4 Highlights
 
 - Adapter-level DB connection test queries
   - Added `getTestQuery()` to all DB adapters
@@ -20,7 +20,7 @@ A Node.js-based tool for generating Excel files from SQL query results.
   - PostgreSQL/MySQL: added `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`
   - Aligns with sample data and improves parity with MSSQL schema
 
-## v2.1.3(v1.3.3) Highlights
+## v2.1.3-beta (v1.3.3) Highlights
 
 - Documentation synchronization (KR/EN) and minor updates
 - Package version updated to 1.3.3
@@ -29,7 +29,7 @@ A Node.js-based tool for generating Excel files from SQL query results.
 - 📊 **Multi-Sheet Support**: Save multiple SQL query results in separate sheets within one Excel file
 - 🎨 **Template Style System**: Pre-defined Excel styling templates for consistent design with 7 built-in styles
 - 🔗 **Multiple DB Connections**: Use different database connections for each sheet
-- 🗄️ **Multi-Database Support (v2.0.0+)**: Support for MSSQL, MySQL, and MariaDB with unified interface
+- 🗄️ **Multi-Database Support (v2.0.0-beta+)**: Support for MSSQL, MySQL, and MariaDB with unified interface
 - 📝 **Variable System**: Use variables in queries for dynamic query generation
 - 🔄 **Enhanced Dynamic Variables**: Extract values from database in real-time with advanced processing
 - 🔄 **Query Reuse**: Define common queries and reuse them across multiple sheets
@@ -74,7 +74,7 @@ A Node.js-based tool for generating Excel files from SQL query results.
   - Record separators remain CRLF; headers included
   - Date values are serialized as `yyyy-MM-dd HH:mm:ss` (24-hour) in CSV/TXT and SQL literals
 
-## v2.1.1(v1.3.1) Highlights
+## v2.1.1-beta (v1.3.1) Highlights
 
 - Filename variables in output path
   - Support `${DB_NAME}` (current DB key), custom syntax `$(DB_NAME}` normalized automatically
@@ -82,7 +82,7 @@ A Node.js-based tool for generating Excel files from SQL query results.
   - Lowercase date tokens supported: `yyyy, yy, dd, d, hh, h, sss`
   - Removed auto `_yyyymmddhhmmss` suffix; control naming via DATE variables
 
-## v2.1.0(v1.3.0) Highlights
+## v2.1.0-beta (v1.3.0) Highlights
 
 - **Per-sheet export routing by extension**
   - `.xlsx` / `.xls` → Generate a single Excel workbook (existing behavior)
