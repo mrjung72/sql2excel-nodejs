@@ -135,8 +135,8 @@ class QueryParser {
     const allowedAttributes = {
       excel: ['db', 'output', 'maxRows', 'style', 'aggregateInfoTemplate'],
       var: ['name'],
-      dynamicVar: ['name', 'description', 'type', 'database'],
-      queryDef: ['id', 'description'],
+      dynamicVar: ['name', 'description', 'type', 'database', 'db'],
+      queryDef: ['id', 'description', 'db'],
       // exceptColumns 속성 사용 (대소문자 구분 없이 허용), 하위호환: except_columns도 파싱에서 지원
       sheet: ['name', 'use', 'queryRef', 'aggregateColumn', 'aggregateInfoTemplate', 'maxRows', 'db', 'style', 'exceptColumns'],
       param: ['name']
@@ -339,7 +339,7 @@ class QueryParser {
           const query = dv._.toString().trim();
           const type = dv.$.type || 'column_identified';
           const description = dv.$.description || '';
-          const database = dv.$.database || '';
+          const database = dv.$.database || dv.$.db || '';
           
           dynamicVars.push({
             name: dv.$.name,

@@ -247,15 +247,12 @@ async function main() {
     return await adapter.createConnectionPool(configObj[dbKey], dbKey);
   }
   
-  // 기본 DB 어댑터 가져오기
-  const defaultAdapter = dbAdapters[defaultDbKey];
-  
   // 기본 DB 연결
   const defaultPool = await getDbPool(defaultDbKey);
 
   // 동적 변수 처리 (DB 연결 후, 시트 처리 전)
   if (dynamicVars && dynamicVars.length > 0) {
-    await variableProcessor.processDynamicVariables(dynamicVars, defaultAdapter, defaultDbKey, mergedVars, configObj);
+    await variableProcessor.processDynamicVariables(dynamicVars, dbAdapters, defaultDbKey, mergedVars, configObj);
   }
 
   // 엑셀 파일 경로 결정 (CLI > excel > 쿼리파일 > 기본값)

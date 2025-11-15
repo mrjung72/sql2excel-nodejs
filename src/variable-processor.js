@@ -124,12 +124,12 @@ class VariableProcessor {
   /**
    * 동적 변수 처리
    * @param {Array} dynamicVars - 동적 변수 정의 배열
-   * @param {Object} dbAdapter - 데이터베이스 어댑터 인스턴스
-   * @param {string} dbKey - 데이터베이스 키
+   * @param {Object} dbAdapters - 데이터베이스 어댑터 맵 (dbKey -> adapter)
+   * @param {string} defaultDbKey - 기본 데이터베이스 키
    * @param {Object} globalVars - 전역 변수
    * @param {Object} configObj - 데이터베이스 설정 객체
    */
-  async processDynamicVariables(dynamicVars, dbAdapter, dbKey, globalVars, configObj) {
+  async processDynamicVariables(dynamicVars, dbAdapters, defaultDbKey, globalVars, configObj) {
     // 동적 변수 초기화
     this.dynamicVariables = {};
     
@@ -140,17 +140,23 @@ class VariableProcessor {
         if (dynamicVar.name && dynamicVar.query) {
           try {
             console.log(`${this.msg.dynamicVarProcessing} ${dynamicVar.name} (${dynamicVar.description || this.msg.noDesc})`);
-            
+              
             // 쿼리에서 변수 치환 (기존 변수들로)
             const processedQuery = this.substituteVars(dynamicVar.query, globalVars);
             
             // 동적 변수에 지정된 데이터베이스 사용 (있으면), 없으면 기본값 사용
-            const targetDbKey = dynamicVar.database || dbKey;
+            const targetDbKey = dynamicVar.database || defaultDbKey;
             console.log(`${this.msg.database} ${targetDbKey} (${dynamicVar.database ? this.msg.dynamicVarSpecified : this.msg.default})`);
             
+            // 대상 DB에 맞는 어댑터 선택
+            const adapter = dbAdapters[targetDbKey] || dbAdapters[defaultDbKey];
+            if (!adapter) {
+              throw new Error(`DB adapter not found for key: ${targetDbKey}`);
+            }
+            
             // DB에서 데이터 조회
-            const pool = await dbAdapter.createConnectionPool(configObj[targetDbKey], targetDbKey);
-            const result = await dbAdapter.executeQuery(pool, processedQuery);
+            const pool = await adapter.createConnectionPool(configObj[targetDbKey], targetDbKey);
+            const result = await adapter.executeQuery(pool, processedQuery);
             
             if (result.recordset && result.recordset.length > 0) {
               const data = result.recordset;
