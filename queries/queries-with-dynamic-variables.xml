@@ -11,7 +11,7 @@
     <var name="startDate">2024-01-01</var>
     <var name="endDate">2024-06-30</var>
     <var name="regionList">["Seoul", "Busan"]</var>
-    <var name="statusList">["ACTIVE", "PENDING", "COMPLETED"]</var>
+    <var name="statusList">["Pending", "Shipped"]</var>
     <var name="categoryIds">[1, 2, 3, 5]</var>
     <var name="maxRows">1000</var>
   </vars>
@@ -21,7 +21,7 @@
          <!-- Default type (column_identified): Create arrays for each column -->
     <dynamicVar name="customerData" description="Customer data by column">
       <![CDATA[
-        SELECT CustomerID, CustomerName, City, Region, CustomerType
+        SELECT distinct CustomerID, CustomerName, City, Region, CustomerType
         FROM SampleDB.dbo.Customers
         WHERE IsActive = 1
         ORDER BY CustomerID
@@ -31,7 +31,7 @@
     <!-- key_value_pairs type: First column as key, second column as value -->
     <dynamicVar name="orderDetails" type="key_value_pairs" description="Order detail information" database="sampleDB">
       <![CDATA[
-        SELECT OrderID, OrderDetailID
+        SELECT distinct OrderID, OrderDetailID
         FROM SampleDB.dbo.OrderDetails
         ORDER BY OrderID
       ]]>
@@ -40,7 +40,7 @@
       <!-- Default type (column_identified): Create arrays for each column -->
       <dynamicVar name="activeOrders" description="Active orders list" db="sampleDB">
        <![CDATA[
-         SELECT OrderID
+         SELECT distinct OrderID
          FROM Orders
          WHERE OrderStatus = 'Pending'
        ]]>
@@ -49,7 +49,7 @@
            <!-- Default type (column_identified): Dynamic variable combining datetime functions and regular variables -->
       <dynamicVar name="recentOrders" description="Recent orders information" db="sampleDB">
        <![CDATA[
-         SELECT OrderID, OrderNumber, OrderDate
+         SELECT distinct OrderID, OrderNumber, OrderDate
          FROM Orders
        ]]>
      </dynamicVar>
