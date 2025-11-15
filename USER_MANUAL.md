@@ -19,7 +19,7 @@
 
 SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL query results with advanced styling, template support, and standalone executable distribution.
 
-### What's New (v1.3.4)
+### What's New (v2.1.4-beta, v1.3.4)
 
 - Adapter-level DB connection test queries
   - Added `getTestQuery()` to all DB adapters
@@ -29,7 +29,7 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
   - PostgreSQL/MySQL: added `SubTotal`, `PaymentMethod`, `PaymentStatus`, `EmployeeID`
   - Aligns with sample data and improves parity with MSSQL schema
 
-### What's New (v1.3.3)
+### What's New (v2.1.3-beta, v1.3.3)
 
 - Added `exceptColumns` sheet option (XML/JSON) to exclude specific columns from outputs
 - Documentation synchronization across KR/EN
@@ -59,7 +59,7 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 - 📋 **SQL Query Formatting**: Preserve original SQL formatting with line breaks in Table of Contents
 - 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 
-### What's New (v1.3.2)
+### What's New (v2.1.2-beta, v1.3.2)
 
 - Per-sheet export routing by extension
   - `.xlsx` / `.xls` → Generate a single Excel workbook (existing behavior)
