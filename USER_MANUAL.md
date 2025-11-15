@@ -19,6 +19,14 @@
 
 SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL query results with advanced styling, template support, and standalone executable distribution.
 
+### What's New (v2.1.5-beta, v1.3.5)
+
+- DynamicVar DB routing
+  - XML `dynamicVar` supports `db` (alias of `database`) attribute
+  - Each dynamic variable runs on its specified DB adapter; falls back to default DB if omitted
+- XML validation update
+  - `queryDef` accepts `db` in schema validation (execution DB is still determined by sheet `db` or global default)
+
 ### What's New (v2.1.4-beta, v1.3.4)
 
 - Adapter-level DB connection test queries
@@ -527,15 +535,15 @@ The tool supports advanced dynamic variables that can extract data at runtime an
 #### XML Configuration
 ```xml
 <dynamicVars>
-  <!-- Using column_identified (default) -->
-  <dynamicVar name="customerData" description="Customer information">
+  <!-- Using column_identified (default) on specific DB -->
+  <dynamicVar name="customerData" description="Customer information" db="sampleDB">
     <![CDATA[
       SELECT CustomerID, CustomerName, Region FROM Customers
     ]]>
   </dynamicVar>
   
-  <!-- Using key_value_pairs -->
-  <dynamicVar name="productPrices" type="key_value_pairs" description="Product prices">
+  <!-- Using key_value_pairs on a different DB -->
+  <dynamicVar name="productPrices" type="key_value_pairs" description="Product prices" database="mariaDB">
     <![CDATA[
       SELECT ProductID, UnitPrice FROM Products WHERE Discontinued = 0
     ]]>
@@ -558,6 +566,10 @@ WHERE CustomerID IN (${customerData.CustomerID})
 3. **Error Handling**: If a variable query fails, it's replaced with an empty result
 4. **Performance**: Variables are executed once and cached for the entire export
 5. **Debug Mode**: Enable with `DEBUG_VARIABLES=true` for detailed variable substitution
+
+Notes:
+- Supported `dynamicVar` attributes: `name`, `description`, `type`, `db`, `database` (`db` is an alias). If both are present, `database` takes precedence.
+- `queryDef` accepts `db` in XML validation only; runtime execution DB is selected from the sheet's `db` or the global default DB.
 
 ## 🕒 Custom Date/Time Variables
 

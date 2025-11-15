@@ -2,6 +2,14 @@
 
 A Node.js-based tool for generating Excel files from SQL query results.
 
+## v2.1.5-beta(v1.3.5) Highlights
+
+- DynamicVar DB routing
+  - `dynamicVar` now supports `db` (alias of `database`) attribute in XML.
+  - Each dynamic variable executes on its specified DB adapter (falls back to default DB when omitted).
+- XML validation update
+  - `queryDef` now allows `db` attribute in XML schema validation. Note: current execution still uses sheet-level `db` or global default; `queryDef.db` is for future use/documentation.
+
 ## v2.1.4-beta(v1.3.4) Highlights
 
 - Adapter-level DB connection test queries
@@ -109,6 +117,10 @@ node app.js --mode=export --query=./queries/sample-queries.json
 # Help
 node app.js --mode=help
 ```
+
+Notes:
+- Attributes supported on `dynamicVar`: `name`, `description`, `type`, `db`, `database` (`db` is an alias). When both are present, `database` takes precedence.
+- `queryDef` accepts `db` for validation purposes; execution DB is determined by sheet's `db` or the global default DB.
 
 #### Standalone EXE
 ```bash
@@ -391,7 +403,7 @@ The tool supports dynamic variables that can extract data at runtime and use it 
 
 ```xml
 <!-- Using column_identified (default) -->
-<dynamicVar name="customerData" description="Customer information">
+<dynamicVar name="customerData" description="Customer information" db="sampleDB">
   <![CDATA[
     SELECT CustomerID, CustomerName, Region FROM Customers
   ]]>
@@ -399,7 +411,7 @@ The tool supports dynamic variables that can extract data at runtime and use it 
 </dynamicVar>
 
 <!-- Using key_value_pairs -->
-<dynamicVar name="statusMapping" description="Status mapping">
+<dynamicVar name="statusMapping" description="Status mapping" database="mariaDB">
   <![CDATA[
     SELECT StatusCode, StatusName FROM StatusCodes
   ]]>

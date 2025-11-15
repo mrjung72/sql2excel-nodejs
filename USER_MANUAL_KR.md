@@ -19,6 +19,14 @@
 
 SQL2Excel은 고급 스타일링, 템플릿 지원, 독립 실행 파일 배포 기능을 갖춘 SQL 쿼리 결과로 엑셀 파일을 생성하는 강력한 Node.js 기반 도구입니다.
 
+### v2.1.5-beta(v1.3.5) 주요 변경
+
+- 동적 변수 DB 라우팅
+  - XML `dynamicVar`에서 `db` 속성 지원 (`database`의 별칭)
+  - 각 동적 변수는 지정된 DB 어댑터에서 실행, 미지정 시 전역 기본 DB 사용
+- XML 검증 업데이트
+  - XML 스키마 검증에서 `queryDef`의 `db` 속성 허용 (실행 DB는 여전히 시트 `db` 또는 전역 기본 DB로 결정)
+
 ### v2.1.4-beta(v1.3.4) 주요 변경
 
 - 어댑터별 DB 연결 테스트 쿼리 도입
@@ -539,15 +547,15 @@ node src/excel-cli.js export --xml queries.xml --style modern
 #### XML 구성
 ```xml
 <dynamicVars>
-  <!-- column_identified 사용 (기본값) -->
-  <dynamicVar name="customerData" description="고객 정보">
+  <!-- column_identified 사용 (기본값), 특정 DB에서 실행 -->
+  <dynamicVar name="customerData" description="고객 정보" db="sampleDB">
     <![CDATA[
       SELECT CustomerID, CustomerName, Region FROM Customers
     ]]>
   </dynamicVar>
   
-  <!-- key_value_pairs 사용 -->
-  <dynamicVar name="productPrices" type="key_value_pairs" description="제품 가격">
+  <!-- key_value_pairs 사용, 다른 DB에서 실행 -->
+  <dynamicVar name="productPrices" type="key_value_pairs" description="제품 가격" database="mariaDB">
     <![CDATA[
       SELECT ProductID, UnitPrice FROM Products WHERE Discontinued = 0
     ]]>
@@ -570,6 +578,10 @@ WHERE CustomerID IN (${customerData.CustomerID})
 3. **오류 처리**: 변수 쿼리가 실패하면 빈 결과로 대체됩니다
 4. **성능**: 변수는 한 번 실행되고 전체 내보내기에 대해 캐시됩니다
 5. **디버그 모드**: 자세한 변수 치환을 위해 `DEBUG_VARIABLES=true`로 활성화
+
+참고:
+- `dynamicVar`에서 지원하는 속성: `name`, `description`, `type`, `db`, `database` (`db`는 별칭). 둘 다 있으면 `database`가 우선합니다.
+- `queryDef`는 XML 검증에서 `db` 속성을 허용합니다. 실행 시점의 DB는 시트의 `db` 또는 전역 기본 DB로 결정됩니다.
 
 ## 🕒 커스텀 날짜/시간 변수
 

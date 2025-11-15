@@ -1,5 +1,29 @@
 # SQL2Excel Version History
 
+## v2.1.5-beta(v1.3.5) - DynamicVar DB Routing & XML Validation Update (2025-11-15)
+
+### ✨ New/Changed
+- Dynamic variable DB routing
+  - XML `dynamicVar` supports `db` (alias of `database`) attribute
+  - Each dynamic variable is executed using the adapter for its specified DB key
+  - Fallback to default DB when not specified
+- XML validation update
+  - `queryDef` now allows `db` attribute during structure validation (for documentation/future use). Execution DB remains sheet-level `db` or global default
+
+### 🔧 Code Changes
+- `src/query-parser.js`
+  - Allow `db` attribute on `dynamicVar`; parse `database || db`
+  - Allow `db` attribute on `queryDef` in validation
+- `src/variable-processor.js`
+  - Execute dynamic variables on their own DB adapters (`dbAdapters[targetDbKey]`)
+- `src/index.js`
+  - Pass `dbAdapters` and `defaultDbKey` to dynamic variable processor
+
+### 📝 Documentation
+- README/README_KR: Added v2.1.5 highlights, dynamicVar `db`/`database` usage notes and examples
+- USER_MANUAL/USER_MANUAL_KR: Documented dynamicVar attributes and per-variable DB routing
+- CHANGELOG/CHANGELOG_KR: Added v2.1.5 entries
+
 ## v2.1.4-beta(v1.3.4) - DB Adapter Test Query & Schema Alignment (2025-11-08)
 
 ### ✨ New/Changed

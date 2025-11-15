@@ -1,5 +1,29 @@
 # SQL2Excel 버전 히스토리
 
+## v2.1.5-beta(v1.3.5) - 동적 변수 DB 라우팅 & XML 검증 업데이트 (2025-11-15)
+
+### ✨ 변경 사항
+- 동적 변수 DB 라우팅
+  - XML `dynamicVar`에서 `db` 속성 지원 (`database`의 별칭)
+  - 각 동적 변수는 지정된 DB 키의 어댑터로 실행
+  - 미지정 시 전역 기본 DB로 폴백
+- XML 검증 업데이트
+  - XML 구조 검증에서 `queryDef`의 `db` 속성을 허용 (문서/향후 확장용). 실제 실행 DB는 시트의 `db` 또는 전역 기본 DB가 적용됨
+
+### 🔧 코드 변경
+- `src/query-parser.js`
+  - `dynamicVar`에 `db` 속성 허용; 파싱 시 `database || db` 처리
+  - XML 검증에서 `queryDef`의 `db` 속성 허용
+- `src/variable-processor.js`
+  - 동적 변수를 해당 DB 어댑터로 실행 (`dbAdapters[targetDbKey]`)
+- `src/index.js`
+  - 동적 변수 처리에 `dbAdapters`와 `defaultDbKey` 전달
+
+### 📝 문서
+- README/README_KR: v2.1.5 하이라이트, `dynamicVar`의 `db`/`database` 속성 사용 노트 및 예시 추가
+- USER_MANUAL/USER_MANUAL_KR: 동적 변수 속성 및 변수별 DB 라우팅 동작 문서화
+- CHANGELOG/CHANGELOG_KR: v2.1.5 항목 추가
+
 ## v2.1.4-beta(v1.3.4) - DB 어댑터 테스트 쿼리 도입 및 스키마 정합성 (2025-11-08)
 
 ### ✨ 변경 사항

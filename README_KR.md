@@ -2,6 +2,14 @@
 
 SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니다.
 
+## v2.1.5-beta(v1.3.5) 하이라이트
+
+- 동적 변수 DB 라우팅
+  - XML의 `dynamicVar`에서 `db`(= `database` 별칭) 속성 지원.
+  - 각 동적 변수는 지정한 DB 어댑터에서 실행되며, 미지정 시 기본 DB 사용.
+- XML 검증 업데이트
+  - XML 스키마 검증에서 `queryDef`의 `db` 속성을 허용. 주의: 현재 실행 DB는 시트의 `db` 또는 전역 기본 DB가 사용되며, `queryDef.db`는 향후 문서/확장용.
+
 ## v2.1.4-beta(v1.3.4) 하이라이트
 
 - 어댑터별 DB 연결 테스트 쿼리 도입
@@ -109,6 +117,10 @@ node app.js --mode=export --query=./queries/sample-queries.json
 # 도움말
 node app.js --mode=help
 ```
+
+참고:
+- `dynamicVar`에서 지원하는 속성: `name`, `description`, `type`, `db`, `database` (`db`는 별칭). 둘 다 있으면 `database`가 우선합니다.
+- `queryDef`는 검증 목적상 `db`를 허용합니다. 실제 실행 DB는 시트의 `db` 혹은 전역 기본 DB가 사용됩니다.
 
 #### 독립 실행 파일(EXE)
 ```bash
@@ -391,7 +403,7 @@ node src/excel-cli.js export --xml ./queries/sales-report.xml \
 
 ```xml
 <!-- column_identified 사용 (기본값) -->
-<dynamicVar name="customerData" description="고객 정보">
+<dynamicVar name="customerData" description="고객 정보" db="sampleDB">
   <![CDATA[
     SELECT CustomerID, CustomerName, Region FROM Customers
   ]]>
@@ -399,7 +411,7 @@ node src/excel-cli.js export --xml ./queries/sales-report.xml \
 </dynamicVar>
 
 <!-- key_value_pairs 사용 -->
-<dynamicVar name="statusMapping" description="상태 매핑">
+<dynamicVar name="statusMapping" description="상태 매핑" database="mariaDB">
   <![CDATA[
     SELECT StatusCode, StatusName FROM StatusCodes
   ]]>
