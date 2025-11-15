@@ -50,6 +50,18 @@ SQL 쿼리 결과를 엑셀 파일로 생성하는 Node.js 기반 도구입니�
 - 🔧 **입력 유효성 검증**: 파일 경로 입력에 대한 자동 공백 제거
 - 🗂️ **파일명 변수**: `excel.output`에서 `${DATE:...}`, `${DATE.TZ:...}`, `${DB_NAME}` 사용 가능 (커스텀 `$(DB_NAME}`도 지원)
 
+## 🔗 다중 데이터베이스 사용
+
+- **지원 드라이버**: MSSQL(`mssql`), MySQL(`mysql2`), MariaDB(`mysql2`), PostgreSQL(`pg`), SQLite(`better-sqlite3`), Oracle(`oracledb`)
+- **설정 파일**: `config/dbinfo.json`에 DB 키별 접속 정보와 `type` 지정 (MSSQL은 생략 시 기본값)
+- **런타임 DB 선택 우선순위**
+  - 기본 DB 키: `--db`(CLI) > `excel.db`(XML/JSON)
+  - 시트: `sheet.db` > 기본 DB
+  - 동적 변수: `dynamicVar.database` 또는 `dynamicVar.db` > 기본 DB
+- **연결 테스트**
+  - 개발: `npm run list-dbs`
+  - EXE: `sql2excel.exe list-dbs`
+
 ## v2.1.2-beta(v1.3.2) 하이라이트
 
 - 시트별 내보내기 디렉토리 명명 단순화

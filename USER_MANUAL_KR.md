@@ -121,7 +121,7 @@ npm run build
 ### 3. 데이터베이스 연결 설정
 `config/dbinfo.json` 파일을 생성하세요:
 
-#### 다중 데이터베이스 지원 (v1.3.0+)
+#### 다중 데이터베이스 지원 (v2.0.0+)
 ```json
 {
   "sampleDB": {
@@ -466,12 +466,21 @@ sql2excel.exe --mode=help
   - 내부 줄바꿈(\r/\n)은 CSV/TXT 모두 공백으로 정규화
   - 날짜 직렬화: `yyyy-MM-dd HH:mm:ss` (24시간)
 
+## 🔗 다중 데이터베이스
+
+통합 어댑터와 유연한 라우팅으로 여러 데이터베이스를 지원합니다.
+
+- **지원 드라이버**: MSSQL(`mssql`), MySQL(`mysql2`), MariaDB(`mysql2`), PostgreSQL(`pg`), SQLite(`better-sqlite3`), Oracle(`oracledb`)
+- **설정**: `config/dbinfo.json`에 다수의 DB 키를 정의하고 `type`(미지정 시 `mssql`)과 접속 정보를 설정하세요. 상세 예시는 위 “다중 데이터베이스 지원 (v2.0.0+)” 섹션 참고.
+- **런타임 DB 선택 우선순위 (v2.1.5+)
+  - 기본 DB 키: CLI `--db` > `excel.db`
+  - 시트별: `sheet.db`가 기본 DB를 오버라이드
+  - 동적 변수: `dynamicVar.database` 또는 `dynamicVar.db`가 기본 DB를 오버라이드
+- **혼합 사용**: 하나의 내보내기에서 서로 다른 DB를 동시에 사용할 수 있습니다. XML/JSON 예시는 “다중 데이터베이스 지원 (v2.0.0+)” 섹션을 참고하세요.
+- **연결 테스트**: 내보내기 전 `node src/excel-cli.js list-dbs`(개발) 또는 `sql2excel.exe list-dbs`(EXE)로 확인하세요.
+- **어댑터 동작**: 행 제한과 함수가 DB별로 자동 조정됩니다 (예: MSSQL=TOP, MySQL/MariaDB=LIMIT).
+
 ## 🎨 템플릿 스타일 시스템
-
-SQL2Excel은 사전 정의된 엑셀 스타일링 템플릿을 포함한 포괄적인 템플릿 스타일 시스템을 제공합니다.
-
-### 사용 가능한 템플릿 스타일
-
 | 스타일 ID | 이름 | 설명 |
 |----------|------|------|
 | `default` | 기본 스타일 | 기본 엑셀 스타일 |
@@ -836,7 +845,7 @@ SQL2Excel은 생성된 각 엑셀 시트에 자동으로 생성 타임스탬프�
 
 ## 🎨 고급 기능
 
-### 1. 다중 데이터베이스 지원 (v1.3.0+)
+### 1. 다중 데이터베이스 지원 (v2.0.0+)
 
 SQL2Excel은 이제 통합 인터페이스로 여러 데이터베이스 타입을 지원합니다:
 
@@ -958,6 +967,13 @@ node src/excel-cli.js list-dbs
 # 독립 실행 파일
 sql2excel-v1.3.0.exe list-dbs
 ```
+
+#### 런타임 DB 선택 우선순위 (v2.1.5+)
+
+- 기본 DB 키: CLI `--db` > `excel.db`
+- 시트별: `sheet.db`가 기본 DB를 오버라이드
+- 동적 변수: `dynamicVar.database` 또는 `dynamicVar.db`가 기본 DB를 오버라이드
+- 팁: 내보내기 전에 위 `list-dbs`로 연결 상태를 점검하세요
 
 ### 2. 엑셀 스타일링
 

@@ -122,7 +122,7 @@ npm run build
 ### 3. Database Connection Setup
 Create `config/dbinfo.json` file:
 
-#### Multi-Database Support (v1.3.0+)
+#### Multi-Database Support (v2.0.0+)
 ```json
 {
   "sampleDB": {
@@ -453,6 +453,20 @@ sql2excel.exe --mode=help
   ]
 }
 ```
+
+## 🔗 Multi-Database
+
+This tool supports multiple databases with unified adapters and flexible routing.
+
+- **Supported drivers**: MSSQL (`mssql`), MySQL (`mysql2`), MariaDB (`mysql2`), PostgreSQL (`pg`), SQLite (`better-sqlite3`), Oracle (`oracledb`)
+- **Configuration**: Define multiple DB keys in `config/dbinfo.json` with optional `type` (defaults to `mssql`) and connection fields. See examples above and in “Multi-Database Support (v2.0.0+)”.
+- **Runtime DB selection precedence (v2.1.5+)**
+  - Default DB key: CLI `--db` > `excel.db`
+  - Per sheet: `sheet.db` overrides default DB
+  - Dynamic variables: `dynamicVar.database` or `dynamicVar.db` overrides default DB
+- **Mixed-DB usage**: You can query different DBs within a single export. See “Multi-Database Support (v2.0.0+)” for XML/JSON examples.
+- **Connection test**: Validate connectivity before export with `node src/excel-cli.js list-dbs` (dev) or `sql2excel.exe list-dbs` (EXE).
+- **Adapter behavior**: Row limiting and functions are adapted per DB (e.g., MSSQL uses TOP, MySQL/MariaDB use LIMIT).
 
 ## 🎨 Template Style System
 
@@ -824,7 +838,7 @@ This feature works automatically - no configuration required!
 
 ## 🎨 Advanced Features
 
-### 1. Multi-Database Support (v1.3.0+)
+### 1. Multi-Database Support (v2.0.0+)
 
 SQL2Excel now supports multiple database types with a unified interface:
 
@@ -946,6 +960,13 @@ node src/excel-cli.js list-dbs
 # Standalone executable
 sql2excel-v1.3.0.exe list-dbs
 ```
+
+#### Runtime DB selection precedence (v2.1.5+)
+
+- Default DB key: CLI `--db` > `excel.db`
+- Per sheet: `sheet.db` overrides default DB
+- Dynamic variables: `dynamicVar.database` or `dynamicVar.db` overrides default DB
+- Tip: Use `list-dbs` (above) to verify connections before export
 
 ### 2. Excel Styling
 

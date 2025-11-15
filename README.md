@@ -50,6 +50,18 @@ A Node.js-based tool for generating Excel files from SQL query results.
 - 🔧 **Input Validation**: Automatic whitespace trimming for file path inputs
 - 🗂️ **Filename Variables**: Use `${DATE:...}`, `${DATE.TZ:...}`, and `${DB_NAME}` in `excel.output` (also supports custom `$(DB_NAME}`)
 
+## 🔗 Multi-Database Usage
+
+- **Supported drivers**: MSSQL (`mssql`), MySQL (`mysql2`), MariaDB (`mysql2`), PostgreSQL (`pg`), SQLite (`better-sqlite3`), Oracle (`oracledb`)
+- **Configuration**: `config/dbinfo.json` with per-DB keys and `type` (optional for MSSQL default)
+- **Runtime DB selection precedence**
+  - Default DB key: `--db` (CLI) > `excel.db` (XML/JSON)
+  - Sheet: `sheet.db` > Default DB
+  - Dynamic variables: `dynamicVar.database` or `dynamicVar.db` > Default DB
+- **Connection test**
+  - Dev: `npm run list-dbs`
+  - EXE: `sql2excel.exe list-dbs`
+
 ## v2.1.2-beta(v1.3.2) Highlights
 
 - Per-sheet export directory naming simplified
