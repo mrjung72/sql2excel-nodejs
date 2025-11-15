@@ -155,18 +155,6 @@ Create `config/dbinfo.json` file:
     "database": "mydb",
     "user": "root",
     "password": "password"
-  },
-  "erpDB": {
-    "server": "erp-server.com",
-    "port": 1433,
-    "database": "ERP_Database",
-    "user": "erp_user",
-    "password": "erp_password",
-      "options": {
-        "encrypt": true,
-        "trustServerCertificate": false
-      }
-    }
   }
 }
 ```
