@@ -49,7 +49,7 @@
       ORDER BY o.OrderDate DESC
     ]]>
   </sheet>
-  <sheet name="Wildcard_Customer" use="true" exceptColumns="IsActive,CreatedDate,LastUpdated" db="mysql">
+  <sheet name="Wildcard_Customer" use="true" exceptColumns="IsActive,CreatedDate,LastUpdated" db="mariaDB">
     <![CDATA[
       SELECT c.*
       FROM Orders o

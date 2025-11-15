@@ -33,10 +33,10 @@
     "user": "sahara",
     "password": "1111",
     "server": "localhost",
-    "database": "mydb",
+    "database": "sampledb",
     "port": 3306,
     "options": {
-      "connectionTimeout": 30000
+      "connectionTimeout": 3000
     }
   },
   "sourceDB": {
@@ -52,8 +52,8 @@
       "encrypt": true, 
       "trustServerCertificate": true,
       "enableArithAbort": true,
-      "requestTimeout": 300000,
-      "connectionTimeout": 30000
+      "requestTimeout": 3000,
+      "connectionTimeout": 3000
     }
   },
   "postgresDB": {
@@ -65,8 +65,8 @@
     "port": 5432,
     "options": {
       "max": 10,
-      "idleTimeoutMillis": 30000,
-      "connectionTimeout": 30000
+      "idleTimeoutMillis": 3000,
+      "connectionTimeout": 3000
     }
   },
   "sqliteDB": {
@@ -87,7 +87,7 @@
       "poolMin": 0,
       "poolMax": 4,
       "poolIncrement": 1,
-      "queueTimeout": 30000,
+      "queueTimeout": 3000,
       "stmtCacheSize": 30
     }
   }
