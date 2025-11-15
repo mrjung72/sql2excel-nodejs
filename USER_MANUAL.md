@@ -44,10 +44,10 @@ SQL2Excel is a powerful Node.js-based tool for generating Excel files from SQL q
 - Package version updated to 1.3.3
 
 ### Key Features
+- 🗄️ **Multi-Database Support**: Support for ORACLE, PostgreSQL, MSSQL, MySQL, and MariaDB with unified interface
 - 📊 **Multi-Sheet Support**: Save multiple SQL query results in separate sheets within one Excel file
 - 🎨 **Template Style System**: Pre-defined Excel styling templates for consistent design with 7 built-in styles
 - 🔗 **Multiple DB Connections**: Use different database connections for each sheet
-- 🗄️ **Multi-Database Support (v2.0.0-beta+)**: Support for MSSQL, MySQL, and MariaDB with unified interface
 - 📝 **Variable System**: Use variables in queries for dynamic query generation
 - 🔄 **Enhanced Dynamic Variables**: Extract values from database in real-time with advanced processing
 - 🔄 **Query Reuse**: Define common queries and reuse them across multiple sheets
